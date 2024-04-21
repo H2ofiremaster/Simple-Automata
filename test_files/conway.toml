@@ -1,0 +1,19 @@
+cells = [
+    { name = "dead", color = "#000000", states = {} },
+    { name = "alive", color = "#FFFFFF", states = {} },
+]
+
+rules = [
+    { in = "alive", out = "dead", conditions = [
+        { count = "..1", type = "alive" }
+    ]},
+    { in = "alive", out = "alive", conditions = [
+        { count = "2..3", type = "alive"}
+    ]},
+    { in = "alive", out = "dead", conditions = [
+        { count = "4..", type = "alive"}
+    ]},
+    { in = "dead", out = "alive", conditions = [
+        { count = 3, type = "alive"}
+    ]}
+]
