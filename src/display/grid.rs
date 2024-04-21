@@ -5,20 +5,20 @@ use crate::{
     logic::{cell::Cell, grid::Grid},
 };
 
-pub fn get_grid_size() -> f32 {
-    screen_width().min(screen_height())
+pub fn get_grid_size(size_multiplier: f32) -> f32 {
+    screen_width().min(screen_height()) * size_multiplier
 }
-pub fn get_cell_size(grid: &Grid) -> f32 {
-    get_grid_size() / grid.width as f32
+pub fn get_cell_size(grid: &Grid, size_multiplier: f32) -> f32 {
+    get_grid_size(size_multiplier) / grid.width as f32
 }
-pub fn get_grid_offset() -> Vec2 {
-    get_screen_center() - get_grid_size() / 2.
+pub fn get_grid_offset(size_multiplier: f32) -> Vec2 {
+    get_screen_center() - get_grid_size(size_multiplier) / 2.
 }
 
 pub fn display_grid(grid: &Grid, size_multiplier: f32) {
-    let grid_size: f32 = get_grid_size() * size_multiplier;
-    let cell_size: f32 = grid_size / grid.width as f32;
-    let grid_offset: Vec2 = get_screen_center() - grid_size / 2.;
+    let grid_size: f32 = get_grid_size(size_multiplier);
+    let cell_size: f32 = get_cell_size(grid, size_multiplier);
+    let grid_offset: Vec2 = get_grid_offset(size_multiplier);
     for row in 0..grid.height {
         (0..grid.height).for_each(|col| {
             let cell = grid

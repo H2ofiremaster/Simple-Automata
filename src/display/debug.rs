@@ -6,11 +6,11 @@ use crate::logic::{
     rules::{Rule, Ruleset},
 };
 
-use super::grid::{get_cell_size, get_grid_offset};
+use super::grid::{get_cell_size, get_grid_offset, get_grid_size};
 
 const FONT_SIZE: f32 = 25.;
-pub fn display_debug_screen(grid: &Grid, ruleset: &Ruleset) {
-    let Some((cell, index)) = get_hovered_cell(grid) else {
+pub fn display_debug_screen(grid: &Grid, ruleset: &Ruleset, size_multiplier: f32) {
+    let Some((cell, index)) = get_hovered_cell(grid, size_multiplier) else {
         return;
     };
     let current_cell = format!("{cell:?}; ({}, {})", index % grid.width, index / grid.width);
@@ -23,6 +23,8 @@ pub fn display_debug_screen(grid: &Grid, ruleset: &Ruleset) {
         FONT_SIZE,
         GREEN,
     );
+    text_offset += 1.1;
+
     let neighbours = format!(
         "Neighbors: ({:?}), ({:?}), ({:?}), ({:?}),",
         grid.get_neighbor(Direction::North, index),
@@ -37,12 +39,11 @@ pub fn display_debug_screen(grid: &Grid, ruleset: &Ruleset) {
         grid.get_neighbor(Direction::Northwest, index),
         grid.get_neighbor(Direction::Southwest, index),
     );
-    text_offset += 1.1;
 
     draw_text(
         &neighbours,
         0.,
-        text_size.offset_y * 2.1 * text_offset,
+        text_size.offset_y * text_offset,
         FONT_SIZE,
         GREEN,
     );
@@ -96,12 +97,16 @@ fn display_applied(applied_rules: Vec<&Rule>, text_size: &TextDimensions, text_o
     }
 }
 
-fn get_hovered_cell(grid: &Grid) -> Option<(&Cell, usize)> {
-    let offset: Vec2 = get_grid_offset();
-    let cell_size: f32 = get_cell_size(grid);
+fn get_hovered_cell(grid: &Grid, size_multiplier: f32) -> Option<(&Cell, usize)> {
+    let offset: Vec2 = get_grid_offset(size_multiplier);
+    let cell_size: f32 = get_cell_size(grid, size_multiplier);
+    let grid_size: f32 = get_grid_size(size_multiplier);
 
-    let mouse_pos: Vec2 = mouse_position().into();
-    let cell_position: Vec2 = (mouse_pos - offset) / cell_size;
+    let mouse_pos: Vec2 = Vec2::from(mouse_position()) - offset;
+    if mouse_pos.x > grid_size || mouse_pos.y > grid_size || mouse_pos.x < 0. || mouse_pos.y < 0. {
+        return None;
+    }
+    let cell_position: Vec2 = mouse_pos / cell_size;
     grid.get_cell(cell_position.x as usize, cell_position.y as usize)
         .map(|cell| {
             (

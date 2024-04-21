@@ -32,7 +32,7 @@ async fn main() {
         }
         if debug {
             display_grid(&grid, 0.7);
-            display_debug_screen(&grid, &ruleset);
+            display_debug_screen(&grid, &ruleset, 0.7);
         } else {
             display_grid(&grid, 1.)
         }

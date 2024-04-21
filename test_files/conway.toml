@@ -7,9 +7,6 @@ rules = [
     { in = "alive", out = "dead", conditions = [
         { count = "..1", type = "alive" }
     ]},
-    { in = "alive", out = "alive", conditions = [
-        { count = "2..3", type = "alive"}
-    ]},
     { in = "alive", out = "dead", conditions = [
         { count = "4..", type = "alive"}
     ]},
