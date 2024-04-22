@@ -90,7 +90,12 @@ pub fn handle_inputs(state: State) -> State {
     };
     if let (Some(selected_material), Menu::None) = (&state.selected_material, state.displayed_menu)
     {
-        handle_clicks(selected_material, &mut state.grid, size_multiplier)
+        handle_clicks(
+            selected_material,
+            state.ruleset.default_material(),
+            &mut state.grid,
+            size_multiplier,
+        )
     }
 
     display_grid(&state.grid, size_multiplier);
@@ -103,7 +108,12 @@ pub fn handle_inputs(state: State) -> State {
     state
 }
 
-fn handle_clicks(material: &Material, grid: &mut Grid, size_multiplier: f32) {
+fn handle_clicks(
+    material: &Material,
+    defualt_material: &Material,
+    grid: &mut Grid,
+    size_multiplier: f32,
+) {
     let cell_pos = get_hovered_cell_pos(grid, size_multiplier);
     let Some(cell_pos) = cell_pos else {
         return;
@@ -115,5 +125,12 @@ fn handle_clicks(material: &Material, grid: &mut Grid, size_multiplier: f32) {
 
     if is_mouse_button_down(MouseButton::Left) && !cell.is_material(&material.name) {
         grid.set_cell(cell_pos.0, cell_pos.1, Cell::new_default(material.clone()))
+    } else if is_mouse_button_down(MouseButton::Right) && !cell.is_material(&defualt_material.name)
+    {
+        grid.set_cell(
+            cell_pos.0,
+            cell_pos.1,
+            Cell::new_default(defualt_material.clone()),
+        )
     }
 }

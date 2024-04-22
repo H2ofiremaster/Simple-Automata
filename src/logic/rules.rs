@@ -21,6 +21,9 @@ impl Ruleset {
         let state = material.default_states();
         Cell::new(material, state)
     }
+    pub fn default_material(&self) -> &Material {
+        &self.materials[0]
+    }
     pub fn get_material(&self, name: &str) -> Option<&Material> {
         self.materials
             .iter()
