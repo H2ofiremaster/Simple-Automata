@@ -1,6 +1,6 @@
 use std::{fs, ops::RangeInclusive};
 
-use anyhow::{bail, ensure};
+use anyhow::{bail, ensure, Result};
 use macroquad::color::Color;
 use serde::Deserialize;
 use toml::{Table, Value};
@@ -13,7 +13,7 @@ use crate::logic::{
 
 #[derive(Debug, Deserialize)]
 struct SimpleRuleset {
-    cells: Vec<SimpleCellType>,
+    cells: Vec<SimpleMaterial>,
     rules: Vec<SimpleRule>,
 }
 impl SimpleRuleset {
@@ -32,17 +32,18 @@ impl SimpleRuleset {
 }
 
 #[derive(Debug, Deserialize)]
-struct SimpleCellType {
+struct SimpleMaterial {
     name: String,
     color: String,
-    states: Table,
+    states: Option<Table>,
 }
-impl SimpleCellType {
-    fn complicate(self) -> anyhow::Result<Material> {
+impl SimpleMaterial {
+    fn complicate(self) -> Result<Material> {
         let color_string = self.color.trim_start_matches('#');
         let color_number = u32::from_str_radix(color_string, 16)?;
         let states = self
             .states
+            .unwrap_or_default()
             .into_iter()
             .map(|(key, value)| {
                 let states: Vec<String> = match value {
@@ -55,12 +56,12 @@ impl SimpleCellType {
                             };
                             Ok(string)
                         })
-                        .collect::<anyhow::Result<Vec<_>>>()?,
+                        .collect::<Result<Vec<_>>>()?,
                     _ => bail!("Cell state list was not Array or Integer"),
                 };
                 Ok((key, states))
             })
-            .collect::<anyhow::Result<cell::StateSet>>()?;
+            .collect::<Result<cell::StateSet>>()?;
 
         Ok(Material::new(
             self.name,
@@ -78,65 +79,61 @@ struct SimpleRule {
     conditions: Vec<SimpleCondition>,
 }
 impl SimpleRule {
-    fn complicate(self) -> anyhow::Result<Rule> {
+    fn complicate(self) -> Result<Rule> {
         Ok(Rule::new(
             self.input.parse()?,
             self.out.parse()?,
             self.conditions
                 .into_iter()
                 .map(|condition| condition.complicate())
-                .collect::<anyhow::Result<Vec<_>>>()?,
+                .collect::<Result<Vec<_>>>()?,
+        ))
+    }
+}
+
+#[derive(Debug, Deserialize)]
+struct SimpleCondition {
+    dirs: Option<String>,
+    #[serde(rename = "type")]
+    pattern: String,
+    count: Option<SimpleCount>,
+}
+impl SimpleCondition {
+    fn complicate(self) -> Result<Condition> {
+        ensure!(
+            self.dirs.is_some() || self.count.is_some(),
+            "Condition must contain either"
+        );
+        let final_dirs: Vec<Direction> = if let Some(dirs) = self.dirs {
+            dirs.split(' ')
+                .map(|dir| dir.parse::<Direction>())
+                .collect::<Result<Vec<_>>>()?
+        } else {
+            Direction::all()
+        };
+        let final_count = if let Some(count) = self.count {
+            match count {
+                SimpleCount::Exact(c) => Count::Exact(c),
+                SimpleCount::Array(c) => Count::Array(c),
+                SimpleCount::Range(c) => Count::Range(parse_range(&c)?),
+            }
+        } else {
+            Count::Range(1..=8)
+        };
+        Ok(Condition::new(
+            final_dirs,
+            final_count,
+            self.pattern.parse()?,
         ))
     }
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
-enum SimpleCondition {
-    Directional {
-        dirs: String,
-        #[serde(rename = "type")]
-        material: String,
-    },
-    CountExact {
-        count: u8,
-        #[serde(rename = "type")]
-        material: String,
-    },
-    CountArray {
-        count: Vec<u8>,
-        #[serde(rename = "type")]
-        material: String,
-    },
-    CountRange {
-        count: String,
-        #[serde(rename = "type")]
-        material: String,
-    },
-}
-impl SimpleCondition {
-    fn complicate(self) -> anyhow::Result<Condition> {
-        match self {
-            SimpleCondition::Directional { dirs, material } => {
-                let dirs: anyhow::Result<Vec<Direction>> = dirs
-                    .split(' ')
-                    .map(|dir| dir.parse::<Direction>())
-                    .collect();
-                let pattern: Pattern = material.parse()?;
-                Ok(Condition::Directional(dirs?, pattern))
-            }
-            SimpleCondition::CountExact { count, material } => {
-                Ok(Condition::CountExact(count, material.parse()?))
-            }
-            SimpleCondition::CountArray { count, material } => {
-                Ok(Condition::CountArray(count, material.parse()?))
-            }
-            SimpleCondition::CountRange { count, material } => Ok(Condition::CountRange(
-                parse_range(&count)?,
-                material.parse()?,
-            )),
-        }
-    }
+enum SimpleCount {
+    Exact(u8),
+    Array(Vec<u8>),
+    Range(String),
 }
 
 pub fn parse_ruleset(path: &str) -> anyhow::Result<Ruleset> {
@@ -146,7 +143,7 @@ pub fn parse_ruleset(path: &str) -> anyhow::Result<Ruleset> {
     simple_ruleset.complicate()
 }
 
-fn parse_range(s: &str) -> anyhow::Result<RangeInclusive<u8>> {
+fn parse_range(s: &str) -> Result<RangeInclusive<u8>> {
     let segments = s.split("..").collect::<Vec<_>>();
     if segments.len() != 2 {
         bail!("Range string '{s}' had too many segments.")
@@ -188,7 +185,7 @@ mod tests {
 
     #[test]
     fn toml_parse() {
-        let test: Result<Ruleset, anyhow::Error> = parse_ruleset("./test_files/test.toml");
+        let test: Result<Ruleset> = parse_ruleset("./test_files/test.toml");
         // let text = fs::read_to_string("./test_files/test.toml").unwrap();
         // let test: Result<SimpleRuleset, toml::de::Error> = toml::from_str(&text);
         println!("{:#?}", test);

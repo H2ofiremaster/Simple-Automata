@@ -208,31 +208,35 @@ pub enum Specificity {
 }
 
 #[derive(Debug)]
-pub enum Condition {
-    Directional(Vec<Direction>, Pattern),
-    CountExact(u8, Pattern),
-    CountArray(Vec<u8>, Pattern),
-    CountRange(RangeInclusive<u8>, Pattern),
+pub struct Condition {
+    directions: Vec<Direction>,
+    count: Count,
+    pattern: Pattern,
 }
 impl Condition {
-    pub fn matches(&self, index: usize, grid: &Grid) -> bool {
-        match self {
-            Condition::Directional(directions, pattern) => directions
-                .iter()
-                .map(|dir| {
-                    grid.get_neighbor(*dir, index)
-                        .is_some_and(|cell| pattern.matches(cell))
-                })
-                .any(|p| p),
-            Condition::CountExact(count, pattern) => {
-                grid.get_matching_neighbors(index, pattern) == *count
-            }
-            Condition::CountArray(counts, pattern) => {
-                counts.contains(&grid.get_matching_neighbors(index, pattern))
-            }
-            Condition::CountRange(counts, pattern) => {
-                counts.contains(&grid.get_matching_neighbors(index, pattern))
-            }
+    pub(super) fn new(directions: Vec<Direction>, count: Count, pattern: Pattern) -> Self {
+        Self {
+            directions,
+            count,
+            pattern,
         }
     }
+
+    pub fn matches(&self, index: usize, grid: &Grid) -> bool {
+        let directions: &[Direction] = &self.directions;
+
+        let neighbors = grid.matching_neighbors(index, &self.pattern, directions);
+        match &self.count {
+            Count::Exact(count) => neighbors == *count,
+            Count::Array(array) => array.contains(&neighbors),
+            Count::Range(range) => range.contains(&neighbors),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub(super) enum Count {
+    Exact(u8),
+    Array(Vec<u8>),
+    Range(RangeInclusive<u8>),
 }

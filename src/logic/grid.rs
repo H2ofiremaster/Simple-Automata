@@ -81,11 +81,9 @@ impl Grid {
             },
         }
     }
-
-    pub fn get_matching_neighbors(&self, index: usize, pattern: &Pattern) -> u8 {
-        Direction::all()
-            .into_iter()
-            .filter_map(|dir| self.get_neighbor(dir, index))
+    pub fn matching_neighbors(&self, index: usize, pattern: &Pattern, dirs: &[Direction]) -> u8 {
+        dirs.iter()
+            .filter_map(|&dir| self.get_neighbor(dir, index))
             .filter(|cell| pattern.matches(cell))
             .count() as u8
     }
@@ -133,8 +131,8 @@ pub enum Direction {
     Southwest,
 }
 impl Direction {
-    fn all() -> [Direction; 8] {
-        [
+    pub fn all() -> Vec<Direction> {
+        vec![
             Self::North,
             Self::South,
             Self::East,

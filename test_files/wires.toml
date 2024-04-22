@@ -1,15 +1,53 @@
 cells = [
     { name = "air", color = "#000000" },
     { name = "wire", color = "#AAAAAA" },
-    { name = "power", color = "#FFFF00" },
-    { name = "power_source", color = "#FFFFFF" },
+    { name = "power", color = "#FFFF00", states = { source = ["north", "south", "east", "west"]} },
+    { name = "battery", color = "#FFFFFF" },
 ]
 
 rules = [
-    {in = "wire", out = "power", conditions = [
-        { count = "1..", type = "power_source" }
+    { in = "wire", out = "power[source:north]", conditions = [
+        { dirs = "n", type = "battery" }
     ]},
-    {in = "wire", out = "power", conditions = [
-        { dirs = "n e s w", type = "power" }
+    { in = "wire", out = "power[source:north]", conditions = [
+        { dirs = "n", type = "power" }
+    ]},
+    
+    { in = "wire", out = "power[source:south]", conditions = [
+        { dirs = "s", type = "battery" }
+    ]},
+    { in = "wire", out = "power[source:south]", conditions = [
+        { dirs = "s", type = "power" }
+    ]},
+
+    { in = "wire", out = "power[source:east]", conditions = [
+        { dirs = "e", type = "battery" }
+    ]},
+    { in = "wire", out = "power[source:east]", conditions = [
+        { dirs = "e", type = "power" }
+    ]},
+
+    { in = "wire", out = "power[source:west]", conditions = [
+        { dirs = "w", type = "battery" }
+    ]},
+    { in = "wire", out = "power[source:west]", conditions = [
+        { dirs = "w", type = "power" }
+    ]},
+
+    { in = "power[source:north]", out = "wire", conditions = [
+        { dirs = "n", type = "!power"},
+        { dirs = "n", type = "!battery"},
+    ]},
+    { in = "power[source:south]", out = "wire", conditions = [
+        { dirs = "s", type = "!power"},
+        { dirs = "s", type = "!battery"},
+    ]},
+    { in = "power[source:east]", out = "wire", conditions = [
+        { dirs = "e", type = "!power"},
+        { dirs = "e", type = "!battery"},
+    ]},
+    { in = "power[source:west]", out = "wire", conditions = [
+        { dirs = "w", type = "!power"},
+        { dirs = "w", type = "!battery"},
     ]},
 ]

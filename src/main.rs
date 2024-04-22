@@ -10,9 +10,9 @@ pub mod logic;
 #[macroquad::main("Automata")]
 async fn main() {
     let ruleset =
-        parse_ruleset("./test_files/conway.toml").expect("Test ruleset should parse correctly");
+        parse_ruleset("./test_files/wires.toml").expect("Test ruleset should parse correctly");
 
-    let grid = Grid::new(40, 40, &ruleset);
+    let grid = Grid::new(10, 10, &ruleset);
     // grid.randomize(&ruleset);
 
     let styles = Styles::new().expect("Static styles should have parsed correctly.");
