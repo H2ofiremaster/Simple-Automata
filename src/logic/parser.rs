@@ -6,7 +6,7 @@ use serde::Deserialize;
 use toml::{Table, Value};
 
 use crate::logic::{
-    cell::{self, CellType},
+    cell::{self, Material},
     grid::Direction,
     rules::*,
 };
@@ -38,7 +38,7 @@ struct SimpleCellType {
     states: Table,
 }
 impl SimpleCellType {
-    fn complicate(self) -> anyhow::Result<CellType> {
+    fn complicate(self) -> anyhow::Result<Material> {
         let color_string = self.color.trim_start_matches('#');
         let color_number = u32::from_str_radix(color_string, 16)?;
         let states = self
@@ -62,7 +62,7 @@ impl SimpleCellType {
             })
             .collect::<anyhow::Result<cell::StateSet>>()?;
 
-        Ok(CellType::new(
+        Ok(Material::new(
             self.name,
             Color::from_hex(color_number),
             states,
@@ -96,44 +96,44 @@ enum SimpleCondition {
     Directional {
         dirs: String,
         #[serde(rename = "type")]
-        cell_type: String,
+        material: String,
     },
     CountExact {
         count: u8,
         #[serde(rename = "type")]
-        cell_type: String,
+        material: String,
     },
     CountArray {
         count: Vec<u8>,
         #[serde(rename = "type")]
-        cell_type: String,
+        material: String,
     },
     CountRange {
         count: String,
         #[serde(rename = "type")]
-        cell_type: String,
+        material: String,
     },
 }
 impl SimpleCondition {
     fn complicate(self) -> anyhow::Result<Condition> {
         match self {
-            SimpleCondition::Directional { dirs, cell_type } => {
+            SimpleCondition::Directional { dirs, material } => {
                 let dirs: anyhow::Result<Vec<Direction>> = dirs
                     .split(' ')
                     .map(|dir| dir.parse::<Direction>())
                     .collect();
-                let pattern: Pattern = cell_type.parse()?;
+                let pattern: Pattern = material.parse()?;
                 Ok(Condition::Directional(dirs?, pattern))
             }
-            SimpleCondition::CountExact { count, cell_type } => {
-                Ok(Condition::CountExact(count, cell_type.parse()?))
+            SimpleCondition::CountExact { count, material } => {
+                Ok(Condition::CountExact(count, material.parse()?))
             }
-            SimpleCondition::CountArray { count, cell_type } => {
-                Ok(Condition::CountArray(count, cell_type.parse()?))
+            SimpleCondition::CountArray { count, material } => {
+                Ok(Condition::CountArray(count, material.parse()?))
             }
-            SimpleCondition::CountRange { count, cell_type } => Ok(Condition::CountRange(
+            SimpleCondition::CountRange { count, material } => Ok(Condition::CountRange(
                 parse_range(&count)?,
-                cell_type.parse()?,
+                material.parse()?,
             )),
         }
     }

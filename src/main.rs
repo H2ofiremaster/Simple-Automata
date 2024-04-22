@@ -1,5 +1,5 @@
 use crate::input::{handle_inputs, State};
-use display::{debug::display_debug_screen, grid::display_grid, styles::Styles};
+use display::styles::Styles;
 use logic::{grid::Grid, parser::parse_ruleset};
 use macroquad::prelude::*;
 
@@ -10,10 +10,10 @@ pub mod logic;
 #[macroquad::main("Automata")]
 async fn main() {
     let ruleset =
-        parse_ruleset("./test_files/test.toml").expect("Test ruleset should parse correctly");
+        parse_ruleset("./test_files/conway.toml").expect("Test ruleset should parse correctly");
 
-    let mut grid = Grid::new(20, 20, &ruleset);
-    grid.randomize(&ruleset);
+    let grid = Grid::new(40, 40, &ruleset);
+    // grid.randomize(&ruleset);
 
     let styles = Styles::new().expect("Static styles should have parsed correctly.");
 

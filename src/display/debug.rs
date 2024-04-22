@@ -1,18 +1,20 @@
 use macroquad::prelude::*;
 
 use crate::logic::{
-    cell::Cell,
-    grid::{Direction, Grid},
+    grid::{get_hovered_cell_pos, Direction, Grid},
     rules::{Rule, Ruleset},
 };
 
-use super::grid::{get_cell_size, get_grid_offset, get_grid_size};
-
 const FONT_SIZE: f32 = 25.;
 pub fn display_debug_screen(grid: &Grid, ruleset: &Ruleset, size_multiplier: f32) {
-    let Some((cell, index)) = get_hovered_cell(grid, size_multiplier) else {
+    let Some((cell_x, cell_y)) = get_hovered_cell_pos(grid, size_multiplier) else {
         return;
     };
+    let Some(cell) = grid.get_cell(cell_x, cell_y) else {
+        return;
+    };
+    let index = grid.get_index(cell_x, cell_y);
+
     let current_cell = format!("{cell:?}; ({}, {})", index % grid.width, index / grid.width);
     let text_size: TextDimensions = measure_text(&current_cell, None, FONT_SIZE as u16, 1.);
     let mut text_offset = 1.0;
@@ -95,23 +97,4 @@ fn display_applied(applied_rules: Vec<&Rule>, text_size: &TextDimensions, text_o
         );
         *text_offset += 1.1;
     }
-}
-
-fn get_hovered_cell(grid: &Grid, size_multiplier: f32) -> Option<(&Cell, usize)> {
-    let offset: Vec2 = get_grid_offset(size_multiplier);
-    let cell_size: f32 = get_cell_size(grid, size_multiplier);
-    let grid_size: f32 = get_grid_size(size_multiplier);
-
-    let mouse_pos: Vec2 = Vec2::from(mouse_position()) - offset;
-    if mouse_pos.x > grid_size || mouse_pos.y > grid_size || mouse_pos.x < 0. || mouse_pos.y < 0. {
-        return None;
-    }
-    let cell_position: Vec2 = mouse_pos / cell_size;
-    grid.get_cell(cell_position.x as usize, cell_position.y as usize)
-        .map(|cell| {
-            (
-                cell,
-                grid.get_index(cell_position.x as usize, cell_position.y as usize),
-            )
-        })
 }

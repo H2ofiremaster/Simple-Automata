@@ -1,6 +1,11 @@
 use std::str::FromStr;
 
-use anyhow::{anyhow, Ok};
+use anyhow::anyhow;
+use macroquad::{
+    input::mouse_position,
+    math::Vec2,
+    window::{screen_height, screen_width},
+};
 use rand::RngCore;
 
 use crate::logic::{
@@ -8,7 +13,7 @@ use crate::logic::{
     rules::{Pattern, Ruleset},
 };
 
-use super::cell::CellType;
+use super::cell::Material;
 
 #[derive(Debug)]
 pub struct Grid {
@@ -98,13 +103,13 @@ impl Grid {
 
     pub fn randomize(&mut self, ruleset: &Ruleset) {
         let mut rng = rand::thread_rng();
-        let cells = ruleset.iter_cells().collect::<Vec<_>>();
+        let cells = ruleset.iter_materials().collect::<Vec<_>>();
         for index in 0..self.cells.len() {
             let random_number = rng.next_u32() as usize % cells.len();
-            let random_type: &CellType = cells[random_number];
+            let random_type: &Material = cells[random_number];
             let _ = std::mem::replace(
                 &mut self.cells[index],
-                Cell::new(random_type.clone(), random_type.default_states()),
+                Cell::new_default(random_type.clone()),
             );
         }
     }
@@ -157,4 +162,27 @@ impl FromStr for Direction {
             _ => Err(anyhow!("'{s}' is not a valid direction.")),
         }
     }
+}
+
+pub fn get_grid_size(size_multiplier: f32) -> f32 {
+    screen_width().min(screen_height()) * size_multiplier
+}
+pub fn get_cell_size(grid: &Grid, size_multiplier: f32) -> f32 {
+    get_grid_size(size_multiplier) / grid.width as f32
+}
+pub fn get_grid_offset(size_multiplier: f32) -> Vec2 {
+    crate::screen_center() - get_grid_size(size_multiplier) / 2.
+}
+
+pub fn get_hovered_cell_pos(grid: &Grid, size_multiplier: f32) -> Option<(usize, usize)> {
+    let offset: Vec2 = get_grid_offset(size_multiplier);
+    let cell_size: f32 = get_cell_size(grid, size_multiplier);
+    let grid_size: f32 = get_grid_size(size_multiplier);
+
+    let mouse_pos: Vec2 = Vec2::from(mouse_position()) - offset;
+    if mouse_pos.x > grid_size || mouse_pos.y > grid_size || mouse_pos.x < 0. || mouse_pos.y < 0. {
+        return None;
+    }
+    let cell_pos = mouse_pos / cell_size;
+    Some((cell_pos.x as usize, cell_pos.y as usize))
 }

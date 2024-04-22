@@ -7,15 +7,19 @@ pub type StateSet = HashMap<String, Vec<String>>;
 
 #[derive(Clone)]
 pub struct Cell {
-    pub(super) cell_type: CellType,
+    pub(super) material: Material,
     pub(super) state: State,
 }
 impl Cell {
-    pub fn new(cell_type: CellType, state: State) -> Self {
-        Self { cell_type, state }
+    pub fn new(material: Material, state: State) -> Self {
+        Self { material, state }
     }
-    pub fn is_type(&self, cell_type: &str) -> bool {
-        self.cell_type.name == cell_type
+    pub fn new_default(material: Material) -> Self {
+        let state = material.default_states();
+        Self { material, state }
+    }
+    pub fn is_material(&self, material: &str) -> bool {
+        self.material.name == material
     }
     pub fn has_states(&self, states: &State) -> bool {
         states
@@ -26,10 +30,10 @@ impl Cell {
         &self.state
     }
     pub fn get_color(&self) -> Color {
-        self.cell_type.color
+        self.material.color
     }
     pub fn get_name(&self) -> &str {
-        &self.cell_type.name
+        &self.material.name
     }
 }
 impl Debug for Cell {
@@ -55,12 +59,12 @@ impl Debug for Cell {
 }
 
 #[derive(Debug, Clone)]
-pub struct CellType {
+pub struct Material {
     pub name: String,
     pub color: Color,
     states: StateSet,
 }
-impl CellType {
+impl Material {
     pub fn new(name: String, color: Color, states: StateSet) -> Self {
         Self {
             name,

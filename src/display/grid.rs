@@ -1,19 +1,9 @@
 use macroquad::prelude::*;
 
-use crate::{
-    logic::{cell::Cell, grid::Grid},
-    screen_center,
+use crate::logic::{
+    cell::Cell,
+    grid::{get_cell_size, get_grid_offset, get_grid_size, Grid},
 };
-
-pub fn get_grid_size(size_multiplier: f32) -> f32 {
-    screen_width().min(screen_height()) * size_multiplier
-}
-pub fn get_cell_size(grid: &Grid, size_multiplier: f32) -> f32 {
-    get_grid_size(size_multiplier) / grid.width as f32
-}
-pub fn get_grid_offset(size_multiplier: f32) -> Vec2 {
-    screen_center() - get_grid_size(size_multiplier) / 2.
-}
 
 pub fn display_grid(grid: &Grid, size_multiplier: f32) {
     let grid_size: f32 = get_grid_size(size_multiplier);
@@ -44,14 +34,14 @@ fn display_cell(col: usize, row: usize, cell_size: f32, offset: Vec2, cell: &Cel
 }
 
 const GRID_COLOR: Color = GRAY;
-const GRID_WIDTH: f32 = 0.3;
+const GRID_WIDTH: f32 = 10.;
 fn display_grid_lines(grid: &Grid, cell_size: f32, grid_size: f32, offset: Vec2) {
     draw_rectangle_lines(
         offset.x,
         offset.y,
         grid_size,
         grid_size,
-        grid.width as f32 * GRID_WIDTH,
+        grid.width as f32 / GRID_WIDTH,
         GRID_COLOR,
     );
     for row in 0..grid.height {
@@ -60,7 +50,7 @@ fn display_grid_lines(grid: &Grid, cell_size: f32, grid_size: f32, offset: Vec2)
             row as f32 * cell_size + offset.y,
             offset.x + grid_size,
             row as f32 * cell_size + offset.y,
-            grid.width as f32 * GRID_WIDTH,
+            grid.width as f32 / GRID_WIDTH,
             GRID_COLOR,
         )
     }
@@ -70,7 +60,7 @@ fn display_grid_lines(grid: &Grid, cell_size: f32, grid_size: f32, offset: Vec2)
             offset.y,
             col as f32 * cell_size + offset.x,
             offset.y + grid_size,
-            grid.width as f32 * GRID_WIDTH,
+            grid.width as f32 / GRID_WIDTH,
             GRID_COLOR,
         )
     }
