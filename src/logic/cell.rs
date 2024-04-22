@@ -56,8 +56,8 @@ impl Debug for Cell {
 
 #[derive(Debug, Clone)]
 pub struct CellType {
-    pub(super) name: String,
-    color: Color,
+    pub name: String,
+    pub color: Color,
     states: StateSet,
 }
 impl CellType {

@@ -10,6 +10,7 @@ use crate::logic::{
 
 use super::cell::CellType;
 
+#[derive(Debug)]
 pub struct Grid {
     pub width: usize,
     pub height: usize,
