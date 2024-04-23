@@ -131,12 +131,6 @@ fn display_hover_text(
             },
         )
     }
-    // draw_text_ex(
-    //     &cell_name,
-    //     grid_offset.x,
-    //     screen_height() - bottom_padding / 4.,
-    //
-    // );
 }
 
 fn get_text_locations<F>(

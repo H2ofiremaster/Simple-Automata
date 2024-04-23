@@ -3,10 +3,10 @@ cells = [
 	{ name = "red", color = "#aa0000" },
 	{ name = "yellow", color = "#aaaa00" },
 	{ name = "purple", color = "#aa00aa" },
-    { name = "states", color = "#000000", states = { unnamed = 5, named = [ "test", "tes", "te", "t" ], reallylongname = 7, testing123 = 8}},
+    { name = "states", color = "#000000", states = { unnamed = 5, named = [ "test", "tes", "te", "t" ], reallylongname = 7, testing123 = 8, a = 1}},
 ]
 
 rules = [
-    
+
 ]
 # * type *[namespace:state1,namespace:state2] type[namespace:state]

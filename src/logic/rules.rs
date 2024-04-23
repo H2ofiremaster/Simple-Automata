@@ -1,11 +1,13 @@
-use std::{collections::HashMap, fmt::Debug, ops::RangeInclusive, str::FromStr};
+use std::{collections::BTreeMap, fmt::Debug, ops::RangeInclusive, str::FromStr};
 
 use anyhow::anyhow;
 
 use crate::logic::{
-    cell::{self, Cell, Material, State},
+    cell::{Cell, Material, State},
     grid::{Direction, Grid},
 };
+
+use super::cell;
 
 #[derive(Debug)]
 pub struct Ruleset {
@@ -90,11 +92,11 @@ impl Debug for Rule {
 
 pub struct Pattern {
     material: Option<String>,
-    states: HashMap<String, String>,
+    states: State,
     inverted: bool,
 }
 impl Pattern {
-    fn new_all(material: String, states: HashMap<String, String>, inverted: bool) -> Self {
+    fn new_all(material: String, states: State, inverted: bool) -> Self {
         Self {
             material: Some(material),
             states,
@@ -104,11 +106,11 @@ impl Pattern {
     fn new_material(material: String, inverted: bool) -> Self {
         Self {
             material: Some(material),
-            states: HashMap::new(),
+            states: BTreeMap::new(),
             inverted,
         }
     }
-    fn new_states(states: HashMap<String, String>, inverted: bool) -> Self {
+    fn new_states(states: State, inverted: bool) -> Self {
         Self {
             material: None,
             states,
@@ -118,7 +120,7 @@ impl Pattern {
     fn new_empty() -> Self {
         Self {
             material: None,
-            states: HashMap::new(),
+            states: BTreeMap::new(),
             inverted: false,
         }
     }

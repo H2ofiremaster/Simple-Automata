@@ -1,16 +1,16 @@
 use std::{
-    collections::HashMap,
+    collections::BTreeMap,
     fmt::{Debug, Display},
 };
 
 use macroquad::color::Color;
 
-pub type State = HashMap<String, String>;
-pub type StateSet = HashMap<String, Vec<String>>;
+pub type State = BTreeMap<String, String>;
+pub type StateSet = BTreeMap<String, Vec<String>>;
 
 #[derive(Clone)]
 pub struct Cell {
-    pub(super) material: Material,
+    pub material: Material,
     pub state: State,
 }
 impl Cell {
@@ -77,7 +77,7 @@ impl Display for Cell {
 pub struct Material {
     pub name: String,
     pub color: Color,
-    states: StateSet,
+    pub states: StateSet,
 }
 impl Material {
     pub fn new(name: String, color: Color, states: StateSet) -> Self {

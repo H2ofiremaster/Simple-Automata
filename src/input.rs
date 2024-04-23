@@ -1,5 +1,6 @@
 use std::fmt::Debug;
 
+use anyhow::anyhow;
 use macroquad::prelude::*;
 
 use crate::{
@@ -112,6 +113,14 @@ pub fn handle_inputs(state: State) -> State {
         )
     }
 
+    if let Err(err) = cycle_cell_state(
+        &mut state.grid,
+        size_multiplier,
+        &mut state.selected_cell_state,
+    ) {
+        println!("Cell state cycler threw an error: {err}")
+    };
+
     display_grid(
         &state.grid,
         size_multiplier,
@@ -125,6 +134,67 @@ pub fn handle_inputs(state: State) -> State {
     }
 
     state
+}
+
+fn cycle_cell_state(
+    grid: &mut Grid,
+    size_multiplier: f32,
+    selected_state: &mut usize,
+) -> anyhow::Result<()> {
+    let cell_pos = get_hovered_cell_pos(grid, size_multiplier);
+    let Some(cell_pos) = cell_pos else {
+        return Ok(());
+    };
+    let cell = grid.get_cell(cell_pos.0, cell_pos.1);
+    let Some(cell) = cell else {
+        return Ok(());
+    };
+    if is_mouse_button_pressed(MouseButton::Middle) {
+        *selected_state += 1;
+        if *selected_state >= cell.material.states.len() {
+            *selected_state = 0;
+        }
+    }
+    let scroll_amount = mouse_wheel().1;
+    if scroll_amount == 0. {
+        return Ok(());
+    }
+    let state = cell
+        .material
+        .states
+        .iter()
+        .nth(*selected_state)
+        .ok_or(anyhow!(
+            "Index {selected_state} was out of bounds for {:?}.",
+            cell.material.states
+        ))?;
+    let mut new_cell = cell.clone();
+    let selected_substate = new_cell
+        .state
+        .get_mut(state.0)
+        .ok_or(anyhow!("Cell's state did not contain '{:?}'.", state.0))?;
+    let (index, _) = state
+        .1
+        .iter()
+        .enumerate()
+        .find(|(_, value)| *value == selected_substate)
+        .ok_or(anyhow!(
+            "Vec {:?} did not contain {:?}.",
+            state.1,
+            selected_substate
+        ))?;
+
+    if scroll_amount > 0. {
+        *selected_substate = state.1.get(index + 1).unwrap_or(&state.1[0]).clone();
+    } else if scroll_amount < 0. {
+        if index < 1 {
+            *selected_substate = state.1[state.1.len() - 1].clone();
+        } else {
+            *selected_substate = state.1[index - 1].clone();
+        }
+    }
+    grid.set_cell(cell_pos.0, cell_pos.1, new_cell);
+    Ok(())
 }
 
 fn toggle_menu(current_menu: &Menu, desired_menu: Menu) -> Menu {
