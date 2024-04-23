@@ -1,21 +1,12 @@
 cells = [
-	{ name = "generic", color = "#00aa00", states = {} },
-	{ name = "red", color = "#aa0000", states = {} },
-	{ name = "yellow", color = "#aaaa00", states = {} },
-	{ name = "purple", color = "#aa00aa", states = {} },
-    { name = "states", color = "#000000", states = { unnamed = 5, named = [ "test", "tes", "te", "t" ]}},
+	{ name = "generic", color = "#00aa00" },
+	{ name = "red", color = "#aa0000" },
+	{ name = "yellow", color = "#aaaa00" },
+	{ name = "purple", color = "#aa00aa" },
+    { name = "states", color = "#000000", states = { unnamed = 5, named = [ "test", "tes", "te", "t" ], reallylongname = 7, testing123 = 8}},
 ]
 
 rules = [
-	{ in = "generic", out = "states", conditions = [
-        { dirs = "n", type = "generic" },
-        { count = 1, type = "generic" },
-        { count = [1, 2, 3], type = "generic" },
-        { count = "1..8", type = "generic" },
-    ]},
-    { in = "*[named:test]", out = "*[named:t]", conditions = [
-    	{ dirs = "n", type = "states[unnamed:0,named:t]"},
-        { count = 1, type = "*[named:te]"},
-    ]},
+    
 ]
 # * type *[namespace:state1,namespace:state2] type[namespace:state]

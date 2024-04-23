@@ -10,28 +10,32 @@ rules = [
         { dirs = "n", type = "battery" }
     ]},
     { in = "wire", out = "power[source:north]", conditions = [
-        { dirs = "n", type = "power" }
+        { dirs = "n", type = "power" },
+        { dirs = "n", type = "!power[source:south]" },
     ]},
     
     { in = "wire", out = "power[source:south]", conditions = [
         { dirs = "s", type = "battery" }
     ]},
     { in = "wire", out = "power[source:south]", conditions = [
-        { dirs = "s", type = "power" }
+        { dirs = "s", type = "power" },
+        { dirs = "s", type = "!power[source:north]" },
     ]},
 
     { in = "wire", out = "power[source:east]", conditions = [
         { dirs = "e", type = "battery" }
     ]},
     { in = "wire", out = "power[source:east]", conditions = [
-        { dirs = "e", type = "power" }
+        { dirs = "e", type = "power" },
+        { dirs = "e", type = "!power[source:west]" },
     ]},
 
     { in = "wire", out = "power[source:west]", conditions = [
         { dirs = "w", type = "battery" }
     ]},
     { in = "wire", out = "power[source:west]", conditions = [
-        { dirs = "w", type = "power" }
+        { dirs = "w", type = "power" },
+        { dirs = "w", type = "!power[source:east]" },
     ]},
 
     { in = "power[source:north]", out = "wire", conditions = [

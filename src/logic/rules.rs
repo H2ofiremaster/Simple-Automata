@@ -125,8 +125,8 @@ impl Pattern {
 
     pub fn matches(&self, cell: &Cell) -> bool {
         let matches = match (&self.material, &self.states) {
-            (Some(material), states) => cell.is_material(material) && cell.has_states(states),
-            (None, states) => cell.has_states(states),
+            (Some(material), states) => cell.is_material(material) && cell.has_state(states),
+            (None, states) => cell.has_state(states),
         };
 
         self.inverted != matches

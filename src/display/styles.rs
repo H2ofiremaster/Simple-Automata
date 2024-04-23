@@ -2,29 +2,32 @@ use anyhow::{anyhow, Result};
 use macroquad::{
     color::*,
     math::RectOffset,
+    text::{load_ttf_font_from_bytes, Font},
     texture::Image,
     ui::{root_ui, Skin},
 };
 
-const FONT: &[u8] = include_bytes!("../../resources/Roboto-Regular.ttf");
-const FONT_SIZE: u16 = 15;
-const TITLE_HEIGHT: f32 = 30.;
-const WINDOW_COLOR: Color = GRAY;
-const TEXT_COLOR: Color = WHITE;
-const TEXT_MARGINS: f32 = 10.;
-
 #[derive(Debug)]
 pub struct Styles {
+    pub font: Font,
     pub cell_selector: Skin,
 }
 impl Styles {
     pub fn new() -> Result<Self> {
         Ok(Self {
+            font: load_ttf_font_from_bytes(FONT)?,
             cell_selector: cell_selector()?,
         })
     }
 }
 
+const FONT: &[u8] = include_bytes!("../../resources/Roboto-Regular.ttf");
+pub const FONT_SIZE: u16 = 16;
+pub const TEXT_COLOR: Color = WHITE;
+pub const SELECTED_TEXT_COLOR: Color = GREEN;
+const TITLE_HEIGHT: f32 = 30.;
+const WINDOW_COLOR: Color = GRAY;
+const TEXT_MARGINS: f32 = 10.;
 fn cell_selector() -> Result<Skin> {
     let window_background_image = Image::gen_image_color(100, 100, WINDOW_COLOR);
 

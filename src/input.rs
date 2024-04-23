@@ -3,10 +3,15 @@ use std::fmt::Debug;
 use macroquad::prelude::*;
 
 use crate::{
-    display::{cell_selector, debug::display_debug_screen, grid::display_grid, styles::Styles},
+    display::{
+        cell_selector,
+        debug::display_debug_screen,
+        grid::{display_grid, get_hovered_cell_pos},
+        styles::Styles,
+    },
     logic::{
         cell::{Cell, Material},
-        grid::{get_hovered_cell_pos, Grid},
+        grid::Grid,
         rules::Ruleset,
     },
 };
@@ -19,6 +24,8 @@ pub struct State {
     pub ruleset: Ruleset,
     pub grid: Grid,
     styles: Styles,
+    pub step_timer: f32,
+    pub selected_cell_state: usize,
 }
 impl State {
     pub fn new(ruleset: Ruleset, grid: Grid, styles: Styles) -> Self {
@@ -29,6 +36,8 @@ impl State {
             grid,
             styles,
             selected_material: None,
+            step_timer: 0.,
+            selected_cell_state: 0,
         }
     }
 
@@ -63,31 +72,36 @@ const OPEN_DEBUG_MENU: KeyCode = KeyCode::F3;
 const OPEN_OPTIONS: KeyCode = KeyCode::Escape;
 const STEP: KeyCode = KeyCode::Space;
 const DEBUG_MULTIPLIER: f32 = 0.7;
-
+const STEP_HOLD_DELAY: f32 = 0.1;
 pub fn handle_inputs(state: State) -> State {
     let mut state: State = state;
 
     for key in get_keys_pressed() {
         match key {
             OPEN_CELL_SELECTOR => {
-                state.displayed_menu = match state.displayed_menu {
-                    Menu::CellSelector => Menu::None,
-                    _ => Menu::CellSelector,
-                };
+                state.displayed_menu = toggle_menu(&state.displayed_menu, Menu::CellSelector)
             }
-            OPEN_DEBUG_MENU => todo!(),
-            STEP => {
-                state.grid = state.grid.get_next_generation(&state.ruleset);
+            OPEN_DEBUG_MENU => {
+                state.displayed_menu = toggle_menu(&state.displayed_menu, Menu::Debug)
             }
             OPEN_OPTIONS => todo!(),
             _ => {}
         }
     }
+
+    if state.step_timer > 0. {
+        state.step_timer -= get_frame_time();
+    } else if is_key_down(STEP) {
+        state.grid = state.grid.get_next_generation(&state.ruleset);
+        state.step_timer = STEP_HOLD_DELAY;
+    }
+
     let size_multiplier = if state.displayed_menu == Menu::Debug {
         DEBUG_MULTIPLIER
     } else {
         1.0
     };
+
     if let (Some(selected_material), Menu::None) = (&state.selected_material, state.displayed_menu)
     {
         handle_clicks(
@@ -98,7 +112,12 @@ pub fn handle_inputs(state: State) -> State {
         )
     }
 
-    display_grid(&state.grid, size_multiplier);
+    display_grid(
+        &state.grid,
+        size_multiplier,
+        &state.styles.font,
+        state.selected_cell_state,
+    );
     state.display_menu();
     if state.menu_should_close && !is_mouse_button_down(MouseButton::Left) {
         state.displayed_menu = Menu::None;
@@ -106,6 +125,14 @@ pub fn handle_inputs(state: State) -> State {
     }
 
     state
+}
+
+fn toggle_menu(current_menu: &Menu, desired_menu: Menu) -> Menu {
+    if current_menu == &desired_menu {
+        Menu::None
+    } else {
+        desired_menu
+    }
 }
 
 fn handle_clicks(

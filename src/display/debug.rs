@@ -1,9 +1,11 @@
 use macroquad::prelude::*;
 
 use crate::logic::{
-    grid::{get_hovered_cell_pos, Direction, Grid},
+    grid::{Direction, Grid},
     rules::{Rule, Ruleset},
 };
+
+use super::grid::get_hovered_cell_pos;
 
 const FONT_SIZE: f32 = 25.;
 pub fn display_debug_screen(grid: &Grid, ruleset: &Ruleset, size_multiplier: f32) {
@@ -28,14 +30,14 @@ pub fn display_debug_screen(grid: &Grid, ruleset: &Ruleset, size_multiplier: f32
     text_offset += 1.1;
 
     let neighbours = format!(
-        "Neighbors: ({:?}), ({:?}), ({:?}), ({:?}),",
+        "Neighbors: N: ({:?}), S: ({:?}), E: ({:?}), W: ({:?}),",
         grid.get_neighbor(Direction::North, index),
         grid.get_neighbor(Direction::South, index),
         grid.get_neighbor(Direction::East, index),
         grid.get_neighbor(Direction::West, index),
     );
     let neighbours_2: String = format!(
-        "   ({:?}), ({:?}), ({:?}), ({:?})",
+        "   NE: ({:?}), SE: ({:?}), NW: ({:?}), SW: ({:?})",
         grid.get_neighbor(Direction::Northeast, index),
         grid.get_neighbor(Direction::Southeast, index),
         grid.get_neighbor(Direction::Northwest, index),

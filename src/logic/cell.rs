@@ -1,4 +1,7 @@
-use std::{collections::HashMap, fmt::Debug};
+use std::{
+    collections::HashMap,
+    fmt::{Debug, Display},
+};
 
 use macroquad::color::Color;
 
@@ -8,7 +11,7 @@ pub type StateSet = HashMap<String, Vec<String>>;
 #[derive(Clone)]
 pub struct Cell {
     pub(super) material: Material,
-    pub(super) state: State,
+    pub state: State,
 }
 impl Cell {
     pub fn new(material: Material, state: State) -> Self {
@@ -21,18 +24,15 @@ impl Cell {
     pub fn is_material(&self, material: &str) -> bool {
         self.material.name == material
     }
-    pub fn has_states(&self, states: &State) -> bool {
+    pub fn has_state(&self, states: &State) -> bool {
         states
             .iter()
             .all(|(key, value)| self.state.get(key).is_some_and(|v| v == value))
     }
-    pub fn get_state(&self) -> &HashMap<String, String> {
-        &self.state
-    }
-    pub fn get_color(&self) -> Color {
+    pub fn color(&self) -> Color {
         self.material.color
     }
-    pub fn get_name(&self) -> &str {
+    pub fn name(&self) -> &str {
         &self.material.name
     }
 }
@@ -42,19 +42,34 @@ impl Debug for Cell {
             acc + &format!("({}: {}), ", pair.0, pair.1)
         });
         let color = {
-            let c = self.get_color();
+            let c = self.color();
             ((c.r * 255.) as u8, (c.g * 255.) as u8, (c.b * 255.) as u8)
         };
 
         write!(
             f,
             "Cell{{{}, #{:02X}{:02X}{:02X}: {}}}",
-            self.get_name(),
+            self.name(),
             color.0,
             color.1,
             color.2,
             state
         )
+    }
+}
+impl Display for Cell {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let state = self
+            .state
+            .iter()
+            .map(|(k, v)| format!("{k}:{v}"))
+            .collect::<Vec<_>>()
+            .join(", ");
+        if state.is_empty() {
+            write!(f, "{}", self.name())
+        } else {
+            write!(f, "{}[{}]", self.name(), state)
+        }
     }
 }
 
