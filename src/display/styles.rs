@@ -11,12 +11,14 @@ use macroquad::{
 pub struct Styles {
     pub font: Font,
     pub cell_selector: Skin,
+    pub options: Skin,
 }
 impl Styles {
     pub fn new() -> Result<Self> {
         Ok(Self {
             font: load_ttf_font_from_bytes(FONT)?,
             cell_selector: cell_selector()?,
+            options: options()?,
         })
     }
 }
@@ -28,6 +30,8 @@ pub const SELECTED_TEXT_COLOR: Color = GREEN;
 const TITLE_HEIGHT: f32 = 30.;
 const WINDOW_COLOR: Color = GRAY;
 const TEXT_MARGINS: f32 = 10.;
+const GROUP_MARGINS: f32 = 20.;
+
 fn cell_selector() -> Result<Skin> {
     let window_background_image = Image::gen_image_color(100, 100, WINDOW_COLOR);
 
@@ -58,6 +62,56 @@ fn cell_selector() -> Result<Skin> {
         window_style,
         window_titlebar_style,
         label_style,
+        title_height: TITLE_HEIGHT,
+        ..root_ui().default_skin()
+    })
+}
+
+fn options() -> Result<Skin> {
+    let window_background_image = Image::gen_image_color(100, 100, WINDOW_COLOR);
+
+    let window_style = root_ui()
+        .style_builder()
+        .background(window_background_image)
+        .color(TEXT_COLOR)
+        .build();
+    let window_titlebar_style = root_ui()
+        .style_builder()
+        .color(TEXT_COLOR)
+        .font_size(FONT_SIZE)
+        .font(FONT)
+        .map_err(|err| anyhow!("Failed to load font: {err}"))?
+        .margin(all_margins(TEXT_MARGINS))
+        .build();
+
+    let label_style = root_ui()
+        .style_builder()
+        .color(TEXT_COLOR)
+        .font_size(FONT_SIZE)
+        .font(FONT)
+        .map_err(|err| anyhow!("Failed to load font: {err}"))?
+        .margin(all_margins(TEXT_MARGINS))
+        .build();
+    let button_style = root_ui()
+        .style_builder()
+        .color(TEXT_COLOR)
+        .font_size(FONT_SIZE)
+        .font(FONT)
+        .map_err(|err| anyhow!("Failed to load font: {err}"))?
+        .margin(all_margins(TEXT_MARGINS))
+        .build();
+
+    let group_style = root_ui()
+        .style_builder()
+        .margin(all_margins(GROUP_MARGINS))
+        .build();
+
+    Ok(Skin {
+        window_style,
+        window_titlebar_style,
+        label_style,
+        button_style,
+        group_style,
         title_height: TITLE_HEIGHT,
         ..root_ui().default_skin()
     })

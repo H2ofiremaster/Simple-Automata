@@ -8,6 +8,7 @@ use crate::{
         cell_selector,
         debug::display_debug_screen,
         grid::{display_grid, get_hovered_cell_pos},
+        options,
         styles::Styles,
     },
     logic::{
@@ -54,7 +55,7 @@ impl State {
                 self.menu_should_close |= should_close;
             }
             Menu::Debug => display_debug_screen(&self.grid, &self.ruleset, DEBUG_MULTIPLIER),
-            Menu::Options => todo!(),
+            Menu::Options => options::display(&self.styles.options),
             Menu::None => self.menu_should_close = false,
         }
     }
@@ -85,7 +86,9 @@ pub fn handle_inputs(state: State) -> State {
             OPEN_DEBUG_MENU => {
                 state.displayed_menu = toggle_menu(&state.displayed_menu, Menu::Debug)
             }
-            OPEN_OPTIONS => todo!(),
+            OPEN_OPTIONS => {
+                state.displayed_menu = toggle_menu(&state.displayed_menu, Menu::Options)
+            }
             _ => {}
         }
     }
@@ -96,30 +99,30 @@ pub fn handle_inputs(state: State) -> State {
         state.grid = state.grid.get_next_generation(&state.ruleset);
         state.step_timer = STEP_HOLD_DELAY;
     }
-
     let size_multiplier = if state.displayed_menu == Menu::Debug {
         DEBUG_MULTIPLIER
     } else {
         1.0
     };
 
-    if let (Some(selected_material), Menu::None) = (&state.selected_material, state.displayed_menu)
-    {
-        handle_clicks(
-            selected_material,
-            state.ruleset.default_material(),
+    if state.displayed_menu == Menu::None {
+        if let Some(selected_material) = &state.selected_material {
+            handle_clicks(
+                selected_material,
+                state.ruleset.default_material(),
+                &mut state.grid,
+                size_multiplier,
+            )
+        }
+
+        if let Err(err) = cycle_cell_state(
             &mut state.grid,
             size_multiplier,
-        )
+            &mut state.selected_cell_state,
+        ) {
+            println!("Cell state cycler threw an error: {err}")
+        };
     }
-
-    if let Err(err) = cycle_cell_state(
-        &mut state.grid,
-        size_multiplier,
-        &mut state.selected_cell_state,
-    ) {
-        println!("Cell state cycler threw an error: {err}")
-    };
 
     display_grid(
         &state.grid,
@@ -149,6 +152,9 @@ fn cycle_cell_state(
     let Some(cell) = cell else {
         return Ok(());
     };
+    if cell.state.is_empty() {
+        return Ok(());
+    }
     if is_mouse_button_pressed(MouseButton::Middle) {
         *selected_state += 1;
         if *selected_state >= cell.material.states.len() {

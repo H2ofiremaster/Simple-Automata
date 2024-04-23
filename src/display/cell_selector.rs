@@ -30,6 +30,7 @@ pub fn display(ruleset: &Ruleset, skin: &Skin, material: &mut Option<Material>) 
         window_size,
     )
     .label("Material Selector")
+    .movable(false)
     .ui(&mut root_ui(), |ui| {
         let mut button_inputs: HashMap<_, _> = HashMap::new();
         for (index, material) in ruleset.iter_materials().enumerate() {
