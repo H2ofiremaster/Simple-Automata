@@ -103,6 +103,7 @@ fn options() -> Result<Skin> {
 
     let group_style = root_ui()
         .style_builder()
+        .color(Color::from_rgba(0, 0, 0, 255))
         .margin(all_margins(GROUP_MARGINS))
         .build();
 
@@ -116,6 +117,8 @@ fn options() -> Result<Skin> {
         ..root_ui().default_skin()
     })
 }
+
+fn ruleset_selector() {}
 
 fn all_margins(margins: f32) -> RectOffset {
     RectOffset::new(margins, margins, margins, margins)

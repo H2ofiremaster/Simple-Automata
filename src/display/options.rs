@@ -3,12 +3,13 @@ use macroquad::{
     ui::{
         hash, root_ui,
         widgets::{Button, Group, Label, Window},
-        Skin,
+        Layout, Skin,
     },
 };
 
 use crate::screen_center;
 
+const TITLE_HEIGHT: f32 = 32.;
 const WINDOW_SIZE: Vec2 = vec2(0.75, 0.75);
 pub fn display(skin: &Skin) {
     let window_size = vec2(screen_width(), screen_height()) * WINDOW_SIZE;
@@ -23,14 +24,19 @@ pub fn display(skin: &Skin) {
     .titlebar(true)
     .movable(false)
     .ui(&mut root_ui(), |ui| {
-        Label::new("Select Ruleset").ui(ui);
         ui.same_line(0.);
-        Button::new("Button").ui(ui);
-        Group::new(hash!(), window_size / 3.)
-            .layout(macroquad::ui::Layout::Vertical)
-            .ui(ui, |ui| {
-
-                //
-            });
+        Group::new(
+            hash!(),
+            vec2(window_size.x / 3., window_size.y - TITLE_HEIGHT),
+        )
+        .layout(Layout::Vertical)
+        .ui(ui, |ui| {
+            Label::new("Select Ruleset").ui(ui);
+            let offset = TITLE_HEIGHT * 2. + 10.;
+            Group::new(hash!(), vec2(window_size.x / 3., window_size.y - offset))
+                .layout(Layout::Vertical)
+                .ui(ui, |ui| {});
+            //
+        });
     });
 }
