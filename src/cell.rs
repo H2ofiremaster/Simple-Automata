@@ -10,7 +10,7 @@ use vizia::{
     views::{Button, Element},
 };
 
-use crate::AppEvent;
+use crate::{display::style, AppEvent};
 
 pub type StateSet = HashMap<String, Vec<String>>;
 pub type State = HashMap<String, String>;
@@ -28,9 +28,8 @@ impl Cell {
 
     pub fn display<'c>(&self, cx: &'c mut Context) -> Handle<'c, Button> {
         Button::new(cx, |cx| Element::new(cx))
+            .class(style::CELL)
             .background_gradient(self.gradient().as_str())
-            .space(Stretch(0.03))
-            .size(Stretch(1.0))
             .on_hover_out(|cx| cx.emit(AppEvent::CellUnhovered))
     }
     #[rustfmt::skip]

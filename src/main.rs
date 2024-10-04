@@ -1,4 +1,5 @@
 use cell::Material;
+use display::style;
 use grid::Grid;
 use ruleset::Ruleset;
 use vizia::prelude::*;
@@ -66,6 +67,9 @@ impl Model for AppData {
 
 fn main() -> Result<(), ApplicationError> {
     Application::new(|cx| {
+        cx.add_stylesheet(include_style!("resources/style.css"))
+            .expect("failed to add stylesheet.");
+
         AppData::default().build(cx);
         HStack::new(cx, |cx| {
             display::left_panel(cx);
@@ -79,8 +83,7 @@ fn main() -> Result<(), ApplicationError> {
                 cx.emit(AppEvent::UpdateWindowSize);
             }
         })
-        .background_color("black")
-        .child_space(Pixels(5.0));
+        .class(style::BACKGROUND);
     })
     .inner_size(INITIAL_WINDOW_SIZE)
     .run()

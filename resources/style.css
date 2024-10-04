@@ -1,0 +1,18 @@
+.side-panel {
+    background-color: #888;
+    border-width: 5px;
+    border-color: #000; 
+    corner-radius: 5%;
+}
+.center-panel {
+    background-color: #888;
+    corner-radius: 1%;
+}
+.cell {
+    space: 0.03s;
+    size: 1s;
+}
+.background {
+    child-space: 10px;
+    background-color: #000;
+}
