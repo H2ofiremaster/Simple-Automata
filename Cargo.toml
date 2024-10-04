@@ -1,11 +1,15 @@
 [package]
-name = "automata"
+name = "automata_vizia"
 version = "0.1.0"
 edition = "2021"
 
+[lints.clippy]
+enum_glob_use = "deny"
+unwrap_used = "deny"
+pedantic = { level = "deny", priority = -1 }
+nursery = { level = "deny", priority = -1 }
+
 [dependencies]
-anyhow = "1.0.82"
-macroquad = "0.4.5"
-rand = "0.8.5"
-serde = { version = "1.0.198", features = ["derive"] }
-toml = "0.8.12"
+serde = { version = "1.0.210", features = ["derive"] }
+toml = "0.8.19"
+vizia = {git = "https://github.com/vizia/vizia"}

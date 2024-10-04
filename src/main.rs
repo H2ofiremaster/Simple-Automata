@@ -1,49 +1,85 @@
-use crate::input::{handle_inputs, State};
-use display::styles::Styles;
-use logic::{grid::Grid, parser::parse_ruleset};
-use macroquad::prelude::*;
+use cell::Material;
+use grid::Grid;
+use ruleset::Ruleset;
+use vizia::prelude::*;
 
-pub mod display;
-pub mod input;
-pub mod logic;
+mod cell;
+mod display;
+mod grid;
+mod ruleset;
 
-#[macroquad::main("Automata")]
-async fn main() {
-    let ruleset =
-        parse_ruleset("./test_files/test.toml").expect("Test ruleset should parse correctly");
+const INITIAL_WINDOW_SIZE: (u32, u32) = (1920 / 2, 1080 / 2);
 
-    let grid = Grid::new(10, 10, &ruleset);
-    // grid.randomize(&ruleset);
-
-    let styles = Styles::new().expect("Static styles should have parsed correctly.");
-
-    let mut state: State = State::new(ruleset, grid, styles);
-    loop {
-        clear_background(BLACK);
-        state = handle_inputs(state);
-        // if is_key_pressed(KeyCode::Space) {
-        //     stategrid = grid.get_next_generation(&ruleset);
-        //     delay = 1.
-        // } else if is_key_down(KeyCode::Space) {
-        //     delay -= get_frame_time();
-        //     if delay < 0. {
-        //         grid = grid.get_next_generation(&ruleset);
-        //         delay = 0.1
-        //     }
-        // }
-        // if is_key_pressed(KeyCode::F3) {
-        //     debug = !debug;
-        // }
-        // if debug {
-        //     display_grid(&grid, 0.7);
-        //     display_debug_screen(&grid, &ruleset, 0.7);
-        // } else {
-        //     display_grid(&grid, 1.)
-        // }
-        next_frame().await
+#[derive(Debug, Lens)]
+pub struct AppData {
+    window_size: BoundingBox,
+    selected_material: Material,
+    selected_ruleset: Ruleset,
+    grid: Grid,
+    tooltip: String,
+    hovered_index: Option<usize>,
+}
+impl Default for AppData {
+    fn default() -> Self {
+        let ruleset = Ruleset::blank();
+        let grid = Grid::generate(ruleset.clone(), 5);
+        Self {
+            window_size: BoundingBox {
+                x: 0.,
+                y: 0.,
+                w: INITIAL_WINDOW_SIZE.0 as f32,
+                h: INITIAL_WINDOW_SIZE.1 as f32,
+            },
+            selected_material: ruleset.default_material().clone(),
+            selected_ruleset: ruleset,
+            grid,
+            tooltip: String::new(),
+            hovered_index: None,
+        }
     }
 }
 
-pub fn screen_center() -> Vec2 {
-    vec2(screen_width() / 2., screen_height() / 2.)
+enum AppEvent {
+    UpdateWindowSize,
+    CellHovered(usize, usize),
+    CellUnhovered,
+    CellClicked(usize, usize, MouseButton),
+}
+
+impl Model for AppData {
+    fn event(&mut self, cx: &mut EventContext, event: &mut Event) {
+        event.map(|event, _| match event {
+            AppEvent::UpdateWindowSize => {
+                self.window_size = cx.bounds();
+            }
+            AppEvent::CellHovered(x, y) => {
+                self.hovered_index = Some(self.grid.cell_index(*x, *y));
+                println!("{:?}", self.hovered_index)
+            }
+            AppEvent::CellUnhovered => {
+                self.hovered_index = None;
+            }
+            AppEvent::CellClicked(_, _, _) => {}
+        });
+    }
+}
+
+fn main() -> Result<(), ApplicationError> {
+    Application::new(|cx| {
+        AppData::default().build(cx);
+        HStack::new(cx, |cx| {
+            display::left_panel(cx);
+            display::center_panel(cx);
+            display::right_panel(cx);
+        })
+        .on_geo_changed(|cx, changes| {
+            if changes.contains(GeoChanged::WIDTH_CHANGED)
+                || changes.contains(GeoChanged::HEIGHT_CHANGED)
+            {
+                cx.emit(AppEvent::UpdateWindowSize);
+            }
+        });
+    })
+    .inner_size(INITIAL_WINDOW_SIZE)
+    .run()
 }
