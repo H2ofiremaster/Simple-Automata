@@ -32,7 +32,8 @@ impl Grid {
             return;
         };
         let cell_index = self.cell_index(x, y);
-        cell.display(cx)
+        let mut cell_display = cell
+            .display(cx)
             .border_color(AppData::hovered_index.map(move |index| {
                 if index.is_some_and(|index| cell_index == index) {
                     "black"
@@ -43,6 +44,17 @@ impl Grid {
             .border_width(LengthOrPercentage::Percentage(5.0))
             .on_hover(move |cx| cx.emit(AppEvent::CellHovered(x, y)))
             .on_mouse_down(move |cx, button| cx.emit(AppEvent::CellClicked(x, y, button)));
+        if x == 0 {
+            cell_display = cell_display.left(Stretch(0.06));
+        } else if x == self.size - 1 {
+            cell_display = cell_display.right(Stretch(0.06));
+        }
+
+        if y == 0 {
+            cell_display.top(Stretch(0.06));
+        } else if y == self.size - 1 {
+            cell_display.bottom(Stretch(0.06));
+        }
     }
 
     pub fn cell_at(&self, x: usize, y: usize) -> Option<&Cell> {

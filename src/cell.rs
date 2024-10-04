@@ -10,7 +10,7 @@ use vizia::{
     views::{Button, Element},
 };
 
-use crate::{AppData, AppEvent};
+use crate::AppEvent;
 
 pub type StateSet = HashMap<String, Vec<String>>;
 pub type State = HashMap<String, String>;

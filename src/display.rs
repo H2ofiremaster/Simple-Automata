@@ -1,9 +1,13 @@
 use vizia::prelude::*;
 
-use crate::{grid::Grid, ruleset::Ruleset, AppData, AppEvent};
+use crate::{grid::Grid, AppData, AppEvent};
 
 pub fn left_panel(cx: &mut Context) {
-    VStack::new(cx, |cx| {});
+    VStack::new(cx, |cx| {})
+        .background_color("gray")
+        .border_width(Pixels(5.0))
+        .border_color("black")
+        .corner_radius(Percentage(10.0));
 }
 
 pub fn center_panel(cx: &mut Context) {
@@ -13,16 +17,21 @@ pub fn center_panel(cx: &mut Context) {
             grid.get(cx).display(cx);
         })
         .size(AppData::window_size.map(|bounds| Pixels(margined_square_size(bounds))))
-        .background_color("gray");
+        .background_color("gray")
+        .corner_radius(Percentage(1.0));
     });
 }
 
 pub fn right_panel(cx: &mut Context) {
-    VStack::new(cx, |cx| {});
+    VStack::new(cx, |cx| {})
+        .background_color("gray")
+        .border_width(Pixels(5.0))
+        .border_color("black")
+        .corner_radius(Percentage(10.0));
 }
 
 fn margined_square_size(bounds: &BoundingBox) -> f32 {
-    bounds.height().min(bounds.width() * 0.6)
+    bounds.height().min(bounds.width() * 0.6) - 10.0
 }
 
 fn display_cell(grid: &Grid, cx: &mut Context, x: usize, y: usize) {

@@ -78,7 +78,9 @@ fn main() -> Result<(), ApplicationError> {
             {
                 cx.emit(AppEvent::UpdateWindowSize);
             }
-        });
+        })
+        .background_color("black")
+        .child_space(Pixels(5.0));
     })
     .inner_size(INITIAL_WINDOW_SIZE)
     .run()

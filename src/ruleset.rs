@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use crate::cell::Material;
 
 #[derive(Debug, Clone, PartialEq)]
