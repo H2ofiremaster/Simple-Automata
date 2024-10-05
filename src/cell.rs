@@ -35,7 +35,12 @@ impl Cell {
     #[rustfmt::skip]
     fn gradient(&self) -> String {
         let color = self.material.color.to_rgba();
-        let dark_color = RGBA::rgb(color.r() - 64, color.g() - 64, color.b() - 64);
+        let darken_value = style::CELL_GRADIENT_DARKEN;
+        let dark_color = RGBA::rgb(
+            color.r() - darken_value,
+            color.g() - darken_value,
+            color.b() - darken_value
+        );
         format!(
             "radial-gradient(rgba({}, {}, {}), rgba({}, {}, {}))",
             color.r(),      color.g(),      color.b(),

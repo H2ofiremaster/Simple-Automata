@@ -19,6 +19,8 @@ pub struct AppData {
     grid: Grid,
     tooltip: String,
     hovered_index: Option<usize>,
+    running: bool,
+    speed: f32,
 }
 impl Default for AppData {
     fn default() -> Self {
@@ -36,6 +38,8 @@ impl Default for AppData {
             grid,
             tooltip: String::new(),
             hovered_index: None,
+            running: false,
+            speed: 1.0,
         }
     }
 }
@@ -45,6 +49,9 @@ enum AppEvent {
     CellHovered(usize, usize),
     CellUnhovered,
     CellClicked(usize, usize, MouseButton),
+    ToggleRunning,
+    SetSpeed(f32),
+    Step,
 }
 
 impl Model for AppData {
@@ -55,12 +62,14 @@ impl Model for AppData {
             }
             AppEvent::CellHovered(x, y) => {
                 self.hovered_index = Some(self.grid.cell_index(*x, *y));
-                println!("{:?}", self.hovered_index)
             }
             AppEvent::CellUnhovered => {
                 self.hovered_index = None;
             }
             AppEvent::CellClicked(_, _, _) => {}
+            AppEvent::ToggleRunning => self.running = !self.running,
+            AppEvent::SetSpeed(speed) => self.speed = (*speed * 100.0).round() / 100.0,
+            AppEvent::Step => {}
         });
     }
 }

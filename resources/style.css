@@ -3,16 +3,32 @@
     border-width: 5px;
     border-color: #000; 
     corner-radius: 5%;
+    child-space: 10px
+}
+.menu-element {
+    child-space: 1%;
+    min-height: auto;
+    width: 1s;
 }
 .center-panel {
     background-color: #888;
     corner-radius: 1%;
+    child-space: 0.01s;
 }
 .cell {
     space: 0.03s;
     size: 1s;
+    corner-radius: 5%;
 }
 .background {
-    child-space: 10px;
+    child-space: 1%;
     background-color: #000;
+}
+.button {
+    width: 1s;
+    child-space: 1s;
+    space: 0.1s;
+}
+label {
+    font-size: 2em;
 }

@@ -7,7 +7,7 @@ use vizia::{
     views::{HStack, VStack},
 };
 
-use crate::{cell::Cell, ruleset::Ruleset, AppData, AppEvent};
+use crate::{cell::Cell, display::style, ruleset::Ruleset, AppData, AppEvent};
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Grid {
@@ -44,17 +44,17 @@ impl Grid {
             .border_width(LengthOrPercentage::Percentage(5.0))
             .on_hover(move |cx| cx.emit(AppEvent::CellHovered(x, y)))
             .on_mouse_down(move |cx, button| cx.emit(AppEvent::CellClicked(x, y, button)));
-        if x == 0 {
-            cell_display = cell_display.left(Stretch(0.06));
-        } else if x == self.size - 1 {
-            cell_display = cell_display.right(Stretch(0.06));
-        }
+        // if x == 0 {
+        //     cell_display = cell_display.left(Stretch(style::CELL_SPACE / 2.0));
+        // } else if x == self.size - 1 {
+        //     cell_display = cell_display.right(Stretch(style::CELL_SPACE / 2.0));
+        // }
 
-        if y == 0 {
-            cell_display.top(Stretch(0.06));
-        } else if y == self.size - 1 {
-            cell_display.bottom(Stretch(0.06));
-        }
+        // if y == 0 {
+        //     cell_display.top(Stretch(style::CELL_SPACE / 2.0));
+        // } else if y == self.size - 1 {
+        //     cell_display.bottom(Stretch(style::CELL_SPACE / 2.0));
+        // }
     }
 
     pub fn cell_at(&self, x: usize, y: usize) -> Option<&Cell> {
