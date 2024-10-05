@@ -19,6 +19,7 @@
     space: 0.03s;
     size: 1s;
     corner-radius: 5%;
+    border-width: 5px;
 }
 .background {
     child-space: 1%;

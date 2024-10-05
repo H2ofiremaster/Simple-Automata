@@ -1,17 +1,23 @@
 use vizia::{
     binding::{Data, LensExt},
     context::{Context, EmitContext},
-    layout::Units::{Pixels, Stretch},
-    modifiers::{ActionModifiers, LayoutModifiers, StyleModifiers},
-    style::{LengthOrPercentage, RGBA},
-    views::{HStack, VStack},
+    layout::Units::Percentage,
+    modifiers::{ActionModifiers, StyleModifiers},
+    style::RGBA,
+    view::Handle,
+    views::{Button, Element, HStack, VStack},
 };
 
-use crate::{cell::Cell, display::style, ruleset::Ruleset, AppData, AppEvent};
+use crate::{
+    display::style,
+    material::{Material, MaterialId},
+    ruleset::Ruleset,
+    AppData, AppEvent,
+};
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Grid {
-    ruleset: Ruleset,
+    pub ruleset: Ruleset,
     cells: Vec<Cell>,
     pub size: usize,
 }
@@ -32,8 +38,7 @@ impl Grid {
             return;
         };
         let cell_index = self.cell_index(x, y);
-        let mut cell_display = cell
-            .display(cx)
+        cell.display(cx, &self.ruleset)
             .border_color(AppData::hovered_index.map(move |index| {
                 if index.is_some_and(|index| cell_index == index) {
                     "black"
@@ -41,20 +46,8 @@ impl Grid {
                     "transparent"
                 }
             }))
-            .border_width(LengthOrPercentage::Percentage(5.0))
             .on_hover(move |cx| cx.emit(AppEvent::CellHovered(x, y)))
             .on_mouse_down(move |cx, button| cx.emit(AppEvent::CellClicked(x, y, button)));
-        // if x == 0 {
-        //     cell_display = cell_display.left(Stretch(style::CELL_SPACE / 2.0));
-        // } else if x == self.size - 1 {
-        //     cell_display = cell_display.right(Stretch(style::CELL_SPACE / 2.0));
-        // }
-
-        // if y == 0 {
-        //     cell_display.top(Stretch(style::CELL_SPACE / 2.0));
-        // } else if y == self.size - 1 {
-        //     cell_display.bottom(Stretch(style::CELL_SPACE / 2.0));
-        // }
     }
 
     pub fn cell_at(&self, x: usize, y: usize) -> Option<&Cell> {
@@ -65,9 +58,9 @@ impl Grid {
         y * self.size + x
     }
 
-    pub fn generate(ruleset: Ruleset, size: usize) -> Self {
-        let material = ruleset.default_material();
-        let cell = Cell::new(material.clone());
+    pub fn new(ruleset: Ruleset, size: usize) -> Self {
+        let material = ruleset.materials.default();
+        let cell = Cell::new(material);
         let cells = vec![cell; size * size];
         Self {
             ruleset,
@@ -80,5 +73,43 @@ impl Grid {
 impl Data for Grid {
     fn same(&self, other: &Self) -> bool {
         self == other
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Cell {
+    material_index: MaterialId,
+}
+impl Cell {
+    pub fn new(material: &Material) -> Self {
+        Self {
+            material_index: material.id,
+        }
+    }
+
+    pub fn display<'c>(&self, cx: &'c mut Context, ruleset: &Ruleset) -> Handle<'c, Button> {
+        Button::new(cx, |cx| Element::new(cx))
+            .class(style::CELL)
+            .background_gradient(self.gradient(ruleset).as_str())
+            .on_hover_out(|cx| cx.emit(AppEvent::CellUnhovered))
+    }
+    #[rustfmt::skip]
+    fn gradient(&self, ruleset: &Ruleset) -> String {
+        let color = ruleset.materials.get(self.material_index).map(|m| m.color.to_rgba());
+        let Some(color) = color else {
+            println!("This cell's index does not correspond to a material. Aborting.");
+            return String::from("red");
+        };
+        let darken_value = style::CELL_GRADIENT_DARKEN;
+        let dark_color = RGBA::rgb(
+            color.r() - darken_value,
+            color.g() - darken_value,
+            color.b() - darken_value
+        );
+        format!(
+            "radial-gradient(rgba({}, {}, {}), rgba({}, {}, {}))",
+            color.r(),      color.g(),      color.b(),
+            dark_color.r(), dark_color.g(), dark_color.b()
+        )
     }
 }

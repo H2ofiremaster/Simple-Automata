@@ -1,20 +1,18 @@
-use crate::cell::Material;
+use crate::material::{Material, MaterialGroup, MaterialMap};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Ruleset {
     rules: Vec<Rule>,
-    materials: Vec<Material>,
+    pub materials: MaterialMap,
+    groups: Vec<MaterialGroup>,
 }
 impl Ruleset {
     pub fn blank() -> Self {
         Self {
             rules: Vec::new(),
-            materials: vec![Material::blank()],
+            materials: MaterialMap::new(Material::blank()),
+            groups: vec![],
         }
-    }
-
-    pub fn default_material(&self) -> &Material {
-        &self.materials[0]
     }
 }
 

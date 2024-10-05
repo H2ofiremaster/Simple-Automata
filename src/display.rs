@@ -55,7 +55,7 @@ pub fn center_panel(cx: &mut Context) {
 }
 
 pub fn right_panel(cx: &mut Context) {
-    VStack::new(cx, |cx| {}).class("side-panel");
+    VStack::new(cx, |_cx| {}).class("side-panel");
 }
 
 fn margined_square_size(bounds: &BoundingBox) -> f32 {
@@ -75,7 +75,7 @@ fn display_cell(grid: &Grid, cx: &mut Context, x: usize, y: usize) {
         println!("Cell at '{x}, {y}' doesn't exist; skipping...");
         return;
     };
-    cell.display(cx)
+    cell.display(cx, &grid.ruleset)
         .on_hover(move |cx| cx.emit(AppEvent::CellHovered(x, y)))
         .on_mouse_down(move |cx, button| cx.emit(AppEvent::CellClicked(x, y, button)));
 }

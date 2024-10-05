@@ -1,12 +1,12 @@
-use cell::Material;
 use display::style;
 use grid::Grid;
+use material::{Material, MaterialId};
 use ruleset::Ruleset;
 use vizia::prelude::*;
 
-mod cell;
 mod display;
 mod grid;
+mod material;
 mod ruleset;
 
 const INITIAL_WINDOW_SIZE: (u32, u32) = (1920 / 2, 1080 / 2);
@@ -14,7 +14,7 @@ const INITIAL_WINDOW_SIZE: (u32, u32) = (1920 / 2, 1080 / 2);
 #[derive(Debug, Lens)]
 pub struct AppData {
     window_size: BoundingBox,
-    selected_material: Material,
+    selected_material: MaterialId,
     selected_ruleset: Ruleset,
     grid: Grid,
     tooltip: String,
@@ -25,7 +25,7 @@ pub struct AppData {
 impl Default for AppData {
     fn default() -> Self {
         let ruleset = Ruleset::blank();
-        let grid = Grid::generate(ruleset.clone(), 5);
+        let grid = Grid::new(ruleset.clone(), 5);
         Self {
             window_size: BoundingBox {
                 x: 0.,
@@ -33,7 +33,7 @@ impl Default for AppData {
                 w: INITIAL_WINDOW_SIZE.0 as f32,
                 h: INITIAL_WINDOW_SIZE.1 as f32,
             },
-            selected_material: ruleset.default_material().clone(),
+            selected_material: ruleset.materials.default().id,
             selected_ruleset: ruleset,
             grid,
             tooltip: String::new(),
