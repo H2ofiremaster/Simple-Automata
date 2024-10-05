@@ -1,9 +1,10 @@
 .side-panel {
     background-color: #888;
-    border-width: 5px;
-    border-color: #000; 
+    /* border-width: 5px;
+    border-color: #000;  */
     corner-radius: 5%;
-    child-space: 10px
+    child-space: 10px;
+    space: 10px;
 }
 .menu-element {
     child-space: 1%;
@@ -21,6 +22,19 @@
     corner-radius: 5%;
     border-width: 5px;
 }
+.material-display {
+    size: 128px;
+    space: 1s;
+    min_space: 128px;
+    border-width: 5px;
+}
+.material-row {
+    space: 15px;
+    height: auto;
+    min-width: auto;
+    width: 1s;
+}
+
 .background {
     child-space: 1%;
     background-color: #000;

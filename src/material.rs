@@ -1,3 +1,5 @@
+use std::vec;
+
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use vizia::style::RGBA;
@@ -41,7 +43,7 @@ impl MaterialColor {
     pub const fn new(r: u8, g: u8, b: u8) -> Self {
         Self { r, g, b }
     }
-    pub fn to_rgba(&self) -> RGBA {
+    pub const fn to_rgba(&self) -> RGBA {
         RGBA::rgb(self.r, self.g, self.b)
     }
 }
@@ -81,6 +83,10 @@ impl MaterialMap {
 
     pub fn push(&mut self, material: Material) {
         self.0.push(material);
+    }
+
+    pub fn iter(&self) -> std::slice::Iter<Material> {
+        self.0.iter()
     }
 }
 

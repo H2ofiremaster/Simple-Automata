@@ -1,6 +1,6 @@
 use display::style;
 use grid::Grid;
-use material::{Material, MaterialId};
+use material::MaterialId;
 use ruleset::Ruleset;
 use vizia::prelude::*;
 
@@ -14,9 +14,8 @@ const INITIAL_WINDOW_SIZE: (u32, u32) = (1920 / 2, 1080 / 2);
 #[derive(Debug, Lens)]
 pub struct AppData {
     window_size: BoundingBox,
-    selected_material: MaterialId,
-    selected_ruleset: Ruleset,
     grid: Grid,
+    selected_material: MaterialId,
     tooltip: String,
     hovered_index: Option<usize>,
     running: bool,
@@ -25,6 +24,7 @@ pub struct AppData {
 impl Default for AppData {
     fn default() -> Self {
         let ruleset = Ruleset::blank();
+        let material = ruleset.materials.default().id;
         let grid = Grid::new(ruleset.clone(), 5);
         Self {
             window_size: BoundingBox {
@@ -33,8 +33,7 @@ impl Default for AppData {
                 w: INITIAL_WINDOW_SIZE.0 as f32,
                 h: INITIAL_WINDOW_SIZE.1 as f32,
             },
-            selected_material: ruleset.materials.default().id,
-            selected_ruleset: ruleset,
+            selected_material: material,
             grid,
             tooltip: String::new(),
             hovered_index: None,
@@ -49,6 +48,7 @@ enum AppEvent {
     CellHovered(usize, usize),
     CellUnhovered,
     CellClicked(usize, usize, MouseButton),
+    MaterialSelected(MaterialId),
     ToggleRunning,
     SetSpeed(f32),
     Step,
@@ -67,6 +67,7 @@ impl Model for AppData {
                 self.hovered_index = None;
             }
             AppEvent::CellClicked(_, _, _) => {}
+            AppEvent::MaterialSelected(material_id) => self.selected_material = *material_id,
             AppEvent::ToggleRunning => self.running = !self.running,
             AppEvent::SetSpeed(speed) => self.speed = (*speed * 100.0).round() / 100.0,
             AppEvent::Step => {}

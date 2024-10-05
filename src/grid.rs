@@ -1,7 +1,6 @@
 use vizia::{
     binding::{Data, LensExt},
     context::{Context, EmitContext},
-    layout::Units::Percentage,
     modifiers::{ActionModifiers, StyleModifiers},
     style::RGBA,
     view::Handle,
@@ -78,13 +77,22 @@ impl Data for Grid {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Cell {
-    material_index: MaterialId,
+    pub material_id: MaterialId,
 }
 impl Cell {
     pub fn new(material: &Material) -> Self {
         Self {
-            material_index: material.id,
+            material_id: material.id,
         }
+    }
+
+    pub fn color(&self, ruleset: &Ruleset) -> RGBA {
+        ruleset
+            .materials
+            .get(self.material_id)
+            .expect("cell should point to a valid material id for this ruleset.")
+            .color
+            .to_rgba()
     }
 
     pub fn display<'c>(&self, cx: &'c mut Context, ruleset: &Ruleset) -> Handle<'c, Button> {
@@ -95,16 +103,12 @@ impl Cell {
     }
     #[rustfmt::skip]
     fn gradient(&self, ruleset: &Ruleset) -> String {
-        let color = ruleset.materials.get(self.material_index).map(|m| m.color.to_rgba());
-        let Some(color) = color else {
-            println!("This cell's index does not correspond to a material. Aborting.");
-            return String::from("red");
-        };
+        let color = self.color(ruleset);
         let darken_value = style::CELL_GRADIENT_DARKEN;
         let dark_color = RGBA::rgb(
-            color.r() - darken_value,
-            color.g() - darken_value,
-            color.b() - darken_value
+            color.r().saturating_sub(darken_value),
+            color.g().saturating_sub(darken_value),
+            color.b().saturating_sub(darken_value)
         );
         format!(
             "radial-gradient(rgba({}, {}, {}), rgba({}, {}, {}))",

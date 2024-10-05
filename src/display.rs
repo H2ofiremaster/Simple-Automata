@@ -1,6 +1,6 @@
-use vizia::prelude::*;
+use vizia::{prelude::*, vg::RGB};
 
-use crate::{grid::Grid, AppData, AppEvent};
+use crate::{grid::Cell, AppData, AppEvent};
 
 pub fn left_panel(cx: &mut Context) {
     VStack::new(cx, |cx| {
@@ -55,7 +55,49 @@ pub fn center_panel(cx: &mut Context) {
 }
 
 pub fn right_panel(cx: &mut Context) {
-    VStack::new(cx, |_cx| {}).class("side-panel");
+    ZStack::new(cx, |cx| {
+        ScrollView::new(cx, 0., 0., true, true, |cx| {
+            VStack::new(cx, |cx| {
+                Binding::new(cx, AppData::grid, |cx, grid| {
+                    let grid = grid.get(cx);
+                    let ruleset = grid.ruleset;
+                    let mut material_iter = ruleset.materials.iter().map(|m| Cell::new(m));
+                    loop {
+                        let chunk = (0..style::MATERIAL_ROW_LENGTH).map(|_| material_iter.next());
+                        let mut should_break: bool = false;
+                        HStack::new(cx, |cx| {
+                            for cell in chunk {
+                                if let Some(cell) = cell {
+                                    let border_color = border_color(cell.color(&ruleset));
+                                    cell.display(cx, &ruleset)
+                                        .on_press(move |cx| {
+                                            cx.emit(AppEvent::MaterialSelected(cell.material_id))
+                                        })
+                                        .border_color(AppData::selected_material.map(move |id| {
+                                            if *id == cell.material_id {
+                                                border_color
+                                                // Color::black()
+                                            } else {
+                                                Color::transparent()
+                                            }
+                                        }))
+                                        .class(style::MATERIAL_DISPLAY);
+                                } else {
+                                    should_break = true;
+                                }
+                            }
+                        })
+                        .class(style::MATERIAL_ROW);
+                        if should_break {
+                            break;
+                        }
+                    }
+                });
+            })
+            .min_size(Auto);
+        });
+    })
+    .class("side-panel");
 }
 
 fn margined_square_size(bounds: &BoundingBox) -> f32 {
@@ -70,20 +112,25 @@ fn margined_square_size(bounds: &BoundingBox) -> f32 {
     //     - (bounds.width().max(bounds.height()) * style::BACKGROUND_PADDING)
 }
 
-fn display_cell(grid: &Grid, cx: &mut Context, x: usize, y: usize) {
-    let Some(cell) = grid.cell_at(x, y) else {
-        println!("Cell at '{x}, {y}' doesn't exist; skipping...");
-        return;
-    };
-    cell.display(cx, &grid.ruleset)
-        .on_hover(move |cx| cx.emit(AppEvent::CellHovered(x, y)))
-        .on_mouse_down(move |cx, button| cx.emit(AppEvent::CellClicked(x, y, button)));
+fn border_color(color: RGBA) -> Color {
+    let r = color.r();
+    let g = color.g();
+    let b = color.b();
+    let avg = (r as u32 + g as u32 + b as u32) / 3;
+    println!("{avg}");
+    if avg > 128 {
+        Color::black()
+    } else {
+        Color::white()
+    }
 }
 
 pub mod style {
     pub const SIDE_PANEL: &str = "side-panel";
     pub const CENTER_PANEL: &str = "center-panel";
     pub const CELL: &str = "cell";
+    pub const MATERIAL_DISPLAY: &str = "material-display";
+    pub const MATERIAL_ROW: &str = "material-row";
     pub const BACKGROUND: &str = "background";
     pub const BUTTON: &str = "button";
     pub const MENU_ELEMENT: &str = "menu-element";
@@ -92,8 +139,8 @@ pub mod style {
     pub const CENTER_MARGIN_FACTOR: f32 = 0.6;
     /// Mirrors '.backround/child-space' in 'style.css'.
     pub const BACKGROUND_PADDING: f32 = 0.01;
-    /// Mirrors '.cell/space' in 'style.css'.
-    pub const CELL_SPACE: f32 = 0.06;
     /// How much darker the corners of a cell should be compared to the center, as a munber from 0.-255.
     pub const CELL_GRADIENT_DARKEN: u8 = 92;
+    /// How many materials display per row on the right panel.
+    pub const MATERIAL_ROW_LENGTH: usize = 3;
 }
