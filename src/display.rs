@@ -1,4 +1,4 @@
-use vizia::{prelude::*, vg::RGB};
+use vizia::prelude::*;
 
 use crate::{grid::Cell, AppData, AppEvent};
 
@@ -37,6 +37,8 @@ pub fn left_panel(cx: &mut Context) {
         })
         .class(style::MENU_ELEMENT);
         VStack::new(cx, |cx| {
+            Button::new(cx, |cx| Label::new(cx, "Save"))
+                .on_press(|cx| cx.emit(AppEvent::SaveRuleset));
             Label::new(cx, AppData::tooltip);
         })
         .size(Stretch(10.));

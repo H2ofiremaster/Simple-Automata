@@ -1,6 +1,8 @@
+use std::path::Path;
+
 use display::style;
 use grid::Grid;
-use material::MaterialId;
+use material::{Material, MaterialColor, MaterialId};
 use ruleset::Ruleset;
 use vizia::prelude::*;
 
@@ -10,6 +12,7 @@ mod material;
 mod ruleset;
 
 const INITIAL_WINDOW_SIZE: (u32, u32) = (1920 / 2, 1080 / 2);
+const RULESET_PATH: &str = "./rulesets/";
 
 #[derive(Debug, Lens)]
 pub struct AppData {
@@ -23,7 +26,11 @@ pub struct AppData {
 }
 impl Default for AppData {
     fn default() -> Self {
-        let ruleset = Ruleset::blank();
+        let mut ruleset = Ruleset::blank();
+        let mut second_material = Material::new(&ruleset);
+        second_material.color = MaterialColor::new(255, 0, 0);
+        second_material.name = String::from("Red");
+        ruleset.materials.push(second_material);
         let material = ruleset.materials.default().id;
         let grid = Grid::new(ruleset.clone(), 5);
         Self {
@@ -48,6 +55,7 @@ enum AppEvent {
     CellHovered(usize, usize),
     CellUnhovered,
     CellClicked(usize, usize, MouseButton),
+    SaveRuleset,
     MaterialSelected(MaterialId),
     ToggleRunning,
     SetSpeed(f32),
@@ -67,6 +75,11 @@ impl Model for AppData {
                 self.hovered_index = None;
             }
             AppEvent::CellClicked(_, _, _) => {}
+            AppEvent::SaveRuleset => {
+                if let Err(err) = self.grid.ruleset.save() {
+                    println!("{err}");
+                }
+            }
             AppEvent::MaterialSelected(material_id) => self.selected_material = *material_id,
             AppEvent::ToggleRunning => self.running = !self.running,
             AppEvent::SetSpeed(speed) => self.speed = (*speed * 100.0).round() / 100.0,

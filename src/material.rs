@@ -30,7 +30,7 @@ impl Material {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Deserialize)]
 pub struct MaterialColor {
     r: u8,
     g: u8,
@@ -45,6 +45,14 @@ impl MaterialColor {
     }
     pub const fn to_rgba(&self) -> RGBA {
         RGBA::rgb(self.r, self.g, self.b)
+    }
+}
+impl Serialize for MaterialColor {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&format!("#{:02X}{:02X}{:02X}", self.r, self.g, self.b))
     }
 }
 
