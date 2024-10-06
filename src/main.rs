@@ -17,12 +17,16 @@ const RULESET_PATH: &str = "./rulesets/";
 #[derive(Debug, Lens)]
 pub struct AppData {
     window_size: BoundingBox,
+
     grid: Grid,
     selected_material: MaterialId,
-    tooltip: String,
-    hovered_index: Option<usize>,
     running: bool,
     speed: f32,
+
+    tooltip: String,
+    hovered_index: Option<usize>,
+
+    edit_screen_enabled: bool,
 }
 impl Default for AppData {
     fn default() -> Self {
@@ -40,50 +44,58 @@ impl Default for AppData {
                 w: INITIAL_WINDOW_SIZE.0 as f32,
                 h: INITIAL_WINDOW_SIZE.1 as f32,
             },
-            selected_material: material,
+
             grid,
-            tooltip: String::new(),
-            hovered_index: None,
+            selected_material: material,
             running: false,
             speed: 1.0,
+
+            tooltip: String::new(),
+            hovered_index: None,
+
+            edit_screen_enabled: false,
         }
     }
 }
 
 enum AppEvent {
     UpdateWindowSize,
+
     CellHovered(usize, usize),
     CellUnhovered,
     CellClicked(usize, usize, MouseButton),
-    SaveRuleset,
     MaterialSelected(MaterialId),
+
+    SaveRuleset,
+
     ToggleRunning,
     SetSpeed(f32),
     Step,
+
+    ToggleEditScreen(bool),
 }
 
 impl Model for AppData {
     fn event(&mut self, cx: &mut EventContext, event: &mut Event) {
         event.map(|event, _| match event {
-            AppEvent::UpdateWindowSize => {
-                self.window_size = cx.bounds();
-            }
-            AppEvent::CellHovered(x, y) => {
-                self.hovered_index = Some(self.grid.cell_index(*x, *y));
-            }
-            AppEvent::CellUnhovered => {
-                self.hovered_index = None;
-            }
+            AppEvent::UpdateWindowSize => self.window_size = cx.bounds(),
+
+            AppEvent::CellHovered(x, y) => self.hovered_index = Some(self.grid.cell_index(*x, *y)),
+            AppEvent::CellUnhovered => self.hovered_index = None,
             AppEvent::CellClicked(_, _, _) => {}
+            AppEvent::MaterialSelected(material_id) => self.selected_material = *material_id,
+
             AppEvent::SaveRuleset => {
                 if let Err(err) = self.grid.ruleset.save() {
                     println!("{err}");
                 }
             }
-            AppEvent::MaterialSelected(material_id) => self.selected_material = *material_id,
+
             AppEvent::ToggleRunning => self.running = !self.running,
             AppEvent::SetSpeed(speed) => self.speed = (*speed * 100.0).round() / 100.0,
             AppEvent::Step => {}
+
+            AppEvent::ToggleEditScreen(toggle_on) => self.edit_screen_enabled = *toggle_on,
         });
     }
 }
@@ -94,10 +106,8 @@ fn main() -> Result<(), ApplicationError> {
             .expect("failed to add stylesheet.");
 
         AppData::default().build(cx);
-        HStack::new(cx, |cx| {
-            display::left_panel(cx);
-            display::center_panel(cx);
-            display::right_panel(cx);
+        ZStack::new(cx, |cx| {
+            display::game_board(cx);
         })
         .on_geo_changed(|cx, changes| {
             if changes.contains(GeoChanged::WIDTH_CHANGED)
@@ -105,8 +115,7 @@ fn main() -> Result<(), ApplicationError> {
             {
                 cx.emit(AppEvent::UpdateWindowSize);
             }
-        })
-        .class(style::BACKGROUND);
+        });
     })
     .inner_size(INITIAL_WINDOW_SIZE)
     .run()

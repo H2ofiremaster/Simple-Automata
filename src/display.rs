@@ -1,52 +1,84 @@
 use vizia::prelude::*;
 
-use crate::{grid::Cell, AppData, AppEvent};
+use crate::{grid::Cell, ruleset::Ruleset, AppData, AppEvent};
 
-pub fn left_panel(cx: &mut Context) {
+pub fn game_board(cx: &mut Context) {
+    HStack::new(cx, |cx| {
+        left_panel(cx);
+        center_panel(cx);
+        right_panel(cx);
+    })
+    .on_geo_changed(|cx, changes| {
+        if changes.contains(GeoChanged::WIDTH_CHANGED)
+            || changes.contains(GeoChanged::HEIGHT_CHANGED)
+        {
+            cx.emit(AppEvent::UpdateWindowSize);
+        }
+    })
+    .class(style::BACKGROUND);
+}
+
+fn left_panel(cx: &mut Context) {
     VStack::new(cx, |cx| {
-        HStack::new(cx, |cx| {
-            Button::new(cx, |cx| {
-                Label::new(
-                    cx,
-                    AppData::running.map(|runnning| if *runnning { "Stop" } else { "Start" }),
-                )
-            })
-            .on_press(|cx| cx.emit(AppEvent::ToggleRunning))
-            .class(style::BUTTON);
-            Button::new(cx, |cx| Label::new(cx, "Step"))
-                .on_press(|cx| cx.emit(AppEvent::Step))
-                .class(style::BUTTON);
-        })
-        .class(style::MENU_ELEMENT);
-        HStack::new(cx, |cx: &mut Context| {
-            Slider::new(cx, AppData::speed.map(|speed| 0_f32.max(*speed).min(1.0)))
-                .top(Stretch(1.0))
-                .bottom(Stretch(1.0))
-                .space(Stretch(0.05))
-                .range(0.01..1.0)
-                .on_changing(|cx, progress| cx.emit(AppEvent::SetSpeed(progress)));
-            Textbox::new(cx, AppData::speed.map(|speed| format!("{speed:.2}")))
-                .top(Stretch(1.0))
-                .bottom(Stretch(1.0))
-                .space(Stretch(0.05))
-                .on_edit(|cx, text| {
-                    if let Ok(speed) = text.parse() {
-                        cx.emit(AppEvent::SetSpeed(speed));
-                    }
-                });
-        })
-        .class(style::MENU_ELEMENT);
-        VStack::new(cx, |cx| {
-            Button::new(cx, |cx| Label::new(cx, "Save"))
-                .on_press(|cx| cx.emit(AppEvent::SaveRuleset));
-            Label::new(cx, AppData::tooltip);
-        })
-        .size(Stretch(10.));
+        editor_button(cx);
+        controls(cx);
+        speed_controls(cx);
+        material_tooltip(cx);
     })
     .class(style::SIDE_PANEL);
 }
 
-pub fn center_panel(cx: &mut Context) {
+fn editor_button(cx: &mut Context) {
+    HStack::new(cx, |cx| {
+        Button::new(cx, |cx| Label::new(cx, "Edit Ruleset"))
+            .on_press(|cx| cx.emit(AppEvent::ToggleEditScreen(true)));
+    })
+    .class(style::MENU_ELEMENT);
+}
+fn controls(cx: &mut Context) {
+    HStack::new(cx, |cx| {
+        Button::new(cx, |cx| {
+            Label::new(
+                cx,
+                AppData::running.map(|runnning| if *runnning { "Stop" } else { "Start" }),
+            )
+        })
+        .on_press(|cx| cx.emit(AppEvent::ToggleRunning))
+        .class(style::BUTTON);
+        Button::new(cx, |cx| Label::new(cx, "Step"))
+            .on_press(|cx| cx.emit(AppEvent::Step))
+            .class(style::BUTTON);
+    })
+    .class(style::MENU_ELEMENT);
+}
+fn speed_controls(cx: &mut Context) {
+    HStack::new(cx, |cx: &mut Context| {
+        Slider::new(cx, AppData::speed.map(|speed| 0_f32.max(*speed).min(1.0)))
+            .top(Stretch(1.0))
+            .bottom(Stretch(1.0))
+            .space(Stretch(0.05))
+            .range(0.01..1.0)
+            .on_changing(|cx, progress| cx.emit(AppEvent::SetSpeed(progress)));
+        Textbox::new(cx, AppData::speed.map(|speed| format!("{speed:.2}")))
+            .top(Stretch(1.0))
+            .bottom(Stretch(1.0))
+            .space(Stretch(0.05))
+            .on_edit(|cx, text| {
+                if let Ok(speed) = text.parse() {
+                    cx.emit(AppEvent::SetSpeed(speed));
+                }
+            });
+    })
+    .class(style::MENU_ELEMENT);
+}
+fn material_tooltip(cx: &mut Context) {
+    VStack::new(cx, |cx| {
+        Label::new(cx, AppData::tooltip);
+    })
+    .size(Stretch(10.));
+}
+
+fn center_panel(cx: &mut Context) {
     Binding::new(cx, AppData::grid, |cx, grid| {
         ZStack::new(cx, |cx| {
             grid.get(cx).display(cx);
@@ -56,44 +88,47 @@ pub fn center_panel(cx: &mut Context) {
     });
 }
 
-pub fn right_panel(cx: &mut Context) {
+fn right_panel(cx: &mut Context) {
     ZStack::new(cx, |cx| {
         ScrollView::new(cx, 0., 0., true, true, |cx| {
             VStack::new(cx, |cx| {
                 Binding::new(cx, AppData::grid, |cx, grid| {
                     let grid = grid.get(cx);
                     let ruleset = grid.ruleset;
-                    let mut material_iter = ruleset.materials.iter().map(|m| Cell::new(m));
-                    loop {
-                        let chunk = (0..style::MATERIAL_ROW_LENGTH).map(|_| material_iter.next());
-                        let mut should_break: bool = false;
-                        HStack::new(cx, |cx| {
-                            for cell in chunk {
-                                if let Some(cell) = cell {
-                                    let border_color = border_color(cell.color(&ruleset));
-                                    cell.display(cx, &ruleset)
-                                        .on_press(move |cx| {
-                                            cx.emit(AppEvent::MaterialSelected(cell.material_id))
-                                        })
-                                        .border_color(AppData::selected_material.map(move |id| {
-                                            if *id == cell.material_id {
-                                                border_color
-                                                // Color::black()
-                                            } else {
-                                                Color::transparent()
-                                            }
-                                        }))
-                                        .class(style::MATERIAL_DISPLAY);
-                                } else {
-                                    should_break = true;
-                                }
-                            }
-                        })
-                        .class(style::MATERIAL_ROW);
-                        if should_break {
-                            break;
-                        }
-                    }
+                    let cells: Vec<Cell> = ruleset.materials.iter().map(|m| Cell::new(m)).collect();
+                    cells.chunks(style::MATERIAL_ROW_LENGTH).for_each(|chunk| {
+                        material_row(cx, chunk, &ruleset);
+                    });
+                    // loop {
+                    //     let chunk = (0..style::MATERIAL_ROW_LENGTH).map(|_| material_iter.next());
+                    //     let mut should_break: bool = false;
+                    //     HStack::new(cx, |cx| {
+                    //         for cell in chunk {
+                    //             if let Some(cell) = cell {
+                    //                 let border_color = border_color(cell.color(&ruleset));
+                    //                 cell.display(cx, &ruleset)
+                    //                     .on_press(move |cx| {
+                    //                         cx.emit(AppEvent::MaterialSelected(cell.material_id))
+                    //                     })
+                    //                     .border_color(AppData::selected_material.map(move |id| {
+                    //                         if *id == cell.material_id {
+                    //                             border_color
+                    //                             // Color::black()
+                    //                         } else {
+                    //                             Color::transparent()
+                    //                         }
+                    //                     }))
+                    //                     .class(style::MATERIAL_DISPLAY);
+                    //             } else {
+                    //                 should_break = true;
+                    //             }
+                    //         }
+                    //     })
+                    //     .class(style::MATERIAL_ROW);
+                    //     if should_break {
+                    //         break;
+                    //     }
+                    // }
                 });
             })
             .min_size(Auto);
@@ -101,6 +136,28 @@ pub fn right_panel(cx: &mut Context) {
     })
     .class("side-panel");
 }
+
+fn material_row(cx: &mut Context, row: &[Cell], ruleset: &Ruleset) {
+    HStack::new(cx, |cx| {
+        row.iter().for_each(|&cell| {
+            let border_color = border_color(cell.color(&ruleset));
+            cell.display(cx, &ruleset)
+                .on_press(move |cx| {
+                    cx.emit(AppEvent::MaterialSelected(cell.material_id));
+                })
+                .border_color(AppData::selected_material.map(move |id| {
+                    if *id == cell.material_id {
+                        border_color
+                    } else {
+                        Color::transparent()
+                    }
+                }))
+                .class(style::MATERIAL_DISPLAY);
+        });
+    })
+    .class(style::MATERIAL_ROW);
+}
+// Utility
 
 fn margined_square_size(bounds: &BoundingBox) -> f32 {
     let max_width =
