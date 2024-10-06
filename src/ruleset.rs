@@ -6,7 +6,7 @@ use crate::material::{Material, MaterialGroup, MaterialMap};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Ruleset {
-    name: String,
+    pub name: String,
     rules: Vec<Rule>,
     pub materials: MaterialMap,
     groups: Vec<MaterialGroup>,

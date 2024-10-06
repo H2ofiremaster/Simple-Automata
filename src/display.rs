@@ -2,6 +2,31 @@ use vizia::prelude::*;
 
 use crate::{grid::Cell, ruleset::Ruleset, AppData, AppEvent};
 
+pub fn ruleset_editor(cx: &mut Context) {
+    VStack::new(cx, |cx| {
+        toolbar(cx);
+    })
+    .class("background");
+}
+
+pub fn toolbar(cx: &mut Context) {
+    HStack::new(cx, |cx| {
+        Button::new(cx, |cx| Label::new(cx, "Back"))
+            .on_press(|cx| cx.emit(AppEvent::ToggleEditor(false)));
+        ComboBox::new(
+            cx,
+            AppData::rulesets.map(|rulesets| {
+                rulesets
+                    .iter()
+                    .map(|r| r.name.clone())
+                    .collect::<Vec<String>>()
+            }),
+            AppData::selected_ruleset,
+        )
+        .on_select(|cx, index| cx.emit(AppEvent::SelectRulest(index)));
+    });
+}
+
 pub fn game_board(cx: &mut Context) {
     HStack::new(cx, |cx| {
         left_panel(cx);
@@ -31,7 +56,7 @@ fn left_panel(cx: &mut Context) {
 fn editor_button(cx: &mut Context) {
     HStack::new(cx, |cx| {
         Button::new(cx, |cx| Label::new(cx, "Edit Ruleset"))
-            .on_press(|cx| cx.emit(AppEvent::ToggleEditScreen(true)));
+            .on_press(|cx| cx.emit(AppEvent::ToggleEditor(true)));
     })
     .class(style::MENU_ELEMENT);
 }
@@ -99,36 +124,6 @@ fn right_panel(cx: &mut Context) {
                     cells.chunks(style::MATERIAL_ROW_LENGTH).for_each(|chunk| {
                         material_row(cx, chunk, &ruleset);
                     });
-                    // loop {
-                    //     let chunk = (0..style::MATERIAL_ROW_LENGTH).map(|_| material_iter.next());
-                    //     let mut should_break: bool = false;
-                    //     HStack::new(cx, |cx| {
-                    //         for cell in chunk {
-                    //             if let Some(cell) = cell {
-                    //                 let border_color = border_color(cell.color(&ruleset));
-                    //                 cell.display(cx, &ruleset)
-                    //                     .on_press(move |cx| {
-                    //                         cx.emit(AppEvent::MaterialSelected(cell.material_id))
-                    //                     })
-                    //                     .border_color(AppData::selected_material.map(move |id| {
-                    //                         if *id == cell.material_id {
-                    //                             border_color
-                    //                             // Color::black()
-                    //                         } else {
-                    //                             Color::transparent()
-                    //                         }
-                    //                     }))
-                    //                     .class(style::MATERIAL_DISPLAY);
-                    //             } else {
-                    //                 should_break = true;
-                    //             }
-                    //         }
-                    //     })
-                    //     .class(style::MATERIAL_ROW);
-                    //     if should_break {
-                    //         break;
-                    //     }
-                    // }
                 });
             })
             .min_size(Auto);
@@ -157,6 +152,7 @@ fn material_row(cx: &mut Context, row: &[Cell], ruleset: &Ruleset) {
     })
     .class(style::MATERIAL_ROW);
 }
+
 // Utility
 
 fn margined_square_size(bounds: &BoundingBox) -> f32 {

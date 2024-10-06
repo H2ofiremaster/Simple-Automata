@@ -1,5 +1,6 @@
 use std::path::Path;
 
+use app_data_derived_lenses::editor_enabled;
 use display::style;
 use grid::Grid;
 use material::{Material, MaterialColor, MaterialId};
@@ -18,7 +19,9 @@ const RULESET_PATH: &str = "./rulesets/";
 pub struct AppData {
     window_size: BoundingBox,
 
+    rulesets: Vec<Ruleset>,
     grid: Grid,
+    selected_ruleset: usize,
     selected_material: MaterialId,
     running: bool,
     speed: f32,
@@ -26,7 +29,7 @@ pub struct AppData {
     tooltip: String,
     hovered_index: Option<usize>,
 
-    edit_screen_enabled: bool,
+    editor_enabled: bool,
 }
 impl Default for AppData {
     fn default() -> Self {
@@ -35,6 +38,14 @@ impl Default for AppData {
         second_material.color = MaterialColor::new(255, 0, 0);
         second_material.name = String::from("Red");
         ruleset.materials.push(second_material);
+
+        let mut ruleset_2 = Ruleset::blank();
+        ruleset_2.name = String::from("Second");
+        let mut r2m2 = Material::new(&ruleset);
+        r2m2.color = MaterialColor::new(0, 255, 0);
+        r2m2.name = String::from("Green");
+        ruleset_2.materials.push(r2m2);
+
         let material = ruleset.materials.default().id;
         let grid = Grid::new(ruleset.clone(), 5);
         Self {
@@ -45,6 +56,8 @@ impl Default for AppData {
                 h: INITIAL_WINDOW_SIZE.1 as f32,
             },
 
+            rulesets: vec![ruleset, ruleset_2],
+            selected_ruleset: 0,
             grid,
             selected_material: material,
             running: false,
@@ -53,7 +66,7 @@ impl Default for AppData {
             tooltip: String::new(),
             hovered_index: None,
 
-            edit_screen_enabled: false,
+            editor_enabled: false,
         }
     }
 }
@@ -66,13 +79,14 @@ enum AppEvent {
     CellClicked(usize, usize, MouseButton),
     MaterialSelected(MaterialId),
 
+    SelectRulest(usize),
     SaveRuleset,
 
     ToggleRunning,
     SetSpeed(f32),
     Step,
 
-    ToggleEditScreen(bool),
+    ToggleEditor(bool),
 }
 
 impl Model for AppData {
@@ -85,6 +99,10 @@ impl Model for AppData {
             AppEvent::CellClicked(_, _, _) => {}
             AppEvent::MaterialSelected(material_id) => self.selected_material = *material_id,
 
+            AppEvent::SelectRulest(index) => {
+                self.selected_ruleset = *index;
+                self.grid = Grid::new(self.rulesets[*index].clone(), self.grid.size);
+            }
             AppEvent::SaveRuleset => {
                 if let Err(err) = self.grid.ruleset.save() {
                     println!("{err}");
@@ -95,7 +113,7 @@ impl Model for AppData {
             AppEvent::SetSpeed(speed) => self.speed = (*speed * 100.0).round() / 100.0,
             AppEvent::Step => {}
 
-            AppEvent::ToggleEditScreen(toggle_on) => self.edit_screen_enabled = *toggle_on,
+            AppEvent::ToggleEditor(toggle_on) => self.editor_enabled = *toggle_on,
         });
     }
 }
@@ -107,7 +125,13 @@ fn main() -> Result<(), ApplicationError> {
 
         AppData::default().build(cx);
         ZStack::new(cx, |cx| {
-            display::game_board(cx);
+            Binding::new(cx, AppData::editor_enabled, |cx, enabled| {
+                if enabled.get(cx) {
+                    display::ruleset_editor(cx);
+                } else {
+                    display::game_board(cx);
+                }
+            });
         })
         .on_geo_changed(|cx, changes| {
             if changes.contains(GeoChanged::WIDTH_CHANGED)
