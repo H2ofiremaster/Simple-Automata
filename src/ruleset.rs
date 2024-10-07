@@ -1,10 +1,13 @@
 use std::{fs, path::PathBuf};
 
-use serde::{Deserialize, Serialize};
+use serde::{
+    de::{self, Visitor},
+    Deserialize, Serialize,
+};
 
 use crate::{
     grid::{Cell, CellNeighbors, Grid},
-    id::Identifiable,
+    id::{Identifiable, UniqueId},
     material::{GroupId, Material, MaterialGroup, MaterialId, MaterialMap},
     pattern::Pattern,
 };
@@ -17,6 +20,15 @@ pub struct Ruleset {
     pub groups: Vec<MaterialGroup>,
 }
 impl Ruleset {
+    pub fn new(name: String) -> Self {
+        Self {
+            name,
+            rules: vec![],
+            materials: MaterialMap::new(Material::default()),
+            groups: vec![],
+        }
+    }
+
     pub fn blank() -> Self {
         Self {
             name: String::from("Blank"),
@@ -48,7 +60,7 @@ impl Ruleset {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Rule {
     input: Pattern,
     output: MaterialId,
@@ -67,6 +79,71 @@ impl Rule {
             return None;
         }
         Some(Cell::new(self.output))
+    }
+}
+struct RuleVisitor;
+impl<'de> Visitor<'de> for RuleVisitor {
+    type Value = Rule;
+
+    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(formatter, "struct Rule")
+    }
+
+    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+    where
+        A: serde::de::MapAccess<'de>,
+    {
+        let mut input = None;
+        let mut output = None;
+        let mut conditions = None;
+
+        while let Some(key) = map.next_key::<String>()? {
+            match key.as_str() {
+                "input" => {
+                    if input.is_some() {
+                        return Err(de::Error::duplicate_field("input"));
+                    }
+                    input = Some(map.next_value()?);
+                }
+                "output" => {
+                    if output.is_some() {
+                        return Err(de::Error::duplicate_field("output"));
+                    }
+                    let raw_id = map.next_value()?;
+                    output = Some(UniqueId::new_unchecked(raw_id));
+                }
+                "conditions" => {
+                    if conditions.is_some() {
+                        return Err(de::Error::duplicate_field("conditions"));
+                    }
+                    conditions = Some(map.next_value()?);
+                }
+                _ => {
+                    return Err(de::Error::unknown_field(
+                        &key,
+                        &["input", "output", "conditions"],
+                    ))
+                }
+            }
+        }
+
+        let input = input.ok_or_else(|| de::Error::missing_field("input"))?;
+        let output = output.ok_or_else(|| de::Error::missing_field("output"))?;
+        let conditions = conditions.ok_or_else(|| de::Error::missing_field("conditions"))?;
+
+        Ok(Rule {
+            input,
+            output,
+            conditions,
+        })
+    }
+}
+impl<'de> Deserialize<'de> for Rule {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: de::Deserializer<'de>,
+    {
+        deserializer.deserialize_struct("Rule", &["input", "output", "conditions"], RuleVisitor)
     }
 }
 
@@ -103,5 +180,45 @@ impl Condition {
             }),
             ConditionVariant::Count(counts) => counts.contains(&neighbors.count()),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::id::UniqueId;
+
+    use super::*;
+
+    #[allow(clippy::unwrap_used)]
+    #[test]
+    fn serde_rule() {
+        let rule = Rule {
+            input: Pattern::Material(UniqueId::new_unchecked(10)),
+            output: UniqueId::new_unchecked(100),
+            conditions: vec![
+                Condition {
+                    variant: ConditionVariant::Count(vec![1, 2, 3]),
+                    pattern: Pattern::Group(UniqueId::new_unchecked(20)),
+                },
+                Condition {
+                    variant: ConditionVariant::Directional(vec![
+                        Direction::North,
+                        Direction::South,
+                    ]),
+                    pattern: Pattern::Group(UniqueId::new_unchecked(200)),
+                },
+            ],
+        };
+
+        dbg!(&rule);
+
+        let rule_string = toml::to_string(&rule).unwrap();
+        println!("{rule_string:?}");
+
+        let new_rule: Rule = toml::from_str(&rule_string).unwrap();
+
+        dbg!(&new_rule);
+
+        assert_eq!(rule, new_rule);
     }
 }

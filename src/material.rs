@@ -14,7 +14,7 @@ use crate::{
 pub type MaterialId = UniqueId<Material>;
 pub type GroupId = UniqueId<MaterialGroup>;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Material {
     id: UniqueId<Self>,
     pub name: String,
@@ -37,9 +37,74 @@ impl Material {
         }
     }
 }
+impl Default for Material {
+    fn default() -> Self {
+        Self {
+            id: UniqueId::new(&[]),
+            name: String::from("Empty"),
+            color: MaterialColor::DEFAULT,
+        }
+    }
+}
 impl Identifiable for Material {
     fn id(&self) -> UniqueId<Self> {
         self.id
+    }
+}
+struct MaterialVisitor;
+impl<'de> Visitor<'de> for MaterialVisitor {
+    type Value = Material;
+
+    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(formatter, "struct Material")
+    }
+
+    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+    where
+        A: de::MapAccess<'de>,
+    {
+        let mut id = None;
+        let mut name = None;
+        let mut color = None;
+
+        while let Some(key) = map.next_key()? {
+            match key {
+                "id" => {
+                    if id.is_some() {
+                        return Err(de::Error::duplicate_field("id"));
+                    }
+                    let raw_id: u32 = map.next_value()?;
+                    id = Some(UniqueId::new_unchecked(raw_id));
+                }
+                "name" => {
+                    if name.is_some() {
+                        return Err(de::Error::duplicate_field("name"));
+                    }
+                    name = map.next_value()?;
+                }
+                "color" => {
+                    if color.is_some() {
+                        return Err(de::Error::duplicate_field("color"));
+                    }
+                    color = map.next_value()?;
+                }
+                _ => return Err(de::Error::unknown_field(key, &["id", "name", "color"])),
+            }
+        }
+
+        let id = id.ok_or_else(|| de::Error::missing_field("id"))?;
+        let name = name.ok_or_else(|| de::Error::missing_field("name"))?;
+        let color = color.ok_or_else(|| de::Error::missing_field("color"))?;
+
+        Ok(Material { id, name, color })
+    }
+}
+impl<'de> Deserialize<'de> for Material {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: de::Deserializer<'de>,
+    {
+        deserializer.deserialize_struct("Material", &["id", "name", "color"], MaterialVisitor)
     }
 }
 
@@ -155,7 +220,7 @@ impl MaterialMap {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct MaterialGroup {
     id: UniqueId<Self>,
     pub name: String,
@@ -176,5 +241,75 @@ impl MaterialGroup {
 impl Identifiable for MaterialGroup {
     fn id(&self) -> UniqueId<Self> {
         self.id
+    }
+}
+struct MaterialGroupVisitor;
+impl<'de> Visitor<'de> for MaterialGroupVisitor {
+    type Value = MaterialGroup;
+
+    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(formatter, "struct MaterialGroup")
+    }
+
+    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+    where
+        A: de::MapAccess<'de>,
+    {
+        let mut id = None;
+        let mut name = None;
+        let mut materials = None;
+
+        while let Some(key) = map.next_key()? {
+            match key {
+                "id" => {
+                    if id.is_some() {
+                        return Err(de::Error::duplicate_field("id"));
+                    }
+                    let id_raw: u32 = map.next_value()?;
+                    id = Some(UniqueId::new_unchecked(id_raw));
+                }
+                "name" => {
+                    if name.is_some() {
+                        return Err(de::Error::duplicate_field("name"));
+                    }
+                    name = Some(map.next_value()?);
+                }
+                "materials" => {
+                    if materials.is_some() {
+                        return Err(de::Error::duplicate_field("materials"));
+                    }
+                    let materials_raw: Vec<u32> = map.next_value()?;
+                    materials = Some(
+                        materials_raw
+                            .into_iter()
+                            .map(UniqueId::new_unchecked)
+                            .collect(),
+                    );
+                }
+                _ => return Err(de::Error::unknown_field(key, &["id", "name", "materials"])),
+            }
+        }
+
+        let id = id.ok_or_else(|| de::Error::missing_field("id"))?;
+        let name = name.ok_or_else(|| de::Error::missing_field("name"))?;
+        let materials = materials.ok_or_else(|| de::Error::missing_field("materials"))?;
+
+        Ok(MaterialGroup {
+            id,
+            name,
+            materials,
+        })
+    }
+}
+impl<'de> Deserialize<'de> for MaterialGroup {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: de::Deserializer<'de>,
+    {
+        deserializer.deserialize_struct(
+            "MaterialGroup",
+            &["id", "name", "materials"],
+            MaterialGroupVisitor,
+        )
     }
 }

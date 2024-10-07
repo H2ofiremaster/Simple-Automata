@@ -1,13 +1,12 @@
-use std::marker::PhantomData;
+use std::{fmt::Debug, fmt::Display, marker::PhantomData};
 
 use rand::Rng;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 pub trait Identifiable: Sized {
     fn id(&self) -> UniqueId<Self>;
 }
 
-#[derive(Debug, Serialize, Deserialize)]
 pub struct UniqueId<T: Identifiable>(u32, PhantomData<T>);
 impl<T: Identifiable> UniqueId<T> {
     pub fn new(current: &[T]) -> Self {
@@ -25,6 +24,31 @@ impl<T: Identifiable> UniqueId<T> {
             }
         }
     }
+    pub const fn new_unchecked(id: u32) -> Self {
+        Self(id, PhantomData)
+    }
+
+    pub const fn get(self) -> u32 {
+        self.0
+    }
+}
+impl<T: Identifiable> Debug for UniqueId<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "UniqueId<{}>({})",
+            std::any::type_name::<T>()
+                .split("::")
+                .last()
+                .unwrap_or(std::any::type_name::<T>()),
+            self.0
+        )
+    }
+}
+impl<T: Identifiable> Display for UniqueId<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
 }
 impl<T: Identifiable> PartialEq for UniqueId<T> {
     fn eq(&self, other: &Self) -> bool {
@@ -38,3 +62,11 @@ impl<T: Identifiable> Clone for UniqueId<T> {
     }
 }
 impl<T: Identifiable> Copy for UniqueId<T> {}
+impl<T: Identifiable> Serialize for UniqueId<T> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_u32(self.0)
+    }
+}

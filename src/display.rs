@@ -9,10 +9,11 @@ pub fn ruleset_editor(cx: &mut Context) {
     .class("background");
 }
 
-pub fn toolbar(cx: &mut Context) {
+fn toolbar(cx: &mut Context) {
     HStack::new(cx, |cx| {
         Button::new(cx, |cx| Label::new(cx, "Back"))
             .on_press(|cx| cx.emit(AppEvent::ToggleEditor(false)));
+
         ComboBox::new(
             cx,
             AppData::rulesets.map(|rulesets| {
@@ -24,6 +25,14 @@ pub fn toolbar(cx: &mut Context) {
             AppData::selected_ruleset,
         )
         .on_select(|cx, index| cx.emit(AppEvent::SelectRulest(index)));
+        Button::new(cx, |cx| Label::new(cx, "New"))
+            .on_press(|cx| cx.emit(AppEvent::StartNewRuleset))
+            .display(AppData::displayed_input.map(|input| *input != InputName::Ruleset));
+        Textbox::new(cx, AppData::new_object_name)
+            .min_width(Pixels(100.0))
+            .on_submit(|cx, text, _| cx.emit(AppEvent::NewRuleset(text)))
+            .display(AppData::displayed_input.map(|input| *input == InputName::Ruleset));
+        Button::new(cx, |cx| Label::new(cx, "Save")).on_press(|cx| cx.emit(AppEvent::SaveRuleset));
     });
 }
 
@@ -181,6 +190,13 @@ fn border_color(color: RGBA) -> Color {
     } else {
         Color::white()
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Data)]
+pub enum InputName {
+    None,
+    Ruleset,
+    Group,
 }
 
 pub mod style {

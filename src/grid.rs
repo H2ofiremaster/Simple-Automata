@@ -10,7 +10,7 @@ use vizia::{
 use crate::{
     display::style,
     id::Identifiable,
-    material::{Material, MaterialId},
+    material::MaterialId,
     ruleset::{Direction, Ruleset},
     AppData, AppEvent,
 };

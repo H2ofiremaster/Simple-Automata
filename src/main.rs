@@ -29,6 +29,8 @@ pub struct AppData {
 
     tooltip: String,
     hovered_index: Option<usize>,
+    new_object_name: String,
+    displayed_input: display::InputName,
 
     editor_enabled: bool,
 }
@@ -67,6 +69,8 @@ impl Default for AppData {
 
             tooltip: String::new(),
             hovered_index: None,
+            new_object_name: String::new(),
+            displayed_input: display::InputName::None,
 
             editor_enabled: false,
         }
@@ -83,6 +87,8 @@ enum AppEvent {
 
     SelectRulest(usize),
     SaveRuleset,
+    StartNewRuleset,
+    NewRuleset(String),
 
     ToggleRunning,
     SetSpeed(f32),
@@ -102,9 +108,7 @@ impl Model for AppData {
                 let new_material: MaterialId = match button {
                     MouseButton::Left => self.selected_material,
                     MouseButton::Right => self.grid.ruleset.materials.default().id(),
-                    _ => {
-                        return;
-                    }
+                    _ => return,
                 };
 
                 let cell = Cell::new(new_material);
@@ -120,6 +124,12 @@ impl Model for AppData {
                 if let Err(err) = self.grid.ruleset.save() {
                     println!("{err}");
                 }
+            }
+            AppEvent::StartNewRuleset => self.displayed_input = display::InputName::Ruleset,
+            AppEvent::NewRuleset(name) => {
+                self.rulesets.push(Ruleset::new(name.clone()));
+                self.new_object_name = String::new();
+                self.displayed_input = display::InputName::None;
             }
 
             AppEvent::ToggleRunning => self.running = !self.running,
