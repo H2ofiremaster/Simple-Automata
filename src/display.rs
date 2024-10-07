@@ -24,15 +24,24 @@ fn toolbar(cx: &mut Context) {
             }),
             AppData::selected_ruleset,
         )
-        .on_select(|cx, index| cx.emit(AppEvent::SelectRulest(index)));
+        .on_select(|cx, index| cx.emit(AppEvent::SelectRuleset(index)));
         Button::new(cx, |cx| Label::new(cx, "New"))
             .on_press(|cx| cx.emit(AppEvent::StartNewRuleset))
             .display(AppData::displayed_input.map(|input| *input != InputName::Ruleset));
+
         Textbox::new(cx, AppData::new_object_name)
             .min_width(Pixels(100.0))
-            .on_submit(|cx, text, _| cx.emit(AppEvent::NewRuleset(text)))
+            .on_submit(|cx, text, enter_pressed| {
+                if enter_pressed {
+                    cx.emit(AppEvent::NewRuleset(text));
+                }
+            })
             .display(AppData::displayed_input.map(|input| *input == InputName::Ruleset));
+
         Button::new(cx, |cx| Label::new(cx, "Save")).on_press(|cx| cx.emit(AppEvent::SaveRuleset));
+
+        Button::new(cx, |cx| Label::new(cx, "Reload"))
+            .on_press(|cx| cx.emit(AppEvent::ReloadRulesets));
     });
 }
 

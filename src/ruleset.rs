@@ -20,6 +20,8 @@ pub struct Ruleset {
     pub groups: Vec<MaterialGroup>,
 }
 impl Ruleset {
+    pub const PATH: &str = "./rulesets/";
+
     pub fn new(name: String) -> Self {
         Self {
             name,
@@ -41,12 +43,41 @@ impl Ruleset {
         let string = toml::to_string(self).map_err(|err| {
             format!("Could not save ruleset '{self:?}'; serialization failed: {err}")
         })?;
-        let mut path = PathBuf::from(crate::RULESET_PATH);
+        let mut path = PathBuf::from(Self::PATH);
         path.push(&self.name);
         path.set_extension("toml");
         fs::write(path, string)
             .map_err(|err| format!("Could not save ruleset '{self:?}'; file IO failed: {err}"))?;
         Ok(())
+    }
+    pub fn load_all() -> Result<Vec<Self>, String> {
+        let path = PathBuf::from(Self::PATH);
+        let paths = path
+            .read_dir()
+            .map_err(|err| format!("Could not load rulesets; directory reading failed: {err}"))?
+            .filter_map(|file| {
+                if let Ok(file) = file {
+                    if file.path().extension().is_some_and(|e| e == "toml") {
+                        return Some(file);
+                    }
+                } else {
+                    println!("Could not read file: {file:?}");
+                }
+                None
+            });
+        let mut rulesets = vec![Self::blank()];
+        for path in paths {
+            let text = fs::read_to_string(path.path()).map_err(|err| {
+                format!("Could not load rulesets; could not read file '{path:?}': {err}")
+            })?;
+            let ruleset = toml::from_str(&text).map_err(|err| {
+                format!(
+                    "Could not load rulesets; deserialization failed for file '{path:?}': {err}"
+                )
+            })?;
+            rulesets.push(ruleset);
+        }
+        Ok(rulesets)
     }
 
     pub fn group(&self, id: GroupId) -> Option<&MaterialGroup> {

@@ -99,7 +99,7 @@ impl<'de> Visitor<'de> for PatternVisitor {
 
 #[cfg(test)]
 mod tests {
-    use crate::{id::UniqueId, ruleset::Rule};
+    use crate::id::UniqueId;
 
     use super::*;
     #[allow(clippy::unwrap_used)]

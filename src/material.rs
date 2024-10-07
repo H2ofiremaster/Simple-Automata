@@ -67,8 +67,8 @@ impl<'de> Visitor<'de> for MaterialVisitor {
         let mut name = None;
         let mut color = None;
 
-        while let Some(key) = map.next_key()? {
-            match key {
+        while let Some(key) = map.next_key::<String>()? {
+            match key.as_str() {
                 "id" => {
                     if id.is_some() {
                         return Err(de::Error::duplicate_field("id"));
@@ -88,7 +88,7 @@ impl<'de> Visitor<'de> for MaterialVisitor {
                     }
                     color = map.next_value()?;
                 }
-                _ => return Err(de::Error::unknown_field(key, &["id", "name", "color"])),
+                _ => return Err(de::Error::unknown_field(&key, &["id", "name", "color"])),
             }
         }
 
@@ -259,8 +259,8 @@ impl<'de> Visitor<'de> for MaterialGroupVisitor {
         let mut name = None;
         let mut materials = None;
 
-        while let Some(key) = map.next_key()? {
-            match key {
+        while let Some(key) = map.next_key::<String>()? {
+            match key.as_str() {
                 "id" => {
                     if id.is_some() {
                         return Err(de::Error::duplicate_field("id"));
@@ -286,7 +286,7 @@ impl<'de> Visitor<'de> for MaterialGroupVisitor {
                             .collect(),
                     );
                 }
-                _ => return Err(de::Error::unknown_field(key, &["id", "name", "materials"])),
+                _ => return Err(de::Error::unknown_field(&key, &["id", "name", "materials"])),
             }
         }
 
@@ -311,5 +311,27 @@ impl<'de> Deserialize<'de> for MaterialGroup {
             &["id", "name", "materials"],
             MaterialGroupVisitor,
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[allow(clippy::unwrap_used)]
+    #[test]
+    fn serde_material() {
+        let material = Material::blank();
+        let serialized = toml::to_string(&material);
+        if let Err(err) = serialized {
+            println!("{err}");
+            panic!("'serialized' returned error")
+        }
+        let deserialized = toml::from_str(&serialized.unwrap());
+        if let Err(err) = deserialized {
+            println!("{err}");
+            panic!("'deserialized' returned error")
+        }
+        assert_eq!(material, deserialized.unwrap());
     }
 }

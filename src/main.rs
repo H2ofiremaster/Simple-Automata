@@ -14,7 +14,6 @@ mod pattern;
 mod ruleset;
 
 const INITIAL_WINDOW_SIZE: (u32, u32) = (1920 / 2, 1080 / 2);
-const RULESET_PATH: &str = "./rulesets/";
 
 #[derive(Debug, Lens)]
 pub struct AppData {
@@ -60,7 +59,10 @@ impl Default for AppData {
                 h: INITIAL_WINDOW_SIZE.1 as f32,
             },
 
-            rulesets: vec![ruleset, ruleset_2],
+            rulesets: Ruleset::load_all().unwrap_or_else(|err| {
+                println!("Failed to load rulesets; falling back: {err}");
+                vec![ruleset]
+            }),
             selected_ruleset: 0,
             grid,
             selected_material: material,
@@ -69,7 +71,7 @@ impl Default for AppData {
 
             tooltip: String::new(),
             hovered_index: None,
-            new_object_name: String::new(),
+            new_object_name: String::from("TESTS"),
             displayed_input: display::InputName::None,
 
             editor_enabled: false,
@@ -85,10 +87,11 @@ enum AppEvent {
     CellClicked(usize, usize, MouseButton),
     MaterialSelected(MaterialId),
 
-    SelectRulest(usize),
+    SelectRuleset(usize),
     SaveRuleset,
     StartNewRuleset,
     NewRuleset(String),
+    ReloadRulesets,
 
     ToggleRunning,
     SetSpeed(f32),
@@ -116,7 +119,7 @@ impl Model for AppData {
             }
             AppEvent::MaterialSelected(material_id) => self.selected_material = *material_id,
 
-            AppEvent::SelectRulest(index) => {
+            AppEvent::SelectRuleset(index) => {
                 self.selected_ruleset = *index;
                 self.grid = Grid::new(self.rulesets[*index].clone(), self.grid.size);
             }
@@ -125,11 +128,27 @@ impl Model for AppData {
                     println!("{err}");
                 }
             }
-            AppEvent::StartNewRuleset => self.displayed_input = display::InputName::Ruleset,
-            AppEvent::NewRuleset(name) => {
-                self.rulesets.push(Ruleset::new(name.clone()));
+            AppEvent::StartNewRuleset => {
+                self.displayed_input = display::InputName::Ruleset;
                 self.new_object_name = String::new();
+            }
+            #[allow(clippy::assigning_clones)]
+            AppEvent::NewRuleset(name) => {
+                // println!("new_object_name Before: {}", self.new_object_name);
+                let new_ruleset = Ruleset::new(name.clone());
+                // println!("Adding Ruleset: {new_ruleset:?}");
+                self.rulesets.push(new_ruleset);
+                self.new_object_name = name.clone();
+
+                // println!("new_object_name After: {}", self.new_object_name);
                 self.displayed_input = display::InputName::None;
+                cx.emit(AppEvent::SelectRuleset(self.rulesets.len() - 1));
+            }
+            AppEvent::ReloadRulesets => {
+                self.rulesets = Ruleset::load_all().unwrap_or_else(|err| {
+                    println!("Failed to load rulesets; falling back: {err}");
+                    vec![Ruleset::blank()]
+                });
             }
 
             AppEvent::ToggleRunning => self.running = !self.running,
