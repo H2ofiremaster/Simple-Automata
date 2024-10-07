@@ -1,6 +1,6 @@
 use vizia::prelude::*;
 
-use crate::{grid::Cell, ruleset::Ruleset, AppData, AppEvent};
+use crate::{grid::Cell, id::Identifiable, ruleset::Ruleset, AppData, AppEvent};
 
 pub fn ruleset_editor(cx: &mut Context) {
     VStack::new(cx, |cx| {
@@ -120,7 +120,11 @@ fn right_panel(cx: &mut Context) {
                 Binding::new(cx, AppData::grid, |cx, grid| {
                     let grid = grid.get(cx);
                     let ruleset = grid.ruleset;
-                    let cells: Vec<Cell> = ruleset.materials.iter().map(|m| Cell::new(m)).collect();
+                    let cells: Vec<Cell> = ruleset
+                        .materials
+                        .iter()
+                        .map(|material| Cell::new(material.id()))
+                        .collect();
                     cells.chunks(style::MATERIAL_ROW_LENGTH).for_each(|chunk| {
                         material_row(cx, chunk, &ruleset);
                     });
@@ -134,9 +138,9 @@ fn right_panel(cx: &mut Context) {
 
 fn material_row(cx: &mut Context, row: &[Cell], ruleset: &Ruleset) {
     HStack::new(cx, |cx| {
-        row.iter().for_each(|&cell| {
-            let border_color = border_color(cell.color(&ruleset));
-            cell.display(cx, &ruleset)
+        for &cell in row {
+            let border_color = border_color(cell.color(ruleset));
+            cell.display(cx, ruleset)
                 .on_press(move |cx| {
                     cx.emit(AppEvent::MaterialSelected(cell.material_id));
                 })
@@ -148,7 +152,7 @@ fn material_row(cx: &mut Context, row: &[Cell], ruleset: &Ruleset) {
                     }
                 }))
                 .class(style::MATERIAL_DISPLAY);
-        });
+        }
     })
     .class(style::MATERIAL_ROW);
 }
@@ -157,8 +161,8 @@ fn material_row(cx: &mut Context, row: &[Cell], ruleset: &Ruleset) {
 
 fn margined_square_size(bounds: &BoundingBox) -> f32 {
     let max_width =
-        bounds.width() * (style::CENTER_MARGIN_FACTOR - style::BACKGROUND_PADDING * 2.0);
-    let max_height = bounds.height() * (1.0 - style::BACKGROUND_PADDING * 2.0);
+        bounds.width() * style::BACKGROUND_PADDING.mul_add(-2.0, style::CENTER_MARGIN_FACTOR);
+    let max_height = bounds.height() * style::BACKGROUND_PADDING.mul_add(-2.0, 1.0);
 
     max_width.min(max_height)
     // bounds
@@ -171,8 +175,7 @@ fn border_color(color: RGBA) -> Color {
     let r = color.r();
     let g = color.g();
     let b = color.b();
-    let avg = (r as u32 + g as u32 + b as u32) / 3;
-    println!("{avg}");
+    let avg = (u32::from(r) + u32::from(g) + u32::from(b)) / 3;
     if avg > 128 {
         Color::black()
     } else {

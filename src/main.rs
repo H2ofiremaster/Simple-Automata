@@ -1,15 +1,16 @@
-use std::path::Path;
+#![allow(clippy::expl_impl_clone_on_copy)]
 
-use app_data_derived_lenses::editor_enabled;
-use display::style;
-use grid::Grid;
+use grid::{Cell, Grid};
+use id::Identifiable;
 use material::{Material, MaterialColor, MaterialId};
 use ruleset::Ruleset;
 use vizia::prelude::*;
 
 mod display;
 mod grid;
+mod id;
 mod material;
+mod pattern;
 mod ruleset;
 
 const INITIAL_WINDOW_SIZE: (u32, u32) = (1920 / 2, 1080 / 2);
@@ -31,6 +32,7 @@ pub struct AppData {
 
     editor_enabled: bool,
 }
+#[allow(clippy::cast_precision_loss)]
 impl Default for AppData {
     fn default() -> Self {
         let mut ruleset = Ruleset::blank();
@@ -46,7 +48,7 @@ impl Default for AppData {
         r2m2.name = String::from("Green");
         ruleset_2.materials.push(r2m2);
 
-        let material = ruleset.materials.default().id;
+        let material = ruleset.materials.default().id();
         let grid = Grid::new(ruleset.clone(), 5);
         Self {
             window_size: BoundingBox {
@@ -96,7 +98,18 @@ impl Model for AppData {
 
             AppEvent::CellHovered(x, y) => self.hovered_index = Some(self.grid.cell_index(*x, *y)),
             AppEvent::CellUnhovered => self.hovered_index = None,
-            AppEvent::CellClicked(_, _, _) => {}
+            AppEvent::CellClicked(x, y, button) => {
+                let new_material: MaterialId = match button {
+                    MouseButton::Left => self.selected_material,
+                    MouseButton::Right => self.grid.ruleset.materials.default().id(),
+                    _ => {
+                        return;
+                    }
+                };
+
+                let cell = Cell::new(new_material);
+                self.grid.set_cell(*x, *y, cell);
+            }
             AppEvent::MaterialSelected(material_id) => self.selected_material = *material_id,
 
             AppEvent::SelectRulest(index) => {
@@ -111,7 +124,9 @@ impl Model for AppData {
 
             AppEvent::ToggleRunning => self.running = !self.running,
             AppEvent::SetSpeed(speed) => self.speed = (*speed * 100.0).round() / 100.0,
-            AppEvent::Step => {}
+            AppEvent::Step => {
+                todo!()
+            }
 
             AppEvent::ToggleEditor(toggle_on) => self.editor_enabled = *toggle_on,
         });

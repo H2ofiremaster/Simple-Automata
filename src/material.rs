@@ -1,21 +1,29 @@
 use std::vec;
 
-use rand::Rng;
-use serde::{Deserialize, Serialize};
+use serde::{
+    de::{self, Visitor},
+    Deserialize, Serialize,
+};
 use vizia::style::RGBA;
 
-use crate::ruleset::Ruleset;
+use crate::{
+    id::{Identifiable, UniqueId},
+    ruleset::Ruleset,
+};
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub type MaterialId = UniqueId<Material>;
+pub type GroupId = UniqueId<MaterialGroup>;
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Material {
-    pub id: MaterialId,
+    id: UniqueId<Self>,
     pub name: String,
     pub color: MaterialColor,
 }
 impl Material {
     pub fn new(ruleset: &Ruleset) -> Self {
         Self {
-            id: MaterialId::get_unique(&ruleset.materials.0),
+            id: UniqueId::new(&ruleset.materials.0),
             name: String::from("Empty"),
             color: MaterialColor::DEFAULT,
         }
@@ -23,14 +31,19 @@ impl Material {
 
     pub fn blank() -> Self {
         Self {
-            id: MaterialId::get_unique(&[]),
+            id: UniqueId::new(&[]),
             name: String::from("Blank"),
             color: MaterialColor::BLANK,
         }
     }
 }
+impl Identifiable for Material {
+    fn id(&self) -> UniqueId<Self> {
+        self.id
+    }
+}
 
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd)]
 pub struct MaterialColor {
     r: u8,
     g: u8,
@@ -43,7 +56,7 @@ impl MaterialColor {
     pub const fn new(r: u8, g: u8, b: u8) -> Self {
         Self { r, g, b }
     }
-    pub const fn to_rgba(&self) -> RGBA {
+    pub const fn to_rgba(self) -> RGBA {
         RGBA::rgb(self.r, self.g, self.b)
     }
 }
@@ -55,25 +68,65 @@ impl Serialize for MaterialColor {
         serializer.serialize_str(&format!("#{:02X}{:02X}{:02X}", self.r, self.g, self.b))
     }
 }
+struct MaterialColorVisitor;
+impl<'de> Visitor<'de> for MaterialColorVisitor {
+    type Value = MaterialColor;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub struct MaterialId(u32);
-impl MaterialId {
-    fn get_unique(current: &[Material]) -> Self {
-        if current.len() as u32 >= u32::MAX {
-            panic!("Material list should not exceed u32::MAX");
+    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(formatter, "struct MaterialColor")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        let numbers = v
+            .strip_prefix('#')
+            .ok_or_else(|| de::Error::custom("str was not prefixed with '#'"))?;
+        let mut numbers = numbers
+            .as_bytes()
+            .chunks(2)
+            .map(|bytes| u8::from_str_radix(&String::from_utf8_lossy(bytes), 16));
+        let r = numbers
+            .next()
+            .ok_or_else(|| de::Error::custom("Too few numbers. Got '0', expected '3'."))
+            .and_then(|result| {
+                result.map_err(|err| {
+                    de::Error::custom(format!("value for 'r' is invalid hexadecimal. {err}"))
+                })
+            })?;
+        let g = numbers
+            .next()
+            .ok_or_else(|| de::Error::custom("Too few numbers. Got '1', expected '3'."))
+            .and_then(|result| {
+                result.map_err(|err| {
+                    de::Error::custom(format!("value for 'g' is invalid hexadecimal. {err}"))
+                })
+            })?;
+        let b = numbers
+            .next()
+            .ok_or_else(|| de::Error::custom("Too few numbers. Got '2', expected '3'."))
+            .and_then(|result| {
+                result.map_err(|err| {
+                    de::Error::custom(format!("value for 'b' is invalid hexadecimal. {err}"))
+                })
+            })?;
+        if numbers.next().is_some() {
+            return Err(de::Error::custom("Too many numbers. Expected '3'."));
         }
-        let mut random = rand::thread_rng();
-        loop {
-            let candidate = Self(random.gen());
-            if !current.iter().any(|m| m.id == candidate) {
-                return candidate;
-            }
-        }
+        Ok(MaterialColor::new(r, g, b))
+    }
+}
+impl<'de> Deserialize<'de> for MaterialColor {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        deserializer.deserialize_str(MaterialColorVisitor)
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct MaterialMap(Vec<Material>);
 impl MaterialMap {
     pub fn new(default: Material) -> Self {
@@ -96,10 +149,32 @@ impl MaterialMap {
     pub fn iter(&self) -> std::slice::Iter<Material> {
         self.0.iter()
     }
+
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct MaterialGroup {
-    name: String,
+    id: UniqueId<Self>,
+    pub name: String,
     materials: Vec<MaterialId>,
+}
+impl MaterialGroup {
+    pub fn new(name: String, ruleset: &Ruleset) -> Self {
+        Self {
+            id: UniqueId::new(&ruleset.groups),
+            name,
+            materials: vec![],
+        }
+    }
+    pub fn contains(&self, id: MaterialId) -> bool {
+        self.materials.contains(&id)
+    }
+}
+impl Identifiable for MaterialGroup {
+    fn id(&self) -> UniqueId<Self> {
+        self.id
+    }
 }
