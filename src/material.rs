@@ -4,11 +4,19 @@ use serde::{
     de::{self, Visitor},
     Deserialize, Serialize,
 };
-use vizia::style::RGBA;
+use vizia::{
+    binding::LensExt,
+    context::{Context, EmitContext},
+    modifiers::StyleModifiers,
+    style::RGBA,
+    views::{Element, Textbox, VStack},
+};
 
 use crate::{
+    grid::Cell,
     id::{Identifiable, UniqueId},
     ruleset::Ruleset,
+    AppData, AppEvent,
 };
 
 pub type MaterialId = UniqueId<Material>;
@@ -35,6 +43,26 @@ impl Material {
             name: String::from("Blank"),
             color: MaterialColor::BLANK,
         }
+    }
+
+    pub fn display_editor(&self, cx: &mut Context, index: usize, ruleset: &Ruleset) {
+        VStack::new(cx, |cx| {
+            let cell = Cell::new(self.id);
+            cell.display(cx, ruleset);
+            Textbox::new(
+                cx,
+                AppData::screen.map(move |screen| {
+                    screen
+                        .ruleset()
+                        .materials
+                        .get_at(index)
+                        .expect("The specified index did not contain a material")
+                        .name
+                        .clone()
+                }),
+            )
+            .on_submit(move |cx, text, _| cx.emit(AppEvent::MaterialName(index, text)));
+        });
     }
 }
 impl Default for Material {
@@ -205,6 +233,14 @@ impl MaterialMap {
 
     pub fn get(&self, key: MaterialId) -> Option<&Material> {
         self.0.iter().find(|material| material.id == key)
+    }
+
+    pub fn get_at(&self, index: usize) -> Option<&Material> {
+        self.0.get(index)
+    }
+
+    pub fn get_mut_at(&mut self, index: usize) -> Option<&mut Material> {
+        self.0.get_mut(index)
     }
 
     pub fn push(&mut self, material: Material) {

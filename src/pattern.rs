@@ -19,7 +19,7 @@ pub enum Pattern {
 }
 impl Pattern {
     pub fn display_editor(self, cx: &mut Context) {
-        let names = AppData::grid.map(|grid| grid.ruleset.clone());
+        let names = AppData::screen.map(|screen| screen.ruleset().clone());
         ComboBox::new(
             cx,
             names.map(Ruleset::pattern_values),

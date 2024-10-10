@@ -1,5 +1,6 @@
 #![allow(clippy::expl_impl_clone_on_copy)]
 
+use display::Screen;
 use grid::{Cell, Grid};
 use id::Identifiable;
 use material::{Material, MaterialColor, MaterialId};
@@ -20,16 +21,18 @@ pub struct AppData {
     window_size: BoundingBox,
 
     rulesets: Vec<Ruleset>,
-    grid: Grid,
+    screen: Screen,
     selected_ruleset: usize,
     selected_material: MaterialId,
     running: bool,
     speed: f32,
+    grid_size: usize,
 
     tooltip: String,
     hovered_index: Option<usize>,
     new_object_name: String,
     displayed_input: display::InputName,
+    selected_tab: display::EditorTab,
 
     editor_enabled: bool,
 }
@@ -64,15 +67,17 @@ impl Default for AppData {
                 vec![ruleset]
             }),
             selected_ruleset: 0,
-            grid,
+            screen: Screen::Grid(grid),
             selected_material: material,
             running: false,
             speed: 1.0,
+            grid_size: 5,
 
             tooltip: String::new(),
             hovered_index: None,
             new_object_name: String::from("TESTS"),
             displayed_input: display::InputName::None,
+            selected_tab: display::EditorTab::Materials,
 
             editor_enabled: false,
         }
@@ -93,11 +98,14 @@ enum AppEvent {
     NewRuleset(String),
     ReloadRulesets,
 
+    MaterialName(usize, String),
+
     ToggleRunning,
     SetSpeed(f32),
     Step,
 
     ToggleEditor(bool),
+    SwitchTab(display::EditorTab),
 }
 
 impl Model for AppData {
@@ -105,26 +113,39 @@ impl Model for AppData {
         event.map(|event, _| match event {
             AppEvent::UpdateWindowSize => self.window_size = cx.bounds(),
 
-            AppEvent::CellHovered(x, y) => self.hovered_index = Some(self.grid.cell_index(*x, *y)),
+            AppEvent::CellHovered(x, y) => {
+                if let Screen::Grid(ref grid) = self.screen {
+                    self.hovered_index = Some(grid.cell_index(*x, *y));
+                }
+            }
             AppEvent::CellUnhovered => self.hovered_index = None,
             AppEvent::CellClicked(x, y, button) => {
+                let Screen::Grid(ref mut grid) = self.screen else {
+                    return;
+                };
                 let new_material: MaterialId = match button {
                     MouseButton::Left => self.selected_material,
-                    MouseButton::Right => self.grid.ruleset.materials.default().id(),
+                    MouseButton::Right => grid.ruleset.materials.default().id(),
                     _ => return,
                 };
 
                 let cell = Cell::new(new_material);
-                self.grid.set_cell(*x, *y, cell);
+                grid.set_cell(*x, *y, cell);
             }
             AppEvent::MaterialSelected(material_id) => self.selected_material = *material_id,
 
             AppEvent::SelectRuleset(index) => {
                 self.selected_ruleset = *index;
-                self.grid = Grid::new(self.rulesets[*index].clone(), self.grid.size);
+                let ruleset = self.rulesets[*index].clone();
+                match self.screen {
+                    Screen::Grid(_) => {
+                        self.screen = Screen::Grid(Grid::new(ruleset, self.grid_size));
+                    }
+                    Screen::Editor(_) => self.screen = Screen::Editor(ruleset),
+                }
             }
             AppEvent::SaveRuleset => {
-                if let Err(err) = self.grid.ruleset.save() {
+                if let Err(err) = self.screen.ruleset().save() {
                     println!("{err}");
                 }
             }
@@ -132,15 +153,11 @@ impl Model for AppData {
                 self.displayed_input = display::InputName::Ruleset;
                 self.new_object_name = String::new();
             }
-            #[allow(clippy::assigning_clones)]
             AppEvent::NewRuleset(name) => {
-                // println!("new_object_name Before: {}", self.new_object_name);
                 let new_ruleset = Ruleset::new(name.clone());
-                // println!("Adding Ruleset: {new_ruleset:?}");
                 self.rulesets.push(new_ruleset);
-                self.new_object_name = name.clone();
+                self.new_object_name.clone_from(name);
 
-                // println!("new_object_name After: {}", self.new_object_name);
                 self.displayed_input = display::InputName::None;
                 cx.emit(AppEvent::SelectRuleset(self.rulesets.len() - 1));
             }
@@ -151,13 +168,29 @@ impl Model for AppData {
                 });
             }
 
+            AppEvent::MaterialName(index, text) => {
+                if let Some(material) = self.screen.ruleset_mut().materials.get_mut_at(*index) {
+                    material.name.clone_from(text);
+                };
+            }
+
             AppEvent::ToggleRunning => self.running = !self.running,
             AppEvent::SetSpeed(speed) => self.speed = (*speed * 100.0).round() / 100.0,
             AppEvent::Step => {
-                todo!()
+                if let Screen::Grid(ref mut grid) = self.screen {
+                    grid.next_generation();
+                }
             }
 
-            AppEvent::ToggleEditor(toggle_on) => self.editor_enabled = *toggle_on,
+            AppEvent::ToggleEditor(toggle_on) => {
+                self.editor_enabled = *toggle_on;
+                let ruleset = self.screen.ruleset().clone();
+                match toggle_on {
+                    true => self.screen = Screen::Editor(ruleset),
+                    false => self.screen = Screen::Grid(Grid::new(ruleset, self.grid_size)),
+                }
+            }
+            AppEvent::SwitchTab(tab) => self.selected_tab = *tab,
         });
     }
 }

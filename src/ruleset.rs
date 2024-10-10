@@ -4,6 +4,7 @@ use serde::{
     de::{self, Visitor},
     Deserialize, Serialize,
 };
+use vizia::binding::Data;
 
 use crate::{
     grid::{Cell, CellNeighbors, Grid},
@@ -18,6 +19,15 @@ pub struct Ruleset {
     pub rules: Vec<Rule>,
     pub materials: MaterialMap,
     pub groups: Vec<MaterialGroup>,
+}
+
+impl Data for Ruleset {
+    fn same(&self, other: &Self) -> bool {
+        self.name == other.name
+            && self.rules == other.rules
+            && self.materials == other.materials
+            && self.groups == other.groups
+    }
 }
 impl Ruleset {
     pub const PATH: &str = "./rulesets/";

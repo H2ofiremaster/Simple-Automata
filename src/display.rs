@@ -1,10 +1,33 @@
 use vizia::prelude::*;
 
-use crate::{grid::Cell, id::Identifiable, ruleset::Ruleset, AppData, AppEvent};
+use crate::{
+    grid::{Cell, Grid},
+    id::Identifiable,
+    ruleset::Ruleset,
+    AppData, AppEvent,
+};
 
 pub fn ruleset_editor(cx: &mut Context) {
     VStack::new(cx, |cx| {
         toolbar(cx);
+        tabs(cx);
+
+        Binding::new(cx, AppData::screen, |cx, screen| {
+            let screen = screen.get(cx);
+            let ruleset = screen.ruleset().clone();
+            Binding::new(cx, AppData::selected_tab, move |cx, tab| {
+                //
+                match tab.get(cx) {
+                    EditorTab::Materials => {
+                        HStack::new(cx, |cx| {
+                            material_editor(cx, &ruleset);
+                            group_editor(cx);
+                        });
+                    }
+                    EditorTab::Rules => rule_editor(cx),
+                }
+            });
+        });
     })
     .class("background");
 }
@@ -12,7 +35,9 @@ pub fn ruleset_editor(cx: &mut Context) {
 fn toolbar(cx: &mut Context) {
     HStack::new(cx, |cx| {
         Button::new(cx, |cx| Label::new(cx, "Back"))
-            .on_press(|cx| cx.emit(AppEvent::ToggleEditor(false)));
+            .on_press(|cx| cx.emit(AppEvent::ToggleEditor(false)))
+            .top(Stretch(1.0))
+            .bottom(Stretch(1.0));
 
         ComboBox::new(
             cx,
@@ -24,10 +49,14 @@ fn toolbar(cx: &mut Context) {
             }),
             AppData::selected_ruleset,
         )
-        .on_select(|cx, index| cx.emit(AppEvent::SelectRuleset(index)));
+        .on_select(|cx, index| cx.emit(AppEvent::SelectRuleset(index)))
+        .top(Stretch(1.0))
+        .bottom(Stretch(1.0));
         Button::new(cx, |cx| Label::new(cx, "New"))
             .on_press(|cx| cx.emit(AppEvent::StartNewRuleset))
-            .display(AppData::displayed_input.map(|input| *input != InputName::Ruleset));
+            .display(AppData::displayed_input.map(|input| *input != InputName::Ruleset))
+            .top(Stretch(1.0))
+            .bottom(Stretch(1.0));
 
         Textbox::new(cx, AppData::new_object_name)
             .min_width(Pixels(100.0))
@@ -36,13 +65,47 @@ fn toolbar(cx: &mut Context) {
                     cx.emit(AppEvent::NewRuleset(text));
                 }
             })
-            .display(AppData::displayed_input.map(|input| *input == InputName::Ruleset));
+            .display(AppData::displayed_input.map(|input| *input == InputName::Ruleset))
+            .top(Stretch(1.0))
+            .bottom(Stretch(1.0));
 
-        Button::new(cx, |cx| Label::new(cx, "Save")).on_press(|cx| cx.emit(AppEvent::SaveRuleset));
+        Button::new(cx, |cx| Label::new(cx, "Save"))
+            .on_press(|cx| cx.emit(AppEvent::SaveRuleset))
+            .height(Stretch(1.0));
 
         Button::new(cx, |cx| Label::new(cx, "Reload"))
-            .on_press(|cx| cx.emit(AppEvent::ReloadRulesets));
+            .on_press(|cx| cx.emit(AppEvent::ReloadRulesets))
+            .height(Stretch(1.0));
+    })
+    .height(Percentage(5.0));
+}
+fn tabs(cx: &mut Context) {
+    HStack::new(cx, |cx| {
+        Button::new(cx, |cx| Label::new(cx, "Materials"))
+            .on_press(|cx| cx.emit(AppEvent::SwitchTab(EditorTab::Materials)))
+            .width(Stretch(1.0))
+            .text_align(TextAlign::Center)
+            .child_space(Stretch(1.0));
+        Button::new(cx, |cx| Label::new(cx, "Rules"))
+            .on_press(|cx| cx.emit(AppEvent::SwitchTab(EditorTab::Rules)))
+            .width(Stretch(1.0))
+            .text_align(TextAlign::Center)
+            .child_space(Stretch(1.0));
+    })
+    .height(Percentage(5.0));
+}
+fn material_editor(cx: &mut Context, ruleset: &Ruleset) {
+    VStack::new(cx, |cx| {
+        for (index, material) in ruleset.materials.iter().enumerate() {
+            material.display_editor(cx, index, ruleset);
+        }
     });
+}
+fn group_editor(cx: &mut Context) {
+    Element::new(cx);
+}
+fn rule_editor(cx: &mut Context) {
+    Element::new(cx);
 }
 
 pub fn game_board(cx: &mut Context) {
@@ -122,9 +185,11 @@ fn material_tooltip(cx: &mut Context) {
 }
 
 fn center_panel(cx: &mut Context) {
-    Binding::new(cx, AppData::grid, |cx, grid| {
+    Binding::new(cx, AppData::screen, |cx, screen| {
         ZStack::new(cx, |cx| {
-            grid.get(cx).display(cx);
+            if let Screen::Grid(grid) = screen.get(cx) {
+                grid.display(cx);
+            }
         })
         .size(AppData::window_size.map(|bounds| Pixels(margined_square_size(bounds))))
         .class(style::CENTER_PANEL);
@@ -135,8 +200,10 @@ fn right_panel(cx: &mut Context) {
     ZStack::new(cx, |cx| {
         ScrollView::new(cx, 0., 0., true, true, |cx| {
             VStack::new(cx, |cx| {
-                Binding::new(cx, AppData::grid, |cx, grid| {
-                    let grid = grid.get(cx);
+                Binding::new(cx, AppData::screen, |cx, screen| {
+                    let Screen::Grid(grid) = screen.get(cx) else {
+                        return;
+                    };
                     let ruleset = grid.ruleset;
                     let cells: Vec<Cell> = ruleset
                         .materials
@@ -151,7 +218,7 @@ fn right_panel(cx: &mut Context) {
             .min_size(Auto);
         });
     })
-    .class("side-panel");
+    .class(style::SIDE_PANEL);
 }
 
 fn material_row(cx: &mut Context, row: &[Cell], ruleset: &Ruleset) {
@@ -199,6 +266,32 @@ fn border_color(color: RGBA) -> Color {
     } else {
         Color::white()
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Data)]
+pub enum Screen {
+    Grid(Grid),
+    Editor(Ruleset),
+}
+impl Screen {
+    pub const fn ruleset(&self) -> &Ruleset {
+        match self {
+            Self::Grid(grid) => &grid.ruleset,
+            Self::Editor(ruleset) => ruleset,
+        }
+    }
+    pub fn ruleset_mut(&mut self) -> &mut Ruleset {
+        match self {
+            Self::Grid(grid) => &mut grid.ruleset,
+            Self::Editor(ruleset) => ruleset,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Data)]
+pub enum EditorTab {
+    Materials,
+    Rules,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Data)]
