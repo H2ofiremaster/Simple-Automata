@@ -20,7 +20,7 @@ pub fn ruleset_editor(cx: &mut Context) {
                 match tab.get(cx) {
                     EditorTab::Materials => {
                         HStack::new(cx, |cx| {
-                            material_editor(cx, &ruleset);
+                            material_editor(cx, ruleset.clone());
                             group_editor(cx);
                         });
                     }
@@ -71,11 +71,13 @@ fn toolbar(cx: &mut Context) {
 
         Button::new(cx, |cx| Label::new(cx, "Save"))
             .on_press(|cx| cx.emit(AppEvent::SaveRuleset))
-            .height(Stretch(1.0));
+            .top(Stretch(1.0))
+            .bottom(Stretch(1.0));
 
         Button::new(cx, |cx| Label::new(cx, "Reload"))
             .on_press(|cx| cx.emit(AppEvent::ReloadRulesets))
-            .height(Stretch(1.0));
+            .top(Stretch(1.0))
+            .bottom(Stretch(1.0));
     })
     .height(Percentage(5.0));
 }
@@ -94,12 +96,21 @@ fn tabs(cx: &mut Context) {
     })
     .height(Percentage(5.0));
 }
-fn material_editor(cx: &mut Context, ruleset: &Ruleset) {
-    VStack::new(cx, |cx| {
-        for (index, material) in ruleset.materials.iter().enumerate() {
-            material.display_editor(cx, index, ruleset);
-        }
-    });
+fn material_editor(cx: &mut Context, ruleset: Ruleset) {
+    ZStack::new(cx, |cx| {
+        ScrollView::new(cx, 0.0, 0.0, true, true, move |cx| {
+            VStack::new(cx, |cx| {
+                for (index, material) in ruleset.materials.iter().enumerate() {
+                    material.display_editor(cx, index, &ruleset);
+                }
+                Button::new(cx, |cx| Label::new(cx, "New Material"))
+                    .on_press(|cx| cx.emit(AppEvent::NewMaterial));
+            })
+            .min_height(Auto);
+        })
+        .space(Percentage(1.0));
+    })
+    .background_color("gray");
 }
 fn group_editor(cx: &mut Context) {
     Element::new(cx);
@@ -299,6 +310,7 @@ pub enum InputName {
     None,
     Ruleset,
     Group,
+    Material,
 }
 
 pub mod style {

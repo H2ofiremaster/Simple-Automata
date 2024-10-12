@@ -1,4 +1,4 @@
-use std::vec;
+use std::{fmt::Display, str::FromStr, vec};
 
 use serde::{
     de::{self, Visitor},
@@ -7,9 +7,10 @@ use serde::{
 use vizia::{
     binding::LensExt,
     context::{Context, EmitContext},
-    modifiers::StyleModifiers,
+    layout::Units::{Auto, Percentage, Pixels, Stretch},
+    modifiers::{LayoutModifiers, StyleModifiers},
     style::RGBA,
-    views::{Element, Textbox, VStack},
+    views::{HStack, Textbox, VStack},
 };
 
 use crate::{
@@ -48,21 +49,45 @@ impl Material {
     pub fn display_editor(&self, cx: &mut Context, index: usize, ruleset: &Ruleset) {
         VStack::new(cx, |cx| {
             let cell = Cell::new(self.id);
-            cell.display(cx, ruleset);
-            Textbox::new(
-                cx,
-                AppData::screen.map(move |screen| {
-                    screen
-                        .ruleset()
-                        .materials
-                        .get_at(index)
-                        .expect("The specified index did not contain a material")
-                        .name
-                        .clone()
-                }),
-            )
-            .on_submit(move |cx, text, _| cx.emit(AppEvent::MaterialName(index, text)));
-        });
+            cell.display(cx, ruleset).size(Pixels(256.0));
+            HStack::new(cx, |cx| {
+                Textbox::new(
+                    cx,
+                    AppData::screen.map(move |screen| {
+                        screen
+                            .ruleset()
+                            .materials
+                            .get_at(index)
+                            .expect("The specified index did not contain a material")
+                            .color
+                            .to_string()
+                    }),
+                )
+                .width(Stretch(1.0))
+                .on_submit(move |cx, text, _| cx.emit(AppEvent::MaterialColor(index, text)))
+                .min_height(Pixels(30.0));
+                Textbox::new(
+                    cx,
+                    AppData::screen.map(move |screen| {
+                        screen
+                            .ruleset()
+                            .materials
+                            .get_at(index)
+                            .expect("The specified index did not contain a material")
+                            .name
+                            .clone()
+                    }),
+                )
+                .width(Stretch(1.0))
+                .on_submit(move |cx, text, _| cx.emit(AppEvent::MaterialName(index, text)));
+            })
+            .width(Stretch(1.0))
+            .height(Auto);
+        })
+        .width(Auto)
+        .height(Auto)
+        .space(Percentage(1.0))
+        .child_space(Percentage(5.0));
     }
 }
 impl Default for Material {
@@ -153,12 +178,52 @@ impl MaterialColor {
         RGBA::rgb(self.r, self.g, self.b)
     }
 }
+impl Display for MaterialColor {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "#{:02X}{:02X}{:02X}", self.r, self.g, self.b)
+    }
+}
+impl FromStr for MaterialColor {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let numbers = s
+            .strip_prefix('#')
+            .ok_or_else(|| String::from("str was not prefixed with '#'"))?;
+        let mut numbers = numbers
+            .as_bytes()
+            .chunks(2)
+            .map(|bytes| u8::from_str_radix(&String::from_utf8_lossy(bytes), 16));
+        let r = numbers
+            .next()
+            .ok_or_else(|| String::from("Too few numbers. Got '0', expected '3'."))
+            .and_then(|result| {
+                result.map_err(|err| format!("value for 'r' is invalid hexadecimal. {err}"))
+            })?;
+        let g = numbers
+            .next()
+            .ok_or_else(|| String::from("Too few numbers. Got '1', expected '3'."))
+            .and_then(|result| {
+                result.map_err(|err| format!("value for 'g' is invalid hexadecimal. {err}"))
+            })?;
+        let b = numbers
+            .next()
+            .ok_or_else(|| String::from("Too few numbers. Got '2', expected '3'."))
+            .and_then(|result| {
+                result.map_err(|err| format!("value for 'b' is invalid hexadecimal. {err}"))
+            })?;
+        if numbers.next().is_some() {
+            return Err(String::from("Too many numbers. Expected '3'."));
+        }
+        Ok(Self::new(r, g, b))
+    }
+}
 impl Serialize for MaterialColor {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
-        serializer.serialize_str(&format!("#{:02X}{:02X}{:02X}", self.r, self.g, self.b))
+        serializer.serialize_str(&self.to_string())
     }
 }
 struct MaterialColorVisitor;
@@ -173,41 +238,7 @@ impl<'de> Visitor<'de> for MaterialColorVisitor {
     where
         E: serde::de::Error,
     {
-        let numbers = v
-            .strip_prefix('#')
-            .ok_or_else(|| de::Error::custom("str was not prefixed with '#'"))?;
-        let mut numbers = numbers
-            .as_bytes()
-            .chunks(2)
-            .map(|bytes| u8::from_str_radix(&String::from_utf8_lossy(bytes), 16));
-        let r = numbers
-            .next()
-            .ok_or_else(|| de::Error::custom("Too few numbers. Got '0', expected '3'."))
-            .and_then(|result| {
-                result.map_err(|err| {
-                    de::Error::custom(format!("value for 'r' is invalid hexadecimal. {err}"))
-                })
-            })?;
-        let g = numbers
-            .next()
-            .ok_or_else(|| de::Error::custom("Too few numbers. Got '1', expected '3'."))
-            .and_then(|result| {
-                result.map_err(|err| {
-                    de::Error::custom(format!("value for 'g' is invalid hexadecimal. {err}"))
-                })
-            })?;
-        let b = numbers
-            .next()
-            .ok_or_else(|| de::Error::custom("Too few numbers. Got '2', expected '3'."))
-            .and_then(|result| {
-                result.map_err(|err| {
-                    de::Error::custom(format!("value for 'b' is invalid hexadecimal. {err}"))
-                })
-            })?;
-        if numbers.next().is_some() {
-            return Err(de::Error::custom("Too many numbers. Expected '3'."));
-        }
-        Ok(MaterialColor::new(r, g, b))
+        v.parse().map_err(|err| de::Error::custom(&err))
     }
 }
 impl<'de> Deserialize<'de> for MaterialColor {

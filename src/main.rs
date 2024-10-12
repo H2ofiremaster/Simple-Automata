@@ -98,7 +98,9 @@ enum AppEvent {
     NewRuleset(String),
     ReloadRulesets,
 
+    NewMaterial,
     MaterialName(usize, String),
+    MaterialColor(usize, String),
 
     ToggleRunning,
     SetSpeed(f32),
@@ -168,10 +170,21 @@ impl Model for AppData {
                 });
             }
 
+            AppEvent::NewMaterial => {
+                let material = Material::new(self.screen.ruleset());
+                self.screen.ruleset_mut().materials.push(material);
+            }
             AppEvent::MaterialName(index, text) => {
                 if let Some(material) = self.screen.ruleset_mut().materials.get_mut_at(*index) {
                     material.name.clone_from(text);
                 };
+            }
+            AppEvent::MaterialColor(index, text) => {
+                if let Some(material) = self.screen.ruleset_mut().materials.get_mut_at(*index) {
+                    if let Ok(color) = text.parse() {
+                        material.color = color;
+                    }
+                }
             }
 
             AppEvent::ToggleRunning => self.running = !self.running,
