@@ -101,6 +101,7 @@ enum AppEvent {
     NewMaterial,
     MaterialName(usize, String),
     MaterialColor(usize, String),
+    DeleteMaterial(MaterialId),
 
     ToggleRunning,
     SetSpeed(f32),
@@ -185,6 +186,9 @@ impl Model for AppData {
                         material.color = color;
                     }
                 }
+            }
+            AppEvent::DeleteMaterial(material_id) => {
+                self.screen.ruleset_mut().materials.remove(*material_id);
             }
 
             AppEvent::ToggleRunning => self.running = !self.running,

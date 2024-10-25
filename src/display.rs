@@ -97,16 +97,16 @@ fn tabs(cx: &mut Context) {
     .height(Percentage(5.0));
 }
 fn material_editor(cx: &mut Context, ruleset: Ruleset) {
-    ZStack::new(cx, |cx| {
+    VStack::new(cx, |cx| {
         ScrollView::new(cx, 0.0, 0.0, true, true, move |cx| {
             VStack::new(cx, |cx| {
                 for (index, material) in ruleset.materials.iter().enumerate() {
                     material.display_editor(cx, index, &ruleset);
                 }
-                Button::new(cx, |cx| Label::new(cx, "New Material"))
-                    .on_press(|cx| cx.emit(AppEvent::NewMaterial));
             })
             .min_height(Auto);
+            Button::new(cx, |cx| Label::new(cx, "New Material"))
+                .on_press(|cx| cx.emit(AppEvent::NewMaterial));
         })
         .space(Percentage(1.0));
     })

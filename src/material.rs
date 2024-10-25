@@ -8,9 +8,9 @@ use vizia::{
     binding::LensExt,
     context::{Context, EmitContext},
     layout::Units::{Auto, Percentage, Pixels, Stretch},
-    modifiers::{LayoutModifiers, StyleModifiers},
+    modifiers::{ActionModifiers, LayoutModifiers, StyleModifiers},
     style::RGBA,
-    views::{HStack, Textbox, VStack},
+    views::{Button, HStack, Label, Textbox, VStack},
 };
 
 use crate::{
@@ -49,8 +49,11 @@ impl Material {
     pub fn display_editor(&self, cx: &mut Context, index: usize, ruleset: &Ruleset) {
         VStack::new(cx, |cx| {
             let cell = Cell::new(self.id);
+            let id = self.id;
             cell.display(cx, ruleset).size(Pixels(256.0));
-            HStack::new(cx, |cx| {
+            HStack::new(cx, move |cx| {
+                Button::new(cx, |cx| Label::new(cx, "Delete"))
+                    .on_press(move |cx| cx.emit(AppEvent::DeleteMaterial(id)));
                 Textbox::new(
                     cx,
                     AppData::screen.map(move |screen| {
@@ -264,6 +267,12 @@ impl MaterialMap {
 
     pub fn get(&self, key: MaterialId) -> Option<&Material> {
         self.0.iter().find(|material| material.id == key)
+    }
+
+    pub fn remove(&mut self, id: MaterialId) {
+        if let Some(index) = self.0.iter().position(|m| m.id == id) {
+            self.0.remove(index);
+        };
     }
 
     pub fn get_at(&self, index: usize) -> Option<&Material> {
