@@ -280,6 +280,10 @@ impl MaterialMap {
         self.iter().map(|m| m.name.clone()).collect()
     }
 
+    pub fn index_of(&self, id: MaterialId) -> Option<usize> {
+        self.iter().position(|m| m.id == id)
+    }
+
     pub fn get_at(&self, index: usize) -> Option<&Material> {
         self.0.get(index)
     }
@@ -321,35 +325,49 @@ impl MaterialGroup {
     pub fn push(&mut self, id: MaterialId) {
         self.materials.push(id);
     }
+    pub fn get_mut(&mut self, index: usize) -> Option<&mut MaterialId> {
+        self.materials.get_mut(index)
+    }
 
     pub fn display_editor(&self, cx: &mut Context, index: usize, ruleset: &Ruleset) {
         VStack::new(cx, move |cx| {
             self.materials
                 .iter()
-                .filter_map(|id| ruleset.materials.get(*id))
-                .for_each(|material| {
-                    Self::display_element(cx, &material.name);
+                .enumerate()
+                .filter_map(|(index, id)| ruleset.materials.get(*id).map(|m| (index, m)))
+                .for_each(|(material_index, _)| {
+                    Self::display_element(cx, index, material_index);
                 });
             Button::new(cx, |cx| Label::new(cx, "New Material"))
-                .on_press(move |cx| cx.emit(AppEvent::StartAddToGroup(index)))
-                .display(
-                    AppData::displayed_input.map(move |input| *input != InputName::Group(index)),
-                );
+                .on_press(move |cx| cx.emit(AppEvent::AddToGroup(index)));
+        });
+    }
+    fn display_element(cx: &mut Context, group_index: usize, material_index: usize) {
+        HStack::new(cx, |cx| {
+            Button::new(cx, |cx| Label::new(cx, "-"));
             ComboBox::new(
                 cx,
                 AppData::screen.map(|screen| screen.ruleset().materials.names()),
-                AppData::group_material_index,
+                AppData::screen.map(move |screen| {
+                    let Some(group) = screen.ruleset().groups.get(group_index) else {
+                        return 0;
+                    };
+                    let Some(material) = group.materials.get(material_index) else {
+                        return 0;
+                    };
+                    let Some(index) = screen.ruleset().materials.index_of(*material) else {
+                        return 0;
+                    };
+                    index
+                }),
             )
-            .display(AppData::displayed_input.map(move |input| *input == InputName::Group(index)))
             .on_select(move |cx, selected_index| {
-                cx.emit(AppEvent::AddToGroup(index, selected_index));
+                cx.emit(AppEvent::EditGroup(
+                    group_index,
+                    material_index,
+                    selected_index,
+                ));
             });
-        });
-    }
-    fn display_element(cx: &mut Context, name: &str) {
-        HStack::new(cx, |cx| {
-            Button::new(cx, |cx| Label::new(cx, "-"));
-            Label::new(cx, name);
         });
     }
 }

@@ -107,9 +107,9 @@ enum AppEvent {
     DeleteMaterial(MaterialId),
 
     NewGroup,
-    DeleteFromGroup(usize, MaterialId),
-    StartAddToGroup(usize),
-    AddToGroup(usize, usize),
+    EditGroup(usize, usize, usize),
+    DeleteFromGroup(usize, usize),
+    AddToGroup(usize),
 
     ToggleRunning,
     SetSpeed(f32),
@@ -204,18 +204,28 @@ impl Model for AppData {
                 let ruleset = self.screen.ruleset_mut();
                 ruleset.groups.push(MaterialGroup::new(ruleset));
             }
-            AppEvent::DeleteFromGroup(index, material) => todo!(),
-            AppEvent::StartAddToGroup(index) => {
-                self.displayed_input = InputName::Group(*index);
-            }
-            AppEvent::AddToGroup(group_index, material_index) => {
+            AppEvent::EditGroup(group_index, material_index, new_material_index) => {
                 let ruleset = self.screen.ruleset_mut();
                 if let Some(group) = ruleset.groups.get_mut(*group_index) {
-                    if let Some(material) = ruleset.materials.get_at(*material_index) {
-                        group.push(material.id());
-                        self.group_material_index = 0;
-                        self.displayed_input = InputName::None;
-                    }
+                    if let Some(material_id) = ruleset
+                        .materials
+                        .get_at(*new_material_index)
+                        .map(Material::id)
+                    {
+                        if let Some(old_material) = group.get_mut(*material_index) {
+                            let _ = std::mem::replace(old_material, material_id);
+                        }
+                    };
+                };
+            }
+            AppEvent::DeleteFromGroup(index, material) => todo!(),
+            AppEvent::AddToGroup(group_index) => {
+                let ruleset = self.screen.ruleset_mut();
+                if let Some(group) = ruleset.groups.get_mut(*group_index) {
+                    let material = ruleset.materials.default();
+                    group.push(material.id());
+                    self.group_material_index = 0;
+                    self.displayed_input = InputName::None;
                 };
             }
 
