@@ -1,9 +1,10 @@
 #![allow(clippy::expl_impl_clone_on_copy)]
 
-use display::Screen;
+use display::{InputName, Screen};
 use grid::{Cell, Grid};
 use id::Identifiable;
-use material::{Material, MaterialColor, MaterialId};
+use material::{Material, MaterialColor, MaterialGroup, MaterialId};
+use rand::seq::index;
 use ruleset::Ruleset;
 use vizia::prelude::*;
 
@@ -33,6 +34,7 @@ pub struct AppData {
     new_object_name: String,
     displayed_input: display::InputName,
     selected_tab: display::EditorTab,
+    group_material_index: usize,
 
     editor_enabled: bool,
 }
@@ -78,6 +80,7 @@ impl Default for AppData {
             new_object_name: String::from("TESTS"),
             displayed_input: display::InputName::None,
             selected_tab: display::EditorTab::Materials,
+            group_material_index: 0,
 
             editor_enabled: false,
         }
@@ -103,6 +106,11 @@ enum AppEvent {
     MaterialColor(usize, String),
     DeleteMaterial(MaterialId),
 
+    NewGroup,
+    DeleteFromGroup(usize, MaterialId),
+    StartAddToGroup(usize),
+    AddToGroup(usize, usize),
+
     ToggleRunning,
     SetSpeed(f32),
     Step,
@@ -112,6 +120,7 @@ enum AppEvent {
 }
 
 impl Model for AppData {
+    #[allow(clippy::too_many_lines)]
     fn event(&mut self, cx: &mut EventContext, event: &mut Event) {
         event.map(|event, _| match event {
             AppEvent::UpdateWindowSize => self.window_size = cx.bounds(),
@@ -189,6 +198,25 @@ impl Model for AppData {
             }
             AppEvent::DeleteMaterial(material_id) => {
                 self.screen.ruleset_mut().materials.remove(*material_id);
+            }
+
+            AppEvent::NewGroup => {
+                let ruleset = self.screen.ruleset_mut();
+                ruleset.groups.push(MaterialGroup::new(ruleset));
+            }
+            AppEvent::DeleteFromGroup(index, material) => todo!(),
+            AppEvent::StartAddToGroup(index) => {
+                self.displayed_input = InputName::Group(*index);
+            }
+            AppEvent::AddToGroup(group_index, material_index) => {
+                let ruleset = self.screen.ruleset_mut();
+                if let Some(group) = ruleset.groups.get_mut(*group_index) {
+                    if let Some(material) = ruleset.materials.get_at(*material_index) {
+                        group.push(material.id());
+                        self.group_material_index = 0;
+                        self.displayed_input = InputName::None;
+                    }
+                };
             }
 
             AppEvent::ToggleRunning => self.running = !self.running,

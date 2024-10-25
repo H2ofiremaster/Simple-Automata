@@ -3,6 +3,7 @@ use vizia::prelude::*;
 use crate::{
     grid::{Cell, Grid},
     id::Identifiable,
+    material::GroupId,
     ruleset::Ruleset,
     AppData, AppEvent,
 };
@@ -21,7 +22,7 @@ pub fn ruleset_editor(cx: &mut Context) {
                     EditorTab::Materials => {
                         HStack::new(cx, |cx| {
                             material_editor(cx, ruleset.clone());
-                            group_editor(cx);
+                            group_editor(cx, ruleset.clone());
                         });
                     }
                     EditorTab::Rules => rule_editor(cx),
@@ -105,15 +106,26 @@ fn material_editor(cx: &mut Context, ruleset: Ruleset) {
                 }
             })
             .min_height(Auto);
-            Button::new(cx, |cx| Label::new(cx, "New Material"))
-                .on_press(|cx| cx.emit(AppEvent::NewMaterial));
         })
         .space(Percentage(1.0));
+        Button::new(cx, |cx| Label::new(cx, "New Material"))
+            .on_press(|cx| cx.emit(AppEvent::NewMaterial));
     })
     .background_color("gray");
 }
-fn group_editor(cx: &mut Context) {
-    Element::new(cx);
+fn group_editor(cx: &mut Context, ruleset: Ruleset) {
+    VStack::new(cx, |cx| {
+        ScrollView::new(cx, 0.0, 0.0, true, true, move |cx| {
+            VStack::new(cx, |cx| {
+                for (index, group) in ruleset.groups.iter().enumerate() {
+                    group.display_editor(cx, index, &ruleset);
+                }
+            })
+            .background_color(Color::blue());
+        });
+        Button::new(cx, |cx| Label::new(cx, "New Group"))
+            .on_press(|cx| cx.emit(AppEvent::NewGroup));
+    });
 }
 fn rule_editor(cx: &mut Context) {
     Element::new(cx);
@@ -309,7 +321,7 @@ pub enum EditorTab {
 pub enum InputName {
     None,
     Ruleset,
-    Group,
+    Group(usize),
     Material,
 }
 

@@ -10,10 +10,11 @@ use vizia::{
     layout::Units::{Auto, Percentage, Pixels, Stretch},
     modifiers::{ActionModifiers, LayoutModifiers, StyleModifiers},
     style::RGBA,
-    views::{Button, HStack, Label, Textbox, VStack},
+    views::{Button, ComboBox, Element, HStack, Label, Textbox, VStack},
 };
 
 use crate::{
+    display::InputName,
     grid::Cell,
     id::{Identifiable, UniqueId},
     ruleset::Ruleset,
@@ -275,6 +276,10 @@ impl MaterialMap {
         };
     }
 
+    pub fn names(&self) -> Vec<String> {
+        self.iter().map(|m| m.name.clone()).collect()
+    }
+
     pub fn get_at(&self, index: usize) -> Option<&Material> {
         self.0.get(index)
     }
@@ -303,15 +308,49 @@ pub struct MaterialGroup {
     materials: Vec<MaterialId>,
 }
 impl MaterialGroup {
-    pub fn new(name: String, ruleset: &Ruleset) -> Self {
+    pub fn new(ruleset: &Ruleset) -> Self {
         Self {
             id: UniqueId::new(&ruleset.groups),
-            name,
+            name: String::from("New Group"),
             materials: vec![],
         }
     }
     pub fn contains(&self, id: MaterialId) -> bool {
         self.materials.contains(&id)
+    }
+    pub fn push(&mut self, id: MaterialId) {
+        self.materials.push(id);
+    }
+
+    pub fn display_editor(&self, cx: &mut Context, index: usize, ruleset: &Ruleset) {
+        VStack::new(cx, move |cx| {
+            self.materials
+                .iter()
+                .filter_map(|id| ruleset.materials.get(*id))
+                .for_each(|material| {
+                    Self::display_element(cx, &material.name);
+                });
+            Button::new(cx, |cx| Label::new(cx, "New Material"))
+                .on_press(move |cx| cx.emit(AppEvent::StartAddToGroup(index)))
+                .display(
+                    AppData::displayed_input.map(move |input| *input != InputName::Group(index)),
+                );
+            ComboBox::new(
+                cx,
+                AppData::screen.map(|screen| screen.ruleset().materials.names()),
+                AppData::group_material_index,
+            )
+            .display(AppData::displayed_input.map(move |input| *input == InputName::Group(index)))
+            .on_select(move |cx, selected_index| {
+                cx.emit(AppEvent::AddToGroup(index, selected_index));
+            });
+        });
+    }
+    fn display_element(cx: &mut Context, name: &str) {
+        HStack::new(cx, |cx| {
+            Button::new(cx, |cx| Label::new(cx, "-"));
+            Label::new(cx, name);
+        });
     }
 }
 impl Identifiable for MaterialGroup {

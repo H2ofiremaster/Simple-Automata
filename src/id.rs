@@ -2,6 +2,7 @@ use std::{fmt::Debug, fmt::Display, marker::PhantomData};
 
 use rand::Rng;
 use serde::Serialize;
+use vizia::binding::Data;
 
 pub trait Identifiable: Sized {
     fn id(&self) -> UniqueId<Self>;
@@ -68,5 +69,10 @@ impl<T: Identifiable> Serialize for UniqueId<T> {
         S: serde::Serializer,
     {
         serializer.serialize_u32(self.0)
+    }
+}
+impl<T: Identifiable + 'static> Data for UniqueId<T> {
+    fn same(&self, other: &Self) -> bool {
+        self.0 == other.0
     }
 }
