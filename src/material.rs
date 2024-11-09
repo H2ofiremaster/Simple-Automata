@@ -328,6 +328,9 @@ impl MaterialGroup {
     pub fn get_mut(&mut self, index: usize) -> Option<&mut MaterialId> {
         self.materials.get_mut(index)
     }
+    pub fn remove_at(&mut self, index: usize) {
+        self.materials.remove(index);
+    }
 
     pub fn display_editor(&self, cx: &mut Context, index: usize, ruleset: &Ruleset) {
         VStack::new(cx, move |cx| {

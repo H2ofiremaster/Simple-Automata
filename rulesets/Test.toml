@@ -1,8 +1,17 @@
 name = "Test"
 rules = []
-groups = []
 
 [[materials]]
 id = 2149117865
 name = "Test15"
 color = "#000000"
+
+[[groups]]
+id = 3155024002
+name = "New Group"
+materials = []
+
+[[groups]]
+id = 848328806
+name = "New Group"
+materials = []

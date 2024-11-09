@@ -125,7 +125,9 @@ fn group_editor(cx: &mut Context, ruleset: Ruleset) {
         });
         Button::new(cx, |cx| Label::new(cx, "New Group"))
             .on_press(|cx| cx.emit(AppEvent::NewGroup));
-    });
+    })
+    .space(Percentage(1.0))
+    .height(Auto);
 }
 fn rule_editor(cx: &mut Context) {
     Element::new(cx);

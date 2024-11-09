@@ -203,8 +203,9 @@ impl Model for AppData {
             AppEvent::NewGroup => {
                 let ruleset = self.screen.ruleset_mut();
                 ruleset.groups.push(MaterialGroup::new(ruleset));
+                println!("Test");
             }
-            AppEvent::EditGroup(group_index, material_index, new_material_index) => {
+            AppEvent::EditGroup(group_index, entry_index, new_material_index) => {
                 let ruleset = self.screen.ruleset_mut();
                 if let Some(group) = ruleset.groups.get_mut(*group_index) {
                     if let Some(material_id) = ruleset
@@ -212,13 +213,18 @@ impl Model for AppData {
                         .get_at(*new_material_index)
                         .map(Material::id)
                     {
-                        if let Some(old_material) = group.get_mut(*material_index) {
+                        if let Some(old_material) = group.get_mut(*entry_index) {
                             let _ = std::mem::replace(old_material, material_id);
                         }
                     };
                 };
             }
-            AppEvent::DeleteFromGroup(index, material) => todo!(),
+            AppEvent::DeleteFromGroup(group_index, entry_index) => {
+                let ruleset = self.screen.ruleset_mut();
+                if let Some(group) = ruleset.groups.get_mut(*group_index) {
+                    group.remove_at(*entry_index);
+                }
+            }
             AppEvent::AddToGroup(group_index) => {
                 let ruleset = self.screen.ruleset_mut();
                 if let Some(group) = ruleset.groups.get_mut(*group_index) {
