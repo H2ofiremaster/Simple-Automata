@@ -1,6 +1,6 @@
 use vizia::input::MouseButton;
 
-use crate::{display::EditorTab, material::MaterialId};
+use crate::{display::EditorTab, material::MaterialId, pattern::Pattern};
 
 type Index = usize;
 type HexColor = String;
@@ -51,6 +51,12 @@ pub enum GroupEvent {
     EntryAdded(Index),
 }
 
+pub enum RuleEvent {
+    Created,
+    Deleted(Index),
+    OutputSet(Index, Index),
+    InputSet(Index, Index),
+}
 pub enum GridEvent {
     Stepped,
     Toggled,

@@ -2,7 +2,12 @@ use serde::{
     de::{self, Visitor},
     Deserialize, Serialize,
 };
-use vizia::{binding::LensExt, context::Context, views::ComboBox};
+use vizia::{
+    binding::{LensExt, Map, Wrapper},
+    context::Context,
+    view::Handle,
+    views::ComboBox,
+};
 
 use crate::{
     grid::Cell,
@@ -12,34 +17,35 @@ use crate::{
     AppData,
 };
 
+type ScreenWrapper = Wrapper<crate::app_data_derived_lenses::screen>;
+type StringVecMap = Map<ScreenWrapper, Vec<String>>;
+type UsizeMap = Map<ScreenWrapper, usize>;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub enum Pattern {
     Material(MaterialId),
     Group(GroupId),
 }
 impl Pattern {
-    pub fn display_editor(self, cx: &mut Context) {
-        let names = AppData::screen.map(|screen| screen.ruleset().clone());
+    pub fn display_editor(
+        self,
+        cx: &mut Context,
+    ) -> Handle<'_, ComboBox<StringVecMap, UsizeMap, String>> {
         ComboBox::new(
             cx,
-            names.map(Ruleset::pattern_values),
-            names.map(move |ruleset| match self {
-                Self::Material(id) => ruleset
+            AppData::screen.map(|screen| screen.ruleset().pattern_values()),
+            AppData::screen.map(move |screen| match self {
+                Self::Material(id) => screen
+                    .ruleset()
                     .materials
-                    .iter()
-                    .enumerate()
-                    .find(|(_, material)| material.id() == id)
-                    .map(|(index, _)| index)
+                    .index_of(id)
                     .expect("Displayed pattern should match the current ruleset."),
-                Self::Group(id) => ruleset
-                    .groups
-                    .iter()
-                    .enumerate()
-                    .find(|(_, group)| group.id() == id)
-                    .map(|(index, _)| ruleset.materials.len() + index + 1)
+                Self::Group(id) => screen
+                    .ruleset()
+                    .index_of_group(id)
+                    .map(|index| screen.ruleset().materials.len() + index + 1)
                     .expect("Displayed pattern should match the current ruleset."),
             }),
-        );
+        )
     }
 
     pub fn matches(self, ruleset: &Ruleset, target: Cell) -> bool {
@@ -49,6 +55,19 @@ impl Pattern {
                 .group(id)
                 .is_some_and(|group| group.contains(target.material_id)),
         }
+    }
+
+    pub fn from_index(ruleset: &Ruleset, index: usize) -> Option<Self> {
+        ruleset
+            .materials
+            .get_at(index)
+            .map(|m| Self::Material(m.id()))
+            .or_else(|| {
+                ruleset
+                    .groups
+                    .get(index + 1 - ruleset.materials.len())
+                    .map(|g| Self::Group(g.id()))
+            })
     }
 }
 impl<'de> Deserialize<'de> for Pattern {

@@ -4,13 +4,21 @@ use serde::{
     de::{self, Visitor},
     Deserialize, Serialize,
 };
-use vizia::binding::Data;
+use vizia::{
+    binding::{Data, LensExt},
+    context::{Context, EmitContext},
+    layout::Units::Auto,
+    modifiers::LayoutModifiers,
+    views::{ComboBox, HStack, Label, VStack},
+};
 
 use crate::{
+    events::RuleEvent,
     grid::{Cell, CellNeighbors, Grid},
     id::{Identifiable, UniqueId},
     material::{GroupId, Material, MaterialGroup, MaterialId, MaterialMap},
     pattern::Pattern,
+    AppData,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -94,6 +102,10 @@ impl Ruleset {
         self.groups.iter().find(|group| group.id() == id)
     }
 
+    pub fn index_of_group(&self, id: GroupId) -> Option<usize> {
+        self.groups.iter().position(|group| group.id() == id)
+    }
+
     pub fn pattern_values(&self) -> Vec<String> {
         let material_names = self.materials.iter().map(|m| m.name.clone());
         let group_names = self.groups.iter().map(|g| format!("#{}", g.name.clone()));
@@ -108,11 +120,19 @@ impl Default for Ruleset {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Rule {
-    input: Pattern,
-    output: MaterialId,
-    conditions: Vec<Condition>,
+    pub input: Pattern,
+    pub output: MaterialId,
+    pub conditions: Vec<Condition>,
 }
 impl Rule {
+    pub fn new(ruleset: &Ruleset) -> Self {
+        Self {
+            input: Pattern::Material(ruleset.materials.default().id()),
+            output: ruleset.materials.default().id(),
+            conditions: Vec::new(),
+        }
+    }
+
     pub fn transformed(&self, grid: &Grid, cell: Cell, index: usize) -> Option<Cell> {
         if !self.input.matches(&grid.ruleset, cell) {
             return None;
@@ -125,6 +145,35 @@ impl Rule {
             return None;
         }
         Some(Cell::new(self.output))
+    }
+
+    pub fn display_editor(&self, cx: &mut Context, index: usize, ruleset: &Ruleset) {
+        let output = self.output;
+        VStack::new(cx, |cx| {
+            HStack::new(cx, |cx| {
+                self.input
+                    .display_editor(cx)
+                    .on_select(move |cx, selected| {
+                        cx.emit(RuleEvent::InputSet(index, selected));
+                    });
+                Label::new(cx, "=>");
+                ComboBox::new(
+                    cx,
+                    AppData::screen.map(|screen| screen.ruleset().materials.names()),
+                    AppData::screen.map(move |screen| {
+                        screen
+                            .ruleset()
+                            .materials
+                            .index_of(output)
+                            .expect("Output material should exist in the current ruleset.")
+                    }),
+                )
+                .on_select(move |cx, selected| {
+                    cx.emit(RuleEvent::OutputSet(index, selected));
+                });
+            });
+        })
+        .height(Auto);
     }
 }
 struct RuleVisitor;
@@ -212,7 +261,7 @@ enum ConditionVariant {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-struct Condition {
+pub struct Condition {
     variant: ConditionVariant,
     pattern: Pattern,
 }

@@ -1,7 +1,9 @@
 use vizia::prelude::*;
 
 use crate::{
-    events::{EditorEvent, GridEvent, GroupEvent, MaterialEvent, RulesetEvent, UpdateEvent},
+    events::{
+        EditorEvent, GridEvent, GroupEvent, MaterialEvent, RuleEvent, RulesetEvent, UpdateEvent,
+    },
     grid::{Cell, Grid},
     id::Identifiable,
     ruleset::Ruleset,
@@ -26,7 +28,7 @@ pub fn ruleset_editor(cx: &mut Context) {
                         })
                         .space(Percentage(1.0));
                     }
-                    EditorTab::Rules => rule_editor(cx),
+                    EditorTab::Rules => rule_editor(cx, ruleset.clone()),
                 }
             });
         });
@@ -109,7 +111,10 @@ fn material_editor(cx: &mut Context, ruleset: Ruleset) {
         })
         .space(Percentage(1.0));
         Button::new(cx, |cx| Label::new(cx, "New Material"))
-            .on_press(|cx| cx.emit(MaterialEvent::Created));
+            .on_press(|cx| cx.emit(MaterialEvent::Created))
+            .width(Stretch(1.0))
+            .text_align(TextAlign::Center)
+            .child_space(Stretch(1.0));
     })
     .class(style::EDITOR_PANEL);
 }
@@ -127,12 +132,31 @@ fn group_editor(cx: &mut Context, ruleset: Ruleset) {
         })
         .space(Percentage(1.0));
         Button::new(cx, |cx| Label::new(cx, "New Group"))
-            .on_press(|cx| cx.emit(GroupEvent::Created));
+            .on_press(|cx| cx.emit(GroupEvent::Created))
+            .width(Stretch(1.0))
+            .text_align(TextAlign::Center)
+            .child_space(Stretch(1.0));
     })
     .class(style::EDITOR_PANEL);
 }
-fn rule_editor(cx: &mut Context) {
-    Element::new(cx);
+fn rule_editor(cx: &mut Context, ruleset: Ruleset) {
+    VStack::new(cx, |cx| {
+        ScrollView::new(cx, 0.0, 0.0, true, true, |cx| {
+            VStack::new(cx, move |cx| {
+                for (index, rule) in ruleset.rules.iter().enumerate() {
+                    rule.display_editor(cx, index, &ruleset);
+                }
+            })
+            .row_between(Pixels(5.0))
+            .min_height(Auto);
+        });
+        Button::new(cx, |cx| Label::new(cx, "New Rule"))
+            .on_press(|cx| cx.emit(RuleEvent::Created))
+            .width(Stretch(1.0))
+            .text_align(TextAlign::Center)
+            .child_space(Stretch(1.0));
+    })
+    .class(style::EDITOR_PANEL);
 }
 
 pub fn game_board(cx: &mut Context) {

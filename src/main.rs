@@ -1,11 +1,14 @@
 #![allow(clippy::expl_impl_clone_on_copy)]
 
 use display::Screen;
-use events::{EditorEvent, GridEvent, GroupEvent, MaterialEvent, RulesetEvent, UpdateEvent};
+use events::{
+    EditorEvent, GridEvent, GroupEvent, MaterialEvent, RuleEvent, RulesetEvent, UpdateEvent,
+};
 use grid::{Cell, Grid};
 use id::Identifiable;
 use material::{Material, MaterialColor, MaterialGroup, MaterialId};
-use ruleset::Ruleset;
+use pattern::Pattern;
+use ruleset::{Rule, Ruleset};
 use vizia::prelude::*;
 
 mod display;
@@ -215,6 +218,37 @@ impl Model for AppData {
                     group.push(material.id());
                     self.group_material_index = 0;
                 };
+            }
+        });
+        event.map(|event: &RuleEvent, _| match event {
+            RuleEvent::Created => {
+                let ruleset = self.screen.ruleset_mut();
+                ruleset.rules.push(Rule::new(ruleset));
+            }
+            RuleEvent::Deleted(index) => {
+                self.screen.ruleset_mut().rules.remove(*index);
+            }
+            RuleEvent::OutputSet(rule_index, material_index) => {
+                let ruleset = self.screen.ruleset_mut();
+                let Some(rule) = ruleset.rules.get_mut(*rule_index) else {
+                    return;
+                };
+                let Some(material) = ruleset.materials.get_at(*material_index) else {
+                    return;
+                };
+                rule.output = material.id();
+            }
+            RuleEvent::InputSet(rule_index, pattern_index) => {
+                let ruleset = self.screen.ruleset();
+                let Some(pattern) = Pattern::from_index(ruleset, *pattern_index) else {
+                    return;
+                };
+                let ruleset = self.screen.ruleset_mut();
+                let Some(rule) = ruleset.rules.get_mut(*rule_index) else {
+                    return;
+                };
+
+                rule.input = pattern;
             }
         });
         event.map(|event: &GridEvent, _| match event {
