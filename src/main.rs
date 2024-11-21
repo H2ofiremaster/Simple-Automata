@@ -1,10 +1,9 @@
 #![allow(clippy::expl_impl_clone_on_copy)]
 
-use display::{InputName, Screen};
+use display::Screen;
 use grid::{Cell, Grid};
 use id::Identifiable;
 use material::{Material, MaterialColor, MaterialGroup, MaterialId};
-use rand::seq::index;
 use ruleset::Ruleset;
 use vizia::prelude::*;
 
@@ -31,8 +30,6 @@ pub struct AppData {
 
     tooltip: String,
     hovered_index: Option<usize>,
-    new_object_name: String,
-    displayed_input: display::InputName,
     selected_tab: display::EditorTab,
     group_material_index: usize,
 
@@ -77,8 +74,6 @@ impl Default for AppData {
 
             tooltip: String::new(),
             hovered_index: None,
-            new_object_name: String::from("TESTS"),
-            displayed_input: display::InputName::None,
             selected_tab: display::EditorTab::Materials,
             group_material_index: 0,
 
@@ -97,8 +92,8 @@ enum AppEvent {
 
     SelectRuleset(usize),
     SaveRuleset,
-    StartNewRuleset,
-    NewRuleset(String),
+    NewRuleset,
+    RulesetName(String),
     ReloadRulesets,
 
     NewMaterial,
@@ -110,6 +105,7 @@ enum AppEvent {
     EditGroup(usize, usize, usize),
     DeleteFromGroup(usize, usize),
     AddToGroup(usize),
+    GroupName(usize, String),
 
     ToggleRunning,
     SetSpeed(f32),
@@ -161,17 +157,15 @@ impl Model for AppData {
                     println!("{err}");
                 }
             }
-            AppEvent::StartNewRuleset => {
-                self.displayed_input = display::InputName::Ruleset;
-                self.new_object_name = String::new();
-            }
-            AppEvent::NewRuleset(name) => {
-                let new_ruleset = Ruleset::new(name.clone());
+            AppEvent::NewRuleset => {
+                let new_ruleset = Ruleset::new();
                 self.rulesets.push(new_ruleset);
-                self.new_object_name.clone_from(name);
 
-                self.displayed_input = display::InputName::None;
                 cx.emit(AppEvent::SelectRuleset(self.rulesets.len() - 1));
+            }
+            AppEvent::RulesetName(name) => {
+                self.screen.ruleset_mut().name.clone_from(name);
+                self.rulesets[self.selected_ruleset].name.clone_from(name);
             }
             AppEvent::ReloadRulesets => {
                 self.rulesets = Ruleset::load_all().unwrap_or_else(|err| {
@@ -203,7 +197,6 @@ impl Model for AppData {
             AppEvent::NewGroup => {
                 let ruleset = self.screen.ruleset_mut();
                 ruleset.groups.push(MaterialGroup::new(ruleset));
-                println!("Test");
             }
             AppEvent::EditGroup(group_index, entry_index, new_material_index) => {
                 let ruleset = self.screen.ruleset_mut();
@@ -231,8 +224,13 @@ impl Model for AppData {
                     let material = ruleset.materials.default();
                     group.push(material.id());
                     self.group_material_index = 0;
-                    self.displayed_input = InputName::None;
                 };
+            }
+            AppEvent::GroupName(group_index, name) => {
+                let ruleset = self.screen.ruleset_mut();
+                if let Some(group) = ruleset.groups.get_mut(*group_index) {
+                    group.name.clone_from(name);
+                }
             }
 
             AppEvent::ToggleRunning => self.running = !self.running,

@@ -14,7 +14,6 @@ use vizia::{
 };
 
 use crate::{
-    display::InputName,
     grid::Cell,
     id::{Identifiable, UniqueId},
     ruleset::Ruleset,
@@ -333,7 +332,25 @@ impl MaterialGroup {
     }
 
     pub fn display_editor(&self, cx: &mut Context, index: usize, ruleset: &Ruleset) {
+        let id = self.id;
         VStack::new(cx, move |cx| {
+            HStack::new(cx, |cx| {
+                Textbox::new(
+                    cx,
+                    AppData::screen.map(move |s| {
+                        s.ruleset()
+                            .group(id)
+                            .expect("Group should exist.")
+                            .name
+                            .clone()
+                    }),
+                )
+                .on_submit(move |cx, text, _| cx.emit(AppEvent::GroupName(index, text)));
+                Button::new(cx, |cx| Label::new(cx, "New Material"))
+                    .on_press(move |cx| cx.emit(AppEvent::AddToGroup(index)));
+            })
+            .height(Auto);
+
             self.materials
                 .iter()
                 .enumerate()
@@ -341,9 +358,11 @@ impl MaterialGroup {
                 .for_each(|(material_index, _)| {
                     Self::display_element(cx, index, material_index);
                 });
-            Button::new(cx, |cx| Label::new(cx, "New Material"))
-                .on_press(move |cx| cx.emit(AppEvent::AddToGroup(index)));
-        });
+        })
+        .height(Auto)
+        .background_color("darkgray")
+        .child_space(Pixels(15.0))
+        .row_between(Pixels(5.0));
     }
     fn display_element(cx: &mut Context, group_index: usize, material_index: usize) {
         HStack::new(cx, |cx| {
@@ -371,7 +390,10 @@ impl MaterialGroup {
                     selected_index,
                 ));
             });
-        });
+        })
+        .background_color("GREEN")
+        .height(Auto)
+        .width(Stretch(1.0));
     }
 }
 impl Identifiable for MaterialGroup {

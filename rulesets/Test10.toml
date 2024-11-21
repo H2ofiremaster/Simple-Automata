@@ -1,0 +1,8 @@
+name = "Test10"
+rules = []
+groups = []
+
+[[materials]]
+id = 1421474435
+name = "Empty"
+color = "#000000"

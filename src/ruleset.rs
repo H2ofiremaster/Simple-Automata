@@ -32,9 +32,9 @@ impl Data for Ruleset {
 impl Ruleset {
     pub const PATH: &str = "./rulesets/";
 
-    pub fn new(name: String) -> Self {
+    pub fn new() -> Self {
         Self {
-            name,
+            name: String::from("New Ruleset"),
             rules: vec![],
             materials: MaterialMap::new(Material::default()),
             groups: vec![],
@@ -98,6 +98,11 @@ impl Ruleset {
         let material_names = self.materials.iter().map(|m| m.name.clone());
         let group_names = self.groups.iter().map(|g| format!("#{}", g.name.clone()));
         material_names.chain(group_names).collect()
+    }
+}
+impl Default for Ruleset {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
