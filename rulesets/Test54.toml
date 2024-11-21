@@ -1,6 +1,5 @@
 name = "Test54"
 rules = []
-groups = []
 
 [[materials]]
 id = 7390237
@@ -9,15 +8,20 @@ color = "#000000"
 
 [[materials]]
 id = 3970475215
-name = "New"
+name = "Red"
 color = "#FF0000"
 
 [[materials]]
 id = 3571558840
-name = "blue"
+name = "Blue"
 color = "#000FFF"
 
 [[materials]]
 id = 62331654
 name = "Brown"
 color = "#512515"
+
+[[groups]]
+id = 4208602773
+name = "Colors"
+materials = [3571558840, 3970475215, 62331654]

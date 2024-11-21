@@ -44,6 +44,11 @@
     child-space: 1s;
     space: 0.1s;
 }
+.editor-panel {
+    background-color: gray;
+    child-space: 0.5%;
+    space: 0.5%;
+}
 label {
     font-size: 2em;
 }

@@ -1,10 +1,11 @@
-use vizia::{prelude::*, vg::colors::BLUE};
+use vizia::prelude::*;
 
 use crate::{
+    events::{EditorEvent, GridEvent, GroupEvent, MaterialEvent, RulesetEvent, UpdateEvent},
     grid::{Cell, Grid},
     id::Identifiable,
     ruleset::Ruleset,
-    AppData, AppEvent,
+    AppData,
 };
 
 pub fn ruleset_editor(cx: &mut Context) {
@@ -36,7 +37,7 @@ pub fn ruleset_editor(cx: &mut Context) {
 fn toolbar(cx: &mut Context) {
     HStack::new(cx, |cx| {
         Button::new(cx, |cx| Label::new(cx, "Back"))
-            .on_press(|cx| cx.emit(AppEvent::ToggleEditor(false)))
+            .on_press(|cx| cx.emit(EditorEvent::Disabled))
             .top(Stretch(1.0))
             .bottom(Stretch(1.0));
 
@@ -50,30 +51,30 @@ fn toolbar(cx: &mut Context) {
             }),
             AppData::selected_ruleset,
         )
-        .on_select(|cx, index| cx.emit(AppEvent::SelectRuleset(index)))
+        .on_select(|cx, index| cx.emit(RulesetEvent::Selected(index)))
         .top(Stretch(1.0))
         .bottom(Stretch(1.0));
 
         Textbox::new(cx, AppData::screen.map(|s| s.ruleset().name.clone()))
             .min_width(Pixels(100.0))
             .on_submit(|cx, text, _| {
-                cx.emit(AppEvent::RulesetName(text));
+                cx.emit(RulesetEvent::Renamed(text));
             })
             .top(Stretch(1.0))
             .bottom(Stretch(1.0));
 
         Button::new(cx, |cx| Label::new(cx, "New"))
-            .on_press(|cx| cx.emit(AppEvent::NewRuleset))
+            .on_press(|cx| cx.emit(RulesetEvent::Created))
             .top(Stretch(1.0))
             .bottom(Stretch(1.0));
 
         Button::new(cx, |cx| Label::new(cx, "Save"))
-            .on_press(|cx| cx.emit(AppEvent::SaveRuleset))
+            .on_press(|cx| cx.emit(RulesetEvent::Saved))
             .top(Stretch(1.0))
             .bottom(Stretch(1.0));
 
         Button::new(cx, |cx| Label::new(cx, "Reload"))
-            .on_press(|cx| cx.emit(AppEvent::ReloadRulesets))
+            .on_press(|cx| cx.emit(RulesetEvent::Reloaded))
             .top(Stretch(1.0))
             .bottom(Stretch(1.0));
     })
@@ -83,12 +84,12 @@ fn toolbar(cx: &mut Context) {
 fn tabs(cx: &mut Context) {
     HStack::new(cx, |cx| {
         Button::new(cx, |cx| Label::new(cx, "Materials"))
-            .on_press(|cx| cx.emit(AppEvent::SwitchTab(EditorTab::Materials)))
+            .on_press(|cx| cx.emit(EditorEvent::TabSwitched(EditorTab::Materials)))
             .width(Stretch(1.0))
             .text_align(TextAlign::Center)
             .child_space(Stretch(1.0));
         Button::new(cx, |cx| Label::new(cx, "Rules"))
-            .on_press(|cx| cx.emit(AppEvent::SwitchTab(EditorTab::Rules)))
+            .on_press(|cx| cx.emit(EditorEvent::TabSwitched(EditorTab::Rules)))
             .width(Stretch(1.0))
             .text_align(TextAlign::Center)
             .child_space(Stretch(1.0));
@@ -108,11 +109,9 @@ fn material_editor(cx: &mut Context, ruleset: Ruleset) {
         })
         .space(Percentage(1.0));
         Button::new(cx, |cx| Label::new(cx, "New Material"))
-            .on_press(|cx| cx.emit(AppEvent::NewMaterial));
+            .on_press(|cx| cx.emit(MaterialEvent::Created));
     })
-    .background_color("gray")
-    .child_space(Percentage(0.5))
-    .space(Percentage(0.5));
+    .class(style::EDITOR_PANEL);
 }
 
 fn group_editor(cx: &mut Context, ruleset: Ruleset) {
@@ -128,11 +127,9 @@ fn group_editor(cx: &mut Context, ruleset: Ruleset) {
         })
         .space(Percentage(1.0));
         Button::new(cx, |cx| Label::new(cx, "New Group"))
-            .on_press(|cx| cx.emit(AppEvent::NewGroup));
+            .on_press(|cx| cx.emit(GroupEvent::Created));
     })
-    .background_color("gray")
-    .child_space(Percentage(0.5))
-    .space(Percentage(0.5));
+    .class(style::EDITOR_PANEL);
 }
 fn rule_editor(cx: &mut Context) {
     Element::new(cx);
@@ -148,7 +145,7 @@ pub fn game_board(cx: &mut Context) {
         if changes.contains(GeoChanged::WIDTH_CHANGED)
             || changes.contains(GeoChanged::HEIGHT_CHANGED)
         {
-            cx.emit(AppEvent::UpdateWindowSize);
+            cx.emit(UpdateEvent::WindowSizeChanged);
         }
     })
     .class(style::BACKGROUND);
@@ -167,7 +164,7 @@ fn left_panel(cx: &mut Context) {
 fn editor_button(cx: &mut Context) {
     HStack::new(cx, |cx| {
         Button::new(cx, |cx| Label::new(cx, "Edit Ruleset"))
-            .on_press(|cx| cx.emit(AppEvent::ToggleEditor(true)));
+            .on_press(|cx| cx.emit(EditorEvent::Enabled));
     })
     .class(style::MENU_ELEMENT);
 }
@@ -179,10 +176,10 @@ fn controls(cx: &mut Context) {
                 AppData::running.map(|runnning| if *runnning { "Stop" } else { "Start" }),
             )
         })
-        .on_press(|cx| cx.emit(AppEvent::ToggleRunning))
+        .on_press(|cx| cx.emit(GridEvent::Toggled))
         .class(style::BUTTON);
         Button::new(cx, |cx| Label::new(cx, "Step"))
-            .on_press(|cx| cx.emit(AppEvent::Step))
+            .on_press(|cx| cx.emit(GridEvent::Stepped))
             .class(style::BUTTON);
     })
     .class(style::MENU_ELEMENT);
@@ -194,14 +191,14 @@ fn speed_controls(cx: &mut Context) {
             .bottom(Stretch(1.0))
             .space(Stretch(0.05))
             .range(0.01..1.0)
-            .on_changing(|cx, progress| cx.emit(AppEvent::SetSpeed(progress)));
+            .on_changing(|cx, progress| cx.emit(GridEvent::SpeedSet(progress)));
         Textbox::new(cx, AppData::speed.map(|speed| format!("{speed:.2}")))
             .top(Stretch(1.0))
             .bottom(Stretch(1.0))
             .space(Stretch(0.05))
             .on_edit(|cx, text| {
                 if let Ok(speed) = text.parse() {
-                    cx.emit(AppEvent::SetSpeed(speed));
+                    cx.emit(GridEvent::SpeedSet(speed));
                 }
             });
     })
@@ -257,7 +254,7 @@ fn material_row(cx: &mut Context, row: &[Cell], ruleset: &Ruleset) {
             let border_color = border_color(cell.color(ruleset));
             cell.display(cx, ruleset)
                 .on_press(move |cx| {
-                    cx.emit(AppEvent::MaterialSelected(cell.material_id));
+                    cx.emit(UpdateEvent::MaterialSelected(cell.material_id));
                 })
                 .border_color(AppData::selected_material.map(move |id| {
                     if *id == cell.material_id {
@@ -333,6 +330,7 @@ pub mod style {
     pub const BACKGROUND: &str = "background";
     pub const BUTTON: &str = "button";
     pub const MENU_ELEMENT: &str = "menu-element";
+    pub const EDITOR_PANEL: &str = "editor-panel";
 
     /// The maximum percentage of the screen the center square can take up.
     pub const CENTER_MARGIN_FACTOR: f32 = 0.6;

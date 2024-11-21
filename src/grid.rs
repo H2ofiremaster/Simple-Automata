@@ -9,10 +9,11 @@ use vizia::{
 
 use crate::{
     display::style,
+    events::UpdateEvent,
     id::Identifiable,
     material::MaterialId,
     ruleset::{Direction, Ruleset},
-    AppData, AppEvent,
+    AppData,
 };
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -109,8 +110,8 @@ impl Grid {
                     "transparent"
                 }
             }))
-            .on_hover(move |cx| cx.emit(AppEvent::CellHovered(x, y)))
-            .on_mouse_down(move |cx, button| cx.emit(AppEvent::CellClicked(x, y, button)));
+            .on_hover(move |cx| cx.emit(UpdateEvent::CellHovered { x, y }))
+            .on_mouse_down(move |cx, button| cx.emit(UpdateEvent::CellClicked { x, y, button }));
     }
 }
 impl Data for Grid {
@@ -141,7 +142,7 @@ impl Cell {
         Button::new(cx, Element::new)
             .class(style::CELL)
             .background_gradient(self.gradient(ruleset).as_str())
-            .on_hover_out(|cx| cx.emit(AppEvent::CellUnhovered))
+            .on_hover_out(|cx| cx.emit(UpdateEvent::CellUnhovered))
     }
     #[rustfmt::skip]
     fn gradient(self, ruleset: &Ruleset) -> String {

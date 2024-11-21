@@ -10,14 +10,15 @@ use vizia::{
     layout::Units::{Auto, Percentage, Pixels, Stretch},
     modifiers::{ActionModifiers, LayoutModifiers, StyleModifiers},
     style::RGBA,
-    views::{Button, ComboBox, Element, HStack, Label, Textbox, VStack},
+    views::{Button, ComboBox, HStack, Label, Textbox, VStack},
 };
 
 use crate::{
+    events::{GroupEvent, MaterialEvent},
     grid::Cell,
     id::{Identifiable, UniqueId},
     ruleset::Ruleset,
-    AppData, AppEvent,
+    AppData,
 };
 
 pub type MaterialId = UniqueId<Material>;
@@ -53,7 +54,7 @@ impl Material {
             cell.display(cx, ruleset).size(Pixels(256.0));
             HStack::new(cx, move |cx| {
                 Button::new(cx, |cx| Label::new(cx, "Delete"))
-                    .on_press(move |cx| cx.emit(AppEvent::DeleteMaterial(id)));
+                    .on_press(move |cx| cx.emit(MaterialEvent::Deleted(id)));
                 Textbox::new(
                     cx,
                     AppData::screen.map(move |screen| {
@@ -67,7 +68,7 @@ impl Material {
                     }),
                 )
                 .width(Stretch(1.0))
-                .on_submit(move |cx, text, _| cx.emit(AppEvent::MaterialColor(index, text)))
+                .on_submit(move |cx, text, _| cx.emit(MaterialEvent::Recolored(index, text)))
                 .min_height(Pixels(30.0));
                 Textbox::new(
                     cx,
@@ -82,7 +83,7 @@ impl Material {
                     }),
                 )
                 .width(Stretch(1.0))
-                .on_submit(move |cx, text, _| cx.emit(AppEvent::MaterialName(index, text)));
+                .on_submit(move |cx, text, _| cx.emit(MaterialEvent::Renamed(index, text)));
             })
             .width(Stretch(1.0))
             .height(Auto);
@@ -334,7 +335,7 @@ impl MaterialGroup {
     pub fn display_editor(&self, cx: &mut Context, index: usize, ruleset: &Ruleset) {
         let id = self.id;
         VStack::new(cx, move |cx| {
-            HStack::new(cx, |cx| {
+            HStack::new(cx, move |cx| {
                 Textbox::new(
                     cx,
                     AppData::screen.map(move |s| {
@@ -345,18 +346,21 @@ impl MaterialGroup {
                             .clone()
                     }),
                 )
-                .on_submit(move |cx, text, _| cx.emit(AppEvent::GroupName(index, text)));
+                .on_submit(move |cx, text, _| cx.emit(GroupEvent::Renamed(index, text)));
                 Button::new(cx, |cx| Label::new(cx, "New Material"))
-                    .on_press(move |cx| cx.emit(AppEvent::AddToGroup(index)));
+                    .on_press(move |cx| cx.emit(GroupEvent::EntryAdded(index)));
+                Button::new(cx, |cx| Label::new(cx, "Delete"))
+                    .on_press(move |cx| cx.emit(GroupEvent::Deleted(index)));
             })
             .height(Auto);
 
             self.materials
                 .iter()
                 .enumerate()
-                .filter_map(|(index, id)| ruleset.materials.get(*id).map(|m| (index, m)))
-                .for_each(|(material_index, _)| {
-                    Self::display_element(cx, index, material_index);
+                .filter_map(|(index, id)| ruleset.materials.get(*id).map(|_| index))
+                .enumerate()
+                .for_each(|(entry_index, material_index)| {
+                    Self::display_entry(cx, index, material_index, entry_index);
                 });
         })
         .height(Auto)
@@ -364,9 +368,19 @@ impl MaterialGroup {
         .child_space(Pixels(15.0))
         .row_between(Pixels(5.0));
     }
-    fn display_element(cx: &mut Context, group_index: usize, material_index: usize) {
+    fn display_entry(
+        cx: &mut Context,
+        group_index: usize,
+        material_index: usize,
+        entry_index: usize,
+    ) {
         HStack::new(cx, |cx| {
-            Button::new(cx, |cx| Label::new(cx, "-"));
+            Button::new(cx, |cx| Label::new(cx, "-")).on_press(move |cx| {
+                cx.emit(GroupEvent::EntryDeleted {
+                    group_index,
+                    entry_index,
+                });
+            });
             ComboBox::new(
                 cx,
                 AppData::screen.map(|screen| screen.ruleset().materials.names()),
@@ -384,14 +398,13 @@ impl MaterialGroup {
                 }),
             )
             .on_select(move |cx, selected_index| {
-                cx.emit(AppEvent::EditGroup(
+                cx.emit(GroupEvent::Edited {
                     group_index,
-                    material_index,
-                    selected_index,
-                ));
+                    entry_index: material_index,
+                    new_material_index: selected_index,
+                });
             });
         })
-        .background_color("GREEN")
         .height(Auto)
         .width(Stretch(1.0));
     }

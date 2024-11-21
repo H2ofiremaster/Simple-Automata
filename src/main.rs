@@ -1,6 +1,7 @@
 #![allow(clippy::expl_impl_clone_on_copy)]
 
 use display::Screen;
+use events::{EditorEvent, GridEvent, GroupEvent, MaterialEvent, RulesetEvent, UpdateEvent};
 use grid::{Cell, Grid};
 use id::Identifiable;
 use material::{Material, MaterialColor, MaterialGroup, MaterialId};
@@ -8,6 +9,7 @@ use ruleset::Ruleset;
 use vizia::prelude::*;
 
 mod display;
+mod events;
 mod grid;
 mod id;
 mod material;
@@ -82,52 +84,18 @@ impl Default for AppData {
     }
 }
 
-enum AppEvent {
-    UpdateWindowSize,
-
-    CellHovered(usize, usize),
-    CellUnhovered,
-    CellClicked(usize, usize, MouseButton),
-    MaterialSelected(MaterialId),
-
-    SelectRuleset(usize),
-    SaveRuleset,
-    NewRuleset,
-    RulesetName(String),
-    ReloadRulesets,
-
-    NewMaterial,
-    MaterialName(usize, String),
-    MaterialColor(usize, String),
-    DeleteMaterial(MaterialId),
-
-    NewGroup,
-    EditGroup(usize, usize, usize),
-    DeleteFromGroup(usize, usize),
-    AddToGroup(usize),
-    GroupName(usize, String),
-
-    ToggleRunning,
-    SetSpeed(f32),
-    Step,
-
-    ToggleEditor(bool),
-    SwitchTab(display::EditorTab),
-}
-
 impl Model for AppData {
     #[allow(clippy::too_many_lines)]
     fn event(&mut self, cx: &mut EventContext, event: &mut Event) {
-        event.map(|event, _| match event {
-            AppEvent::UpdateWindowSize => self.window_size = cx.bounds(),
-
-            AppEvent::CellHovered(x, y) => {
+        event.map(|event: &UpdateEvent, _| match event {
+            UpdateEvent::WindowSizeChanged => self.window_size = cx.bounds(),
+            UpdateEvent::CellHovered { x, y } => {
                 if let Screen::Grid(ref grid) = self.screen {
                     self.hovered_index = Some(grid.cell_index(*x, *y));
                 }
             }
-            AppEvent::CellUnhovered => self.hovered_index = None,
-            AppEvent::CellClicked(x, y, button) => {
+            UpdateEvent::CellUnhovered => self.hovered_index = None,
+            UpdateEvent::CellClicked { x, y, button } => {
                 let Screen::Grid(ref mut grid) = self.screen else {
                     return;
                 };
@@ -140,9 +108,10 @@ impl Model for AppData {
                 let cell = Cell::new(new_material);
                 grid.set_cell(*x, *y, cell);
             }
-            AppEvent::MaterialSelected(material_id) => self.selected_material = *material_id,
-
-            AppEvent::SelectRuleset(index) => {
+            UpdateEvent::MaterialSelected(material_id) => self.selected_material = *material_id,
+        });
+        event.map(|event: &RulesetEvent, _| match event {
+            RulesetEvent::Selected(index) => {
                 self.selected_ruleset = *index;
                 let ruleset = self.rulesets[*index].clone();
                 match self.screen {
@@ -152,73 +121,94 @@ impl Model for AppData {
                     Screen::Editor(_) => self.screen = Screen::Editor(ruleset),
                 }
             }
-            AppEvent::SaveRuleset => {
+            RulesetEvent::Saved => {
                 if let Err(err) = self.screen.ruleset().save() {
                     println!("{err}");
                 }
             }
-            AppEvent::NewRuleset => {
+            RulesetEvent::Created => {
                 let new_ruleset = Ruleset::new();
                 self.rulesets.push(new_ruleset);
 
-                cx.emit(AppEvent::SelectRuleset(self.rulesets.len() - 1));
+                cx.emit(RulesetEvent::Selected(self.rulesets.len() - 1));
             }
-            AppEvent::RulesetName(name) => {
+            RulesetEvent::Renamed(name) => {
                 self.screen.ruleset_mut().name.clone_from(name);
                 self.rulesets[self.selected_ruleset].name.clone_from(name);
             }
-            AppEvent::ReloadRulesets => {
+            RulesetEvent::Reloaded => {
                 self.rulesets = Ruleset::load_all().unwrap_or_else(|err| {
                     println!("Failed to load rulesets; falling back: {err}");
                     vec![Ruleset::blank()]
                 });
             }
-
-            AppEvent::NewMaterial => {
+        });
+        event.map(|event: &MaterialEvent, _| match event {
+            MaterialEvent::Created => {
                 let material = Material::new(self.screen.ruleset());
                 self.screen.ruleset_mut().materials.push(material);
             }
-            AppEvent::MaterialName(index, text) => {
+            MaterialEvent::Renamed(index, name) => {
                 if let Some(material) = self.screen.ruleset_mut().materials.get_mut_at(*index) {
-                    material.name.clone_from(text);
+                    material.name.clone_from(name);
                 };
             }
-            AppEvent::MaterialColor(index, text) => {
+            MaterialEvent::Recolored(index, color) => {
                 if let Some(material) = self.screen.ruleset_mut().materials.get_mut_at(*index) {
-                    if let Ok(color) = text.parse() {
+                    if let Ok(color) = color.parse() {
                         material.color = color;
                     }
                 }
             }
-            AppEvent::DeleteMaterial(material_id) => {
+            MaterialEvent::Deleted(material_id) => {
                 self.screen.ruleset_mut().materials.remove(*material_id);
             }
-
-            AppEvent::NewGroup => {
+        });
+        event.map(|event: &GroupEvent, _| match event {
+            GroupEvent::Created => {
                 let ruleset = self.screen.ruleset_mut();
                 ruleset.groups.push(MaterialGroup::new(ruleset));
             }
-            AppEvent::EditGroup(group_index, entry_index, new_material_index) => {
+            GroupEvent::Deleted(group_index) => {
+                self.screen.ruleset_mut().groups.remove(*group_index);
+            }
+            GroupEvent::Edited {
+                group_index,
+                entry_index,
+                new_material_index,
+            } => {
+                let ruleset = self.screen.ruleset_mut();
+                let Some(group) = ruleset.groups.get_mut(*group_index) else {
+                    return;
+                };
+                let Some(material_id) = ruleset
+                    .materials
+                    .get_at(*new_material_index)
+                    .map(Material::id)
+                else {
+                    return;
+                };
+                let Some(old_material) = group.get_mut(*entry_index) else {
+                    return;
+                };
+                let _ = std::mem::replace(old_material, material_id);
+            }
+            GroupEvent::Renamed(group_index, name) => {
                 let ruleset = self.screen.ruleset_mut();
                 if let Some(group) = ruleset.groups.get_mut(*group_index) {
-                    if let Some(material_id) = ruleset
-                        .materials
-                        .get_at(*new_material_index)
-                        .map(Material::id)
-                    {
-                        if let Some(old_material) = group.get_mut(*entry_index) {
-                            let _ = std::mem::replace(old_material, material_id);
-                        }
-                    };
-                };
+                    group.name.clone_from(name);
+                }
             }
-            AppEvent::DeleteFromGroup(group_index, entry_index) => {
+            GroupEvent::EntryDeleted {
+                group_index,
+                entry_index,
+            } => {
                 let ruleset = self.screen.ruleset_mut();
                 if let Some(group) = ruleset.groups.get_mut(*group_index) {
                     group.remove_at(*entry_index);
                 }
             }
-            AppEvent::AddToGroup(group_index) => {
+            GroupEvent::EntryAdded(group_index) => {
                 let ruleset = self.screen.ruleset_mut();
                 if let Some(group) = ruleset.groups.get_mut(*group_index) {
                     let material = ruleset.materials.default();
@@ -226,30 +216,28 @@ impl Model for AppData {
                     self.group_material_index = 0;
                 };
             }
-            AppEvent::GroupName(group_index, name) => {
-                let ruleset = self.screen.ruleset_mut();
-                if let Some(group) = ruleset.groups.get_mut(*group_index) {
-                    group.name.clone_from(name);
-                }
-            }
-
-            AppEvent::ToggleRunning => self.running = !self.running,
-            AppEvent::SetSpeed(speed) => self.speed = (*speed * 100.0).round() / 100.0,
-            AppEvent::Step => {
+        });
+        event.map(|event: &GridEvent, _| match event {
+            GridEvent::Stepped => {
                 if let Screen::Grid(ref mut grid) = self.screen {
                     grid.next_generation();
                 }
             }
-
-            AppEvent::ToggleEditor(toggle_on) => {
-                self.editor_enabled = *toggle_on;
+            GridEvent::Toggled => self.running = !self.running,
+            GridEvent::SpeedSet(speed) => self.speed = (*speed * 100.0).round() / 100.0,
+        });
+        event.map(|event: &EditorEvent, _| match event {
+            EditorEvent::Enabled => {
+                self.editor_enabled = true;
                 let ruleset = self.screen.ruleset().clone();
-                match toggle_on {
-                    true => self.screen = Screen::Editor(ruleset),
-                    false => self.screen = Screen::Grid(Grid::new(ruleset, self.grid_size)),
-                }
+                self.screen = Screen::Editor(ruleset);
             }
-            AppEvent::SwitchTab(tab) => self.selected_tab = *tab,
+            EditorEvent::Disabled => {
+                self.editor_enabled = false;
+                let ruleset = self.screen.ruleset().clone();
+                self.screen = Screen::Grid(Grid::new(ruleset, self.grid_size));
+            }
+            EditorEvent::TabSwitched(tab) => self.selected_tab = *tab,
         });
     }
 }
@@ -273,7 +261,7 @@ fn main() -> Result<(), ApplicationError> {
             if changes.contains(GeoChanged::WIDTH_CHANGED)
                 || changes.contains(GeoChanged::HEIGHT_CHANGED)
             {
-                cx.emit(AppEvent::UpdateWindowSize);
+                cx.emit(UpdateEvent::WindowSizeChanged);
             }
         });
     })
