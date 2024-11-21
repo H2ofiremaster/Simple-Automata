@@ -38,6 +38,13 @@ impl Material {
             color: MaterialColor::DEFAULT,
         }
     }
+    pub fn new_unchecked(id: MaterialId) -> Self {
+        Self {
+            id,
+            name: String::from("Empty"),
+            color: MaterialColor::DEFAULT,
+        }
+    }
 
     pub fn blank() -> Self {
         Self {
@@ -261,7 +268,9 @@ impl MaterialMap {
         let materials = vec![default];
         Self(materials)
     }
-
+    pub const fn new_unchecked(v: Vec<Material>) -> Self {
+        Self(v)
+    }
     pub fn default(&self) -> &Material {
         &self.0[0]
     }
@@ -317,6 +326,13 @@ impl MaterialGroup {
             id: UniqueId::new(&ruleset.groups),
             name: String::from("New Group"),
             materials: vec![],
+        }
+    }
+    pub fn new_unchecked(id: GroupId, materials: Vec<MaterialId>) -> Self {
+        Self {
+            id,
+            name: String::from("New Group"),
+            materials,
         }
     }
     pub fn contains(&self, id: MaterialId) -> bool {

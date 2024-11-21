@@ -1,11 +1,9 @@
 name = "Test54"
 
 [[rules]]
+input = "4208602773g"
 output = 3571558840
 conditions = []
-
-[rules.input]
-Material = 3970475215
 
 [[materials]]
 id = 7390237
