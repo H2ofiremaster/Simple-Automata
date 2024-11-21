@@ -5,7 +5,7 @@ use serde::{
 use vizia::{
     binding::{LensExt, Map, Wrapper},
     context::Context,
-    view::Handle,
+    view::{Handle, View},
     views::ComboBox,
 };
 
@@ -17,19 +17,13 @@ use crate::{
     AppData,
 };
 
-type ScreenWrapper = Wrapper<crate::app_data_derived_lenses::screen>;
-type StringVecMap = Map<ScreenWrapper, Vec<String>>;
-type UsizeMap = Map<ScreenWrapper, usize>;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Pattern {
     Material(MaterialId),
     Group(GroupId),
 }
 impl Pattern {
-    pub fn display_editor(
-        self,
-        cx: &mut Context,
-    ) -> Handle<'_, ComboBox<StringVecMap, UsizeMap, String>> {
+    pub fn display_editor(self, cx: &mut Context) -> Handle<'_, impl View> {
         ComboBox::new(
             cx,
             AppData::screen.map(|screen| screen.ruleset().pattern_values()),
