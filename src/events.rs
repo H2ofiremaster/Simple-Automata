@@ -1,11 +1,9 @@
-use std::marker::PhantomData;
-
 use vizia::input::MouseButton;
 
 use crate::{
+    condition::{ConditionVariant, Direction},
     display::EditorTab,
     material::MaterialId,
-    ruleset::{ConditionVariant, Direction, Rule},
 };
 
 type Index = usize;

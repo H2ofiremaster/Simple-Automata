@@ -1,5 +1,6 @@
 #![allow(clippy::expl_impl_clone_on_copy)]
 
+use condition::{Condition, ConditionVariant};
 use display::Screen;
 use events::{
     EditorEvent, GridEvent, GroupEvent, MaterialEvent, RuleEvent, RulesetEvent, UpdateEvent,
@@ -8,9 +9,10 @@ use grid::{Cell, Grid};
 use id::Identifiable;
 use material::{Material, MaterialColor, MaterialGroup, MaterialId};
 use pattern::Pattern;
-use ruleset::{Condition, ConditionVariant, Rule, Ruleset};
+use ruleset::{Rule, Ruleset};
 use vizia::prelude::*;
 
+mod condition;
 mod display;
 mod events;
 mod grid;

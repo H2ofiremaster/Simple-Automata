@@ -8,12 +8,8 @@ use vizia::{
 };
 
 use crate::{
-    display::style,
-    events::UpdateEvent,
-    id::Identifiable,
-    material::MaterialId,
-    ruleset::{Direction, Ruleset},
-    AppData,
+    condition::Direction, display::style, events::UpdateEvent, id::Identifiable,
+    material::MaterialId, ruleset::Ruleset, AppData,
 };
 
 #[derive(Debug, PartialEq, Eq, Clone)]
