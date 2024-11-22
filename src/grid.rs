@@ -51,7 +51,17 @@ impl Grid {
     }
 
     pub fn neighbors(&self, index: usize) -> CellNeighbors {
-        todo!("{index}")
+        let array = [
+            self.get_neighbor(index, -1, -1),
+            self.get_neighbor(index, 0, -1),
+            self.get_neighbor(index, 1, -1),
+            self.get_neighbor(index, -1, 0),
+            self.get_neighbor(index, 1, 0),
+            self.get_neighbor(index, -1, 1),
+            self.get_neighbor(index, 0, 1),
+            self.get_neighbor(index, -1, 1),
+        ];
+        CellNeighbors(array)
     }
     #[allow(clippy::cast_sign_loss, clippy::cast_possible_wrap)]
     pub fn get_neighbor(&self, index: usize, x_offset: i8, y_offset: i8) -> Option<Cell> {

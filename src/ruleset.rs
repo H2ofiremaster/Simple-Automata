@@ -185,6 +185,13 @@ impl Rule {
         let output = self.output;
         VStack::new(cx, move |cx| {
             HStack::new(cx, move |cx| {
+                Button::new(cx, |cx| Svg::new(cx, svg::COPY).class(style::SVG))
+                    .on_press(move |cx| cx.emit(RuleEvent::Copied(index)))
+                    .size(Pixels(50.0))
+                    .top(Stretch(1.0))
+                    .right(Pixels(15.0))
+                    .bottom(Stretch(1.0));
+
                 self.input.display_editor(cx, move |cx, selected| {
                     cx.emit(RuleEvent::InputSet(index, selected));
                 });
@@ -213,6 +220,13 @@ impl Rule {
                 .on_select(move |cx, selected| {
                     cx.emit(RuleEvent::OutputSet(index, selected));
                 });
+
+                Button::new(cx, |cx| Svg::new(cx, svg::TRASH).class(style::SVG))
+                    .on_press(move |cx| cx.emit(RuleEvent::Deleted(index)))
+                    .size(Pixels(50.0))
+                    .top(Stretch(1.0))
+                    .left(Pixels(15.0))
+                    .bottom(Stretch(1.0));
             })
             // .background_color("red")
             .top(Pixels(-5.0))

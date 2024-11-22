@@ -13,10 +13,10 @@ Directional = ["West", "North", "South", "East"]
 
 [[rules.conditions]]
 pattern = "7390237m"
-inverted = true
+inverted = false
 
-[rules.conditions.variant.Count]
-Greater = 6
+[rules.conditions.variant]
+Directional = ["West", "North", "South", "East"]
 
 [[materials]]
 id = 7390237

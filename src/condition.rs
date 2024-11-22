@@ -23,6 +23,9 @@ impl ConditionIndex {
             condition_index,
         }
     }
+    pub const fn values(&self) -> (usize, usize) {
+        (self.rule_index, self.condition_index)
+    }
 
     pub fn rule<'a>(&self, ruleset: &'a Ruleset) -> &'a Rule {
         ruleset
@@ -163,15 +166,15 @@ impl ConditionVariant {
     }
     fn display_count(variant: &Operator, cx: &mut Context, index: ConditionIndex) {
         Button::new(cx, |cx| match variant {
-            Operator::List(_) => Svg::new(cx, style::svg::EQUAL).class(style::SVG),
-            Operator::Greater(_) => Svg::new(cx, style::svg::GREATER).class(style::SVG),
-            Operator::Less(_) => Svg::new(cx, style::svg::LESS).class(style::SVG),
+            Operator::List(_) => Svg::new(cx, svg::EQUAL).class(style::SVG),
+            Operator::Greater(_) => Svg::new(cx, svg::GREATER).class(style::SVG),
+            Operator::Less(_) => Svg::new(cx, svg::LESS).class(style::SVG),
         })
+        .on_press(move |cx| cx.emit(ConditionEvent::OperatorChanged(index)))
         .size(Pixels(35.0))
         .top(Stretch(1.0))
         .bottom(Stretch(1.0))
-        .right(Pixels(15.0))
-        .on_press(move |cx| cx.emit(ConditionEvent::OperatorChanged(index)));
+        .right(Pixels(15.0));
         Textbox::new(
             cx,
             AppData::screen.map(move |screen| {
@@ -276,6 +279,17 @@ impl Condition {
             self.pattern.display_editor(cx, move |cx, selected_index| {
                 cx.emit(ConditionEvent::PatternSet(index, selected_index));
             });
+            VStack::new(cx, |cx| {
+                Button::new(cx, |cx| Svg::new(cx, style::svg::COPY).class(style::SVG))
+                    .on_press(move |cx| cx.emit(ConditionEvent::Copied(index)))
+                    .size(Pixels(50.0));
+                Button::new(cx, |cx| Svg::new(cx, style::svg::TRASH).class(style::SVG))
+                    .on_press(move |cx| cx.emit(ConditionEvent::Deleted(index)))
+                    .size(Pixels(50.0));
+            })
+            .space(Pixels(15.0))
+            .min_size(Auto)
+            .size(Auto);
         })
         .class(style::CONDITION_EDITOR);
         // .child_top(Stretch(1.0))

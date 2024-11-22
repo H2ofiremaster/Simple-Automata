@@ -228,6 +228,11 @@ impl Model for AppData {
                 let ruleset = self.screen.ruleset_mut();
                 ruleset.rules.push(Rule::new(ruleset));
             }
+            RuleEvent::Copied(index) => {
+                let ruleset = self.screen.ruleset_mut();
+                let rule = index.rule(ruleset);
+                ruleset.rules.insert(index.value(), rule.clone());
+            }
             RuleEvent::Deleted(index) => {
                 self.screen.ruleset_mut().rules.remove(index.value());
             }
@@ -251,6 +256,18 @@ impl Model for AppData {
                 let ruleset = self.screen.ruleset_mut();
                 let new_condition = Condition::new(ruleset);
                 index.rule_mut(ruleset).conditions.push(new_condition);
+            }
+            ConditionEvent::Copied(index) => {
+                let ruleset = self.screen.ruleset_mut();
+                let new_condition = index.condition(ruleset).clone();
+                index
+                    .rule_mut(ruleset)
+                    .conditions
+                    .insert(index.values().1, new_condition);
+            }
+            ConditionEvent::Deleted(index) => {
+                let ruleset = self.screen.ruleset_mut();
+                index.rule_mut(ruleset).conditions.remove(index.values().1);
             }
             ConditionEvent::PatternSet(condition_index, pattern_index) => {
                 let ruleset = self.screen.ruleset_mut();
@@ -288,7 +305,7 @@ impl Model for AppData {
                     .collect();
                 elements.sort_unstable();
                 elements.dedup();
-                condition.variant = ConditionVariant::Count(variant.with_elements(dbg!(elements)));
+                condition.variant = ConditionVariant::Count(variant.with_elements(elements));
             }
             ConditionEvent::VariantChanged(index, variant) => {
                 let ruleset = self.screen.ruleset_mut();

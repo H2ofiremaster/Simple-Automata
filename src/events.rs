@@ -59,11 +59,14 @@ pub enum GroupEvent {
 pub enum RuleEvent {
     Created,
     Deleted(RuleIndex),
+    Copied(RuleIndex),
     OutputSet(RuleIndex, Index),
     InputSet(RuleIndex, Index),
 }
 pub enum ConditionEvent {
     Created(RuleIndex),
+    Deleted(ConditionIndex),
+    Copied(ConditionIndex),
     PatternSet(ConditionIndex, Index),
     DirectionToggled(ConditionIndex, Direction),
     CountUpdated(ConditionIndex, String),

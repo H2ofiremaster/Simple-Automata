@@ -358,6 +358,7 @@ pub enum EditorTab {
     Rules,
 }
 
+#[allow(dead_code)]
 pub mod style {
     use vizia::style::Color;
 
