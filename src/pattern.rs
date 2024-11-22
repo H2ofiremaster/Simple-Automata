@@ -4,8 +4,8 @@ use serde::{
 };
 use vizia::{
     binding::{LensExt, Map, Wrapper},
-    context::Context,
-    view::{Handle, View},
+    context::{Context, EventContext},
+    view::Handle,
     views::ComboBox,
 };
 
@@ -23,7 +23,10 @@ pub enum Pattern {
     Group(GroupId),
 }
 impl Pattern {
-    pub fn display_editor(self, cx: &mut Context) -> Handle<'_, impl View> {
+    pub fn display_editor<F>(self, cx: &mut Context, on_select: F)
+    where
+        F: Fn(&mut EventContext, usize) + 'static,
+    {
         ComboBox::new(
             cx,
             AppData::screen.map(|screen| screen.ruleset().pattern_values()),
@@ -40,6 +43,7 @@ impl Pattern {
                     .expect("Displayed pattern should match the current ruleset."),
             }),
         )
+        .on_select(on_select);
     }
 
     pub fn matches(self, ruleset: &Ruleset, target: Cell) -> bool {

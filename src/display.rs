@@ -346,6 +346,8 @@ pub enum EditorTab {
 }
 
 pub mod style {
+    use vizia::style::{Color, RGBA};
+
     pub const SIDE_PANEL: &str = "side-panel";
     pub const CENTER_PANEL: &str = "center-panel";
     pub const CELL: &str = "cell";
@@ -364,4 +366,7 @@ pub mod style {
     pub const CELL_GRADIENT_DARKEN: u8 = 92;
     /// How many materials display per row on the right panel.
     pub const MATERIAL_ROW_LENGTH: usize = 3;
+    /// The color of button when they're not pressed
+    pub const BUTTON_COLOR: Color = Color::rgb(221, 221, 221);
+    pub const PRESSED_BUTTON_COLOR: Color = Color::rgb(136, 136, 136);
 }

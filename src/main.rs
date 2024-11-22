@@ -8,7 +8,7 @@ use grid::{Cell, Grid};
 use id::Identifiable;
 use material::{Material, MaterialColor, MaterialGroup, MaterialId};
 use pattern::Pattern;
-use ruleset::{Rule, Ruleset};
+use ruleset::{Condition, ConditionVariant, Rule, Ruleset};
 use vizia::prelude::*;
 
 mod display;
@@ -249,6 +249,85 @@ impl Model for AppData {
                 };
 
                 rule.input = pattern;
+            }
+            RuleEvent::ConditionPatternSet {
+                rule_index,
+                condition_index,
+                pattern_index,
+            } => {
+                let ruleset = self.screen.ruleset();
+                let Some(pattern) = Pattern::from_index(ruleset, *pattern_index) else {
+                    return;
+                };
+                let ruleset = self.screen.ruleset_mut();
+                let Some(rule) = ruleset.rules.get_mut(*rule_index) else {
+                    return;
+                };
+                let Some(condition) = rule.conditions.get_mut(*condition_index) else {
+                    return;
+                };
+                condition.pattern = pattern;
+            }
+            RuleEvent::ConditionDirectionToggled(rule_index, condition_index, direction) => {
+                let ruleset = self.screen.ruleset_mut();
+                let Some(rule) = ruleset.rules.get_mut(*rule_index) else {
+                    return;
+                };
+                let Some(condition) = rule.conditions.get_mut(*condition_index) else {
+                    return;
+                };
+                let Some(directions) = condition.variant.directions() else {
+                    return;
+                };
+                let index = directions.iter().position(|dir| dir == direction);
+                match index {
+                    Some(index) => {
+                        directions.remove(index);
+                    }
+                    None => directions.push(*direction),
+                }
+            }
+            RuleEvent::ConditionCountUpdated(rule_index, condition_index, count_string) => {
+                let ruleset = self.screen.ruleset_mut();
+                let Some(rule) = ruleset.rules.get_mut(*rule_index) else {
+                    return;
+                };
+                let Some(condition) = rule.conditions.get_mut(*condition_index) else {
+                    return;
+                };
+                let ConditionVariant::Count(variant) = &condition.variant else {
+                    return;
+                };
+
+                let mut elements: Vec<u8> = count_string
+                    .chars()
+                    .filter_map(|char| {
+                        let num = char.to_digit(10).and_then(|num| num.try_into().ok());
+                        dbg!(num)
+                    })
+                    .filter(|&n| n <= 8)
+                    .collect();
+                elements.sort_unstable();
+                elements.dedup();
+                condition.variant = ConditionVariant::Count(variant.with_elements(dbg!(elements)));
+            }
+            RuleEvent::ConditionCreated(rule_index) => {
+                let ruleset = self.screen.ruleset_mut();
+                let new_condition = Condition::new(ruleset);
+                let Some(rule) = ruleset.rules.get_mut(*rule_index) else {
+                    return;
+                };
+                rule.conditions.push(new_condition);
+            }
+            RuleEvent::ConditionVariantChanged(rule_index, condition_index, variant) => {
+                let ruleset = self.screen.ruleset_mut();
+                let Some(rule) = ruleset.rules.get_mut(*rule_index) else {
+                    return;
+                };
+                let Some(condition) = rule.conditions.get_mut(*condition_index) else {
+                    return;
+                };
+                condition.variant.clone_from(variant);
             }
         });
         event.map(|event: &GridEvent, _| match event {

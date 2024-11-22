@@ -1,6 +1,12 @@
+use std::marker::PhantomData;
+
 use vizia::input::MouseButton;
 
-use crate::{display::EditorTab, material::MaterialId, pattern::Pattern};
+use crate::{
+    display::EditorTab,
+    material::MaterialId,
+    ruleset::{ConditionVariant, Direction, Rule},
+};
 
 type Index = usize;
 type HexColor = String;
@@ -56,6 +62,15 @@ pub enum RuleEvent {
     Deleted(Index),
     OutputSet(Index, Index),
     InputSet(Index, Index),
+    ConditionCreated(Index),
+    ConditionPatternSet {
+        rule_index: Index,
+        condition_index: Index,
+        pattern_index: Index,
+    },
+    ConditionDirectionToggled(Index, Index, Direction),
+    ConditionCountUpdated(Index, Index, String),
+    ConditionVariantChanged(Index, Index, ConditionVariant),
 }
 pub enum GridEvent {
     Stepped,
