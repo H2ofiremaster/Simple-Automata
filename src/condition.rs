@@ -267,9 +267,9 @@ impl Condition {
                 cx.emit(RuleEvent::ConditionPatternSet(index, selected_index));
             });
         })
-        .child_top(Stretch(1.0))
-        .child_bottom(Stretch(1.0))
-        // .height(Pixels(200.0));
-        .min_height(Auto);
+        .class(style::CONDITION_EDITOR);
+        // .child_top(Stretch(1.0))
+        // .child_bottom(Stretch(1.0))
+        // .min_height(Auto);
     }
 }

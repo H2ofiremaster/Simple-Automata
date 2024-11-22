@@ -14,6 +14,7 @@ use vizia::{
 };
 
 use crate::{
+    display::style,
     events::{GroupEvent, MaterialEvent},
     grid::Cell,
     id::{Identifiable, UniqueId},
@@ -379,10 +380,8 @@ impl MaterialGroup {
                     Self::display_entry(cx, index, material_index, entry_index);
                 });
         })
-        .height(Auto)
-        .background_color("darkgray")
-        .child_space(Pixels(15.0))
-        .row_between(Pixels(5.0));
+        .width(Percentage(100.0))
+        .class(style::BASE_EDITOR);
     }
     fn display_entry(
         cx: &mut Context,

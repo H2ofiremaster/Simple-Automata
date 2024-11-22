@@ -357,7 +357,9 @@ pub mod style {
     pub const BUTTON: &str = "button";
     pub const MENU_ELEMENT: &str = "menu-element";
     pub const EDITOR_PANEL: &str = "editor-panel";
-    pub const EDITOR: &str = "editor";
+    pub const BASE_EDITOR: &str = "base-editor";
+    pub const CONDITION_EDITOR: &str = "condition-editor";
+    pub const CONDITION_CONTAINER: &str = "condition-container";
 
     /// The maximum percentage of the screen the center square can take up.
     pub const CENTER_MARGIN_FACTOR: f32 = 0.6;

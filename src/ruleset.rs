@@ -191,11 +191,10 @@ impl Rule {
                 ZStack::new(cx, |cx| {
                     Svg::new(cx, svg::TRANSFORM_ARROW)
                         .size(Percentage(80.0))
-                        .top(Stretch(0.0))
                         .space(Stretch(1.0));
                 })
-                .size(Pixels(80.0))
-                .background_color("green");
+                .size(Pixels(80.0));
+                // .background_color("green");
                 ComboBox::new(
                     cx,
                     AppData::screen.map(|screen| screen.ruleset().materials.names()),
@@ -214,7 +213,8 @@ impl Rule {
                     cx.emit(RuleEvent::OutputSet(index, selected));
                 });
             })
-            .background_color("red")
+            // .background_color("red")
+            .top(Pixels(-5.0))
             .height(Auto);
             VStack::new(cx, move |cx| {
                 for (condition_index, condition) in self.conditions.iter().enumerate() {
@@ -224,11 +224,13 @@ impl Rule {
                     .width(Stretch(1.0))
                     .on_press(move |cx| cx.emit(RuleEvent::ConditionCreated(index)));
             })
-            .height(Auto)
-            .child_space(Percentage(5.0))
-            .row_between(Pixels(15.0));
+            // .background_color("red")
+            .class(style::CONDITION_CONTAINER);
+            // .height(Auto)
+            // .child_space(Percentage(5.0))
+            // .row_between(Pixels(15.0));
         })
-        .class(style::EDITOR)
+        .class(style::BASE_EDITOR)
         .width(Percentage(50.0));
     }
 }

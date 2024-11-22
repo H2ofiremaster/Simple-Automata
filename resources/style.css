@@ -48,15 +48,33 @@
 }
 .editor-panel {
     background-color: #808080;
-    child-space: 0.5%;
-    space: 0.5%;
+    child-space: 15px;
+    space: 5px;
+    corner-radius: 15px;
 }
-.editor {
+.base-editor {
     left: 1s;
     right: 1s;
     height: Auto;
     background-color: #404040;
     child-space: 15px;
+    row-between: 5px;
+    corner-radius: 15px;
+}
+.condition-editor {
+    child_top: 1s;
+    child_bottom: 1s;
+    child-left: 15px;
+    child-right: 15px;
+    min-height: Auto;
+    background-color: #808080;
+    corner-radius: 15px;
+}
+.condition-container {
+    height: Auto;
+    child-space: 10px;
+    row-between: 15px;
+    background-color: #606060;
     corner-radius: 15px;
 }
 .button {
