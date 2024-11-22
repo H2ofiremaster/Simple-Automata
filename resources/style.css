@@ -1,17 +1,18 @@
 /* background: #000000 */
-/* foreground: #808080 */
-/* foreground-contrast: #404040 */
+/* foreground: #606060 */
+/* middle: #404040 */
+/* foreground-contrast: #202020 */
+
+.background {
+    child-space: 1%;
+    background-color: #000;
+}
 
 .side-panel {
-    background-color: #808080;
+    background-color: #606060;
     corner-radius: 5%;
     child-space: 10px;
     space: 10px;
-}
-.menu-element {
-    child-space: 1%;
-    min-height: auto;
-    width: 1s;
 }
 .center-panel {
     background-color: #808080;
@@ -36,18 +37,71 @@
     min-width: auto;
     width: 1s;
 }
-
-.background {
-    child-space: 1%;
-    background-color: #000;
-}
-.button {
+.control-button {
     width: 1s;
     child-space: 1s;
     space: 0.1s;
 }
+
+combobox {
+    background-color: #505050;
+    color: #ffffff;
+}
+combobox .title {
+    background-color: #505050;
+    color: #ffffff;
+    border-color: #ffffff;
+    border-width: 1px;
+}
+combobox .title > label.placeholder {
+    color: #ffffff;
+}
+combobox .list {
+    background-color: #606060;
+    color: #ffffff;
+}
+
+.light-combobox {
+    background-color: #707070;
+}
+.light-combobox .title {
+    background-color: #707070;
+}
+
+textbox {
+    background-color: #505050;
+    color: #ffffff;
+    border-color: #ffffff;
+    border-width: 1px;
+}
+button {
+    background-color: #707070;
+    border-color: #000000;
+    border-width: 1px;
+    color: #ffffff
+}
+button:hover {
+    background-color: #505050;
+}
+.pressed-button {
+    background-color: #404040;
+}
+.pressed-button:hover {
+    background-color: #303030;
+}
+.menu-element {
+    child-space: 1%;
+    min-height: auto;
+    width: 1s;
+}
+.svg {
+    space: 1s;
+    size: 80%;
+    min_size: 100%;
+}
+
 .editor-panel {
-    background-color: #808080;
+    background-color: #606060;
     child-space: 15px;
     space: 5px;
     corner-radius: 15px;
@@ -67,20 +121,23 @@
     child-left: 15px;
     child-right: 15px;
     min-height: Auto;
-    background-color: #808080;
+    background-color: #606060;
     corner-radius: 15px;
 }
 .condition-container {
     height: Auto;
     child-space: 10px;
     row-between: 15px;
-    background-color: #606060;
+    border-width: 2px;
+    border-color: #ffffff;
     corner-radius: 15px;
 }
-.button {
-    background-color: #808080;
-    border-color: #000000;
-    border-width: 2px;
+.condition-invert-button {
+    left: 15px;
+    right: 15px;
+    top: 1s;
+    bottom: 1s;
+    size: 50px;
 }
 
 label {

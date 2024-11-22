@@ -6,7 +6,7 @@ use vizia::{
     binding::LensExt,
     context::{Context, EventContext},
     layout::Units::Stretch,
-    modifiers::LayoutModifiers,
+    modifiers::{LayoutModifiers, StyleModifiers},
     views::ComboBox,
 };
 
@@ -47,7 +47,8 @@ impl Pattern {
         .width(Stretch(1.0))
         .top(Stretch(1.0))
         .bottom(Stretch(1.0))
-        .on_select(on_select);
+        .on_select(on_select)
+        .class(crate::display::style::LIGHT_COMBOBOX);
     }
 
     pub fn matches(self, ruleset: &Ruleset, target: Cell) -> bool {

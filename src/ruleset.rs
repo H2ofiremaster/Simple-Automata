@@ -8,7 +8,7 @@ use vizia::{
     binding::{Data, LensExt},
     context::{Context, EmitContext},
     layout::Units::{Auto, Percentage, Pixels, Stretch},
-    modifiers::{ActionModifiers, LayoutModifiers, StyleModifiers, TextModifiers},
+    modifiers::{ActionModifiers, LayoutModifiers, StyleModifiers},
     views::{Button, ComboBox, HStack, Label, Svg, VStack, ZStack},
 };
 
@@ -206,6 +206,7 @@ impl Rule {
                             .expect("Output material should exist in the current ruleset.")
                     }),
                 )
+                .class(style::LIGHT_COMBOBOX)
                 .width(Stretch(1.0))
                 .top(Stretch(1.0))
                 .bottom(Stretch(1.0))
@@ -224,11 +225,7 @@ impl Rule {
                     .width(Stretch(1.0))
                     .on_press(move |cx| cx.emit(RuleEvent::ConditionCreated(index)));
             })
-            // .background_color("red")
             .class(style::CONDITION_CONTAINER);
-            // .height(Auto)
-            // .child_space(Percentage(5.0))
-            // .row_between(Pixels(15.0));
         })
         .class(style::BASE_EDITOR)
         .width(Percentage(50.0));

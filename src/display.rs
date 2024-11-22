@@ -12,8 +12,13 @@ use crate::{
 
 pub fn ruleset_editor(cx: &mut Context) {
     VStack::new(cx, |cx| {
-        toolbar(cx);
-        tabs(cx);
+        VStack::new(cx, |cx| {
+            toolbar(cx);
+            tabs(cx);
+        })
+        .class(style::EDITOR_PANEL)
+        .height(Auto)
+        .row_between(Pixels(5.0));
 
         Binding::new(cx, AppData::screen, |cx, screen| {
             let screen = screen.get(cx);
@@ -33,7 +38,7 @@ pub fn ruleset_editor(cx: &mut Context) {
             });
         });
     })
-    .class("background");
+    .class(style::BACKGROUND);
 }
 
 fn toolbar(cx: &mut Context) {
@@ -58,10 +63,10 @@ fn toolbar(cx: &mut Context) {
         .bottom(Stretch(1.0));
 
         Textbox::new(cx, AppData::screen.map(|s| s.ruleset().name.clone()))
-            .min_width(Pixels(100.0))
             .on_submit(|cx, text, _| {
                 cx.emit(RulesetEvent::Renamed(text));
             })
+            .min_width(Pixels(100.0))
             .top(Stretch(1.0))
             .bottom(Stretch(1.0));
 
@@ -80,23 +85,31 @@ fn toolbar(cx: &mut Context) {
             .top(Stretch(1.0))
             .bottom(Stretch(1.0));
     })
-    .height(Percentage(5.0));
+    .height(Auto);
 }
 
 fn tabs(cx: &mut Context) {
     HStack::new(cx, |cx| {
         Button::new(cx, |cx| Label::new(cx, "Materials"))
             .on_press(|cx| cx.emit(EditorEvent::TabSwitched(EditorTab::Materials)))
+            .toggle_class(
+                style::PRESSED_BUTTON,
+                AppData::selected_tab.map(|&tab| tab == EditorTab::Materials),
+            )
             .width(Stretch(1.0))
             .text_align(TextAlign::Center)
             .child_space(Stretch(1.0));
         Button::new(cx, |cx| Label::new(cx, "Rules"))
             .on_press(|cx| cx.emit(EditorEvent::TabSwitched(EditorTab::Rules)))
+            .toggle_class(
+                style::PRESSED_BUTTON,
+                AppData::selected_tab.map(|&tab| tab == EditorTab::Rules),
+            )
             .width(Stretch(1.0))
             .text_align(TextAlign::Center)
             .child_space(Stretch(1.0));
     })
-    .height(Percentage(5.0));
+    .height(Auto);
 }
 
 fn material_editor(cx: &mut Context, ruleset: Ruleset) {
@@ -201,10 +214,10 @@ fn controls(cx: &mut Context) {
             )
         })
         .on_press(|cx| cx.emit(GridEvent::Toggled))
-        .class(style::BUTTON);
+        .class(style::CONTROL_BUTTON);
         Button::new(cx, |cx| Label::new(cx, "Step"))
             .on_press(|cx| cx.emit(GridEvent::Stepped))
-            .class(style::BUTTON);
+            .class(style::CONTROL_BUTTON);
     })
     .class(style::MENU_ELEMENT);
 }
@@ -348,31 +361,39 @@ pub enum EditorTab {
 pub mod style {
     use vizia::style::Color;
 
+    pub const BACKGROUND: &str = "background";
+
     pub const SIDE_PANEL: &str = "side-panel";
     pub const CENTER_PANEL: &str = "center-panel";
     pub const CELL: &str = "cell";
     pub const MATERIAL_DISPLAY: &str = "material-display";
     pub const MATERIAL_ROW: &str = "material-row";
-    pub const BACKGROUND: &str = "background";
-    pub const BUTTON: &str = "button";
+    pub const CONTROL_BUTTON: &str = "control-button";
+
+    // pub const BUTTON: &str = "button";
+    pub const PRESSED_BUTTON: &str = "pressed-button";
+    pub const LIGHT_COMBOBOX: &str = "light-combobox";
     pub const MENU_ELEMENT: &str = "menu-element";
+    pub const SVG: &str = "svg";
+
     pub const EDITOR_PANEL: &str = "editor-panel";
     pub const BASE_EDITOR: &str = "base-editor";
     pub const CONDITION_EDITOR: &str = "condition-editor";
     pub const CONDITION_CONTAINER: &str = "condition-container";
+    pub const CONDITION_INVERT_BUTTON: &str = "condition-invert-button";
 
     /// The maximum percentage of the screen the center square can take up.
     pub const CENTER_MARGIN_FACTOR: f32 = 0.6;
     /// Mirrors '.backround/child-space' in 'style.css'.
     pub const BACKGROUND_PADDING: f32 = 0.01;
-    /// How much darker the corners of a cell should be compared to the center, as a munber from 0.-255.
+    /// How much darker the corners of a cell should be compared to the center, as a number from 0-255
     pub const CELL_GRADIENT_DARKEN: u8 = 92;
     /// How many materials display per row on the right panel.
     pub const MATERIAL_ROW_LENGTH: usize = 3;
-    /// The color of button when they're not pressed
-    pub const PRESSED_BUTTON_COLOR: Color = Color::rgb(72, 72, 72);
-    // pub const BUTTON_COLOR: Color = Color::transparent();
-    pub const BUTTON_COLOR: Color = Color::rgb(136, 136, 136);
+    /// The color of buttons in various states.
+    pub const PRESSED_BUTTON_COLOR: Color = Color::rgb(64, 64, 64);
+    pub const HOVERED_BUTTON_COLOR: Color = Color::rgb(96, 96, 96);
+    pub const BUTTON_COLOR: Color = Color::rgb(128, 128, 128);
 
     pub mod svg {
         pub const ARROW_NORTHWEST: &str = include_str!("../resources/svg/arrows/northwest.svg");

@@ -148,19 +148,13 @@ impl ConditionVariant {
                 .max_size(Percentage(80.0))
                 .space(Stretch(1.0))
         })
-        .background_color(AppData::screen.map(move |screen| {
-            let condition = index.condition(screen.ruleset());
-            match condition.variant.clone() {
-                Self::Directional(vec) => {
-                    if vec.contains(&direction) {
-                        style::PRESSED_BUTTON_COLOR
-                    } else {
-                        style::BUTTON_COLOR
-                    }
-                }
-                Self::Count(_) => style::BUTTON_COLOR,
-            }
-        }))
+        .toggle_class(
+            style::PRESSED_BUTTON,
+            AppData::screen.map(move |screen| {
+                let variant = &index.condition(screen.ruleset()).variant;
+                matches!(variant, Self::Directional(ref vec) if vec.contains(&direction))
+            }),
+        )
         .on_press(move |cx| {
             cx.emit(RuleEvent::ConditionDirectionToggled(index, direction));
         })
@@ -221,12 +215,16 @@ impl Condition {
         HStack::new(cx, move |cx| {
             VStack::new(cx, move |cx| {
                 Button::new(cx, move |cx| {
-                    Svg::new(cx, svg::NUMBERIC_CONDITION)
-                        .max_size(Percentage(80.0))
-                        .space(Stretch(1.0))
+                    Svg::new(cx, svg::NUMBERIC_CONDITION).class(style::SVG)
                 })
                 .size(Pixels(50.0))
-                .background_color(style::PRESSED_BUTTON_COLOR)
+                .toggle_class(
+                    style::PRESSED_BUTTON,
+                    AppData::screen.map(move |screen| {
+                        let variant = &index.condition(screen.ruleset()).variant;
+                        matches!(variant, ConditionVariant::Count(_))
+                    }),
+                )
                 .on_press(move |cx| {
                     cx.emit(RuleEvent::ConditionVariantChanged(
                         index,
@@ -239,7 +237,13 @@ impl Condition {
                         .space(Stretch(1.0))
                 })
                 .size(Pixels(50.0))
-                .background_color(style::PRESSED_BUTTON_COLOR)
+                .toggle_class(
+                    style::PRESSED_BUTTON,
+                    AppData::screen.map(move |screen| {
+                        let variant = &index.condition(screen.ruleset()).variant;
+                        matches!(variant, ConditionVariant::Directional(_))
+                    }),
+                )
                 .on_press(move |cx| {
                     cx.emit(RuleEvent::ConditionVariantChanged(
                         index,
@@ -251,18 +255,8 @@ impl Condition {
             .min_size(Auto)
             .size(Auto);
             self.variant.display_editor(cx, index);
-            Button::new(cx, |cx| {
-                Svg::new(cx, svg::EQUAL)
-                    .space(Stretch(1.0))
-                    .size(Percentage(80.0))
-                    .min_size(Percentage(100.0))
-            })
-            .background_color(style::BUTTON_COLOR)
-            .left(Pixels(15.0))
-            .right(Pixels(15.0))
-            .top(Stretch(1.0))
-            .bottom(Stretch(1.0))
-            .size(Pixels(50.0));
+            Button::new(cx, |cx| Svg::new(cx, svg::EQUAL).class(style::SVG))
+                .class(style::CONDITION_INVERT_BUTTON);
             self.pattern.display_editor(cx, move |cx, selected_index| {
                 cx.emit(RuleEvent::ConditionPatternSet(index, selected_index));
             });

@@ -1,0 +1,13 @@
+name = "Blank"
+rules = []
+groups = []
+
+[[materials]]
+id = 484848878
+name = "Blank"
+color = "#FFFFFF"
+
+[[materials]]
+id = 1652175912
+name = "Red"
+color = "#FF0000"
