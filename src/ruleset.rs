@@ -7,19 +7,15 @@ use serde::{
 use vizia::{
     binding::{Data, LensExt},
     context::{Context, EmitContext},
-    layout::Units::{Auto, Percentage, Pixels, Stretch},
-    modifiers::{ActionModifiers, LayoutModifiers, StyleModifiers, TextModifiers},
-    style::Color,
-    vg::Handle,
-    view::View,
-    views::{Button, ComboBox, Element, HStack, Label, Textbox, VStack},
+    layout::Units::{Auto, Percentage, Stretch},
+    modifiers::{ActionModifiers, LayoutModifiers, TextModifiers},
+    views::{Button, ComboBox, HStack, Label, VStack},
 };
 
 use crate::{
-    condition::Condition,
-    display::style,
+    condition::{Condition, ConditionIndex},
     events::RuleEvent,
-    grid::{Cell, CellNeighbors, Grid},
+    grid::{Cell, Grid},
     id::{Identifiable, UniqueId},
     material::{GroupId, Material, MaterialGroup, MaterialId, MaterialMap},
     pattern::Pattern,
@@ -123,6 +119,38 @@ impl Default for Ruleset {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct RuleIndex {
+    index: usize,
+}
+impl RuleIndex {
+    const fn new(rule_index: usize) -> Self {
+        Self { index: rule_index }
+    }
+
+    pub const fn value(self) -> usize {
+        self.index
+    }
+    const fn with_condition(self, condition_index: usize) -> ConditionIndex {
+        ConditionIndex::new(self.index, condition_index)
+    }
+    pub fn rule(self, ruleset: &Ruleset) -> &Rule {
+        ruleset.rules.get(self.index).expect("invalid rule index")
+    }
+
+    pub fn rule_mut(self, ruleset: &mut Ruleset) -> &mut Rule {
+        ruleset
+            .rules
+            .get_mut(self.index)
+            .expect("invalid rule index")
+    }
+}
+impl From<usize> for RuleIndex {
+    fn from(value: usize) -> Self {
+        Self::new(value)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Rule {
     pub input: Pattern,
@@ -152,7 +180,7 @@ impl Rule {
         Some(Cell::new(self.output))
     }
 
-    pub fn display_editor(&self, cx: &mut Context, index: usize, ruleset: &Ruleset) {
+    pub fn display_editor(&self, cx: &mut Context, index: RuleIndex) {
         let output = self.output;
         VStack::new(cx, move |cx| {
             HStack::new(cx, move |cx| {
@@ -180,7 +208,7 @@ impl Rule {
             .height(Auto);
             VStack::new(cx, move |cx| {
                 for (condition_index, condition) in self.conditions.iter().enumerate() {
-                    condition.display_editor(cx, index, condition_index, ruleset);
+                    condition.display_editor(cx, index.with_condition(condition_index));
                 }
                 Button::new(cx, |cx| Label::new(cx, "New Condition"))
                     .on_press(move |cx| cx.emit(RuleEvent::ConditionCreated(index)));

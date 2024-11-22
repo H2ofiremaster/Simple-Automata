@@ -144,7 +144,7 @@ fn rule_editor(cx: &mut Context, ruleset: Ruleset) {
         ScrollView::new(cx, 0.0, 0.0, true, true, |cx| {
             VStack::new(cx, move |cx| {
                 for (index, rule) in ruleset.rules.iter().enumerate() {
-                    rule.display_editor(cx, index, &ruleset);
+                    rule.display_editor(cx, index.into());
                 }
             })
             .row_between(Pixels(5.0))
@@ -346,7 +346,7 @@ pub enum EditorTab {
 }
 
 pub mod style {
-    use vizia::style::{Color, RGBA};
+    use vizia::style::Color;
 
     pub const SIDE_PANEL: &str = "side-panel";
     pub const CENTER_PANEL: &str = "center-panel";

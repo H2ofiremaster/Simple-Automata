@@ -1,9 +1,10 @@
 use vizia::input::MouseButton;
 
 use crate::{
-    condition::{ConditionVariant, Direction},
+    condition::{ConditionIndex, ConditionVariant, Direction},
     display::EditorTab,
     material::MaterialId,
+    ruleset::RuleIndex,
 };
 
 type Index = usize;
@@ -57,18 +58,14 @@ pub enum GroupEvent {
 
 pub enum RuleEvent {
     Created,
-    Deleted(Index),
-    OutputSet(Index, Index),
-    InputSet(Index, Index),
-    ConditionCreated(Index),
-    ConditionPatternSet {
-        rule_index: Index,
-        condition_index: Index,
-        pattern_index: Index,
-    },
-    ConditionDirectionToggled(Index, Index, Direction),
-    ConditionCountUpdated(Index, Index, String),
-    ConditionVariantChanged(Index, Index, ConditionVariant),
+    Deleted(RuleIndex),
+    OutputSet(RuleIndex, Index),
+    InputSet(RuleIndex, Index),
+    ConditionCreated(RuleIndex),
+    ConditionPatternSet(ConditionIndex, Index),
+    ConditionDirectionToggled(ConditionIndex, Direction),
+    ConditionCountUpdated(ConditionIndex, String),
+    ConditionVariantChanged(ConditionIndex, ConditionVariant),
 }
 pub enum GridEvent {
     Stepped,

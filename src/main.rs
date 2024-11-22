@@ -228,56 +228,33 @@ impl Model for AppData {
                 ruleset.rules.push(Rule::new(ruleset));
             }
             RuleEvent::Deleted(index) => {
-                self.screen.ruleset_mut().rules.remove(*index);
+                self.screen.ruleset_mut().rules.remove(index.value());
             }
             RuleEvent::OutputSet(rule_index, material_index) => {
                 let ruleset = self.screen.ruleset_mut();
-                let Some(rule) = ruleset.rules.get_mut(*rule_index) else {
-                    return;
-                };
                 let Some(material) = ruleset.materials.get_at(*material_index) else {
                     return;
                 };
-                rule.output = material.id();
+                rule_index.rule_mut(ruleset).output = material.id();
             }
             RuleEvent::InputSet(rule_index, pattern_index) => {
-                let ruleset = self.screen.ruleset();
+                let ruleset = self.screen.ruleset_mut();
                 let Some(pattern) = Pattern::from_index(ruleset, *pattern_index) else {
                     return;
                 };
-                let ruleset = self.screen.ruleset_mut();
-                let Some(rule) = ruleset.rules.get_mut(*rule_index) else {
-                    return;
-                };
-
-                rule.input = pattern;
+                rule_index.rule_mut(ruleset).input = pattern;
             }
-            RuleEvent::ConditionPatternSet {
-                rule_index,
-                condition_index,
-                pattern_index,
-            } => {
-                let ruleset = self.screen.ruleset();
+            RuleEvent::ConditionPatternSet(condition_index, pattern_index) => {
+                let ruleset = self.screen.ruleset_mut();
                 let Some(pattern) = Pattern::from_index(ruleset, *pattern_index) else {
                     return;
                 };
-                let ruleset = self.screen.ruleset_mut();
-                let Some(rule) = ruleset.rules.get_mut(*rule_index) else {
-                    return;
-                };
-                let Some(condition) = rule.conditions.get_mut(*condition_index) else {
-                    return;
-                };
+                let condition = condition_index.condition_mut(ruleset);
                 condition.pattern = pattern;
             }
-            RuleEvent::ConditionDirectionToggled(rule_index, condition_index, direction) => {
+            RuleEvent::ConditionDirectionToggled(index, direction) => {
                 let ruleset = self.screen.ruleset_mut();
-                let Some(rule) = ruleset.rules.get_mut(*rule_index) else {
-                    return;
-                };
-                let Some(condition) = rule.conditions.get_mut(*condition_index) else {
-                    return;
-                };
+                let condition = index.condition_mut(ruleset);
                 let Some(directions) = condition.variant.directions() else {
                     return;
                 };
@@ -289,47 +266,30 @@ impl Model for AppData {
                     None => directions.push(*direction),
                 }
             }
-            RuleEvent::ConditionCountUpdated(rule_index, condition_index, count_string) => {
-                let ruleset = self.screen.ruleset_mut();
-                let Some(rule) = ruleset.rules.get_mut(*rule_index) else {
-                    return;
-                };
-                let Some(condition) = rule.conditions.get_mut(*condition_index) else {
-                    return;
-                };
+            RuleEvent::ConditionCountUpdated(index, count_string) => {
+                let condition = index.condition_mut(self.screen.ruleset_mut());
+
                 let ConditionVariant::Count(variant) = &condition.variant else {
                     return;
                 };
 
                 let mut elements: Vec<u8> = count_string
                     .chars()
-                    .filter_map(|char| {
-                        let num = char.to_digit(10).and_then(|num| num.try_into().ok());
-                        dbg!(num)
-                    })
+                    .filter_map(|char| char.to_digit(10).and_then(|num| num.try_into().ok()))
                     .filter(|&n| n <= 8)
                     .collect();
                 elements.sort_unstable();
                 elements.dedup();
                 condition.variant = ConditionVariant::Count(variant.with_elements(dbg!(elements)));
             }
-            RuleEvent::ConditionCreated(rule_index) => {
+            RuleEvent::ConditionCreated(index) => {
                 let ruleset = self.screen.ruleset_mut();
                 let new_condition = Condition::new(ruleset);
-                let Some(rule) = ruleset.rules.get_mut(*rule_index) else {
-                    return;
-                };
-                rule.conditions.push(new_condition);
+                index.rule_mut(ruleset).conditions.push(new_condition);
             }
-            RuleEvent::ConditionVariantChanged(rule_index, condition_index, variant) => {
+            RuleEvent::ConditionVariantChanged(index, variant) => {
                 let ruleset = self.screen.ruleset_mut();
-                let Some(rule) = ruleset.rules.get_mut(*rule_index) else {
-                    return;
-                };
-                let Some(condition) = rule.conditions.get_mut(*condition_index) else {
-                    return;
-                };
-                condition.variant.clone_from(variant);
+                index.condition_mut(ruleset).variant.clone_from(variant);
             }
         });
         event.map(|event: &GridEvent, _| match event {

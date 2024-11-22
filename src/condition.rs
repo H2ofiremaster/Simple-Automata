@@ -2,9 +2,54 @@ use serde::{Deserialize, Serialize};
 use vizia::prelude::*;
 
 use crate::{
-    display::style, events::RuleEvent, grid::CellNeighbors, id::Identifiable, pattern::Pattern,
-    ruleset::Ruleset, AppData,
+    display::style,
+    events::RuleEvent,
+    grid::CellNeighbors,
+    id::Identifiable,
+    pattern::Pattern,
+    ruleset::{Rule, Ruleset},
+    AppData,
 };
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ConditionIndex {
+    rule_index: usize,
+    condition_index: usize,
+}
+impl ConditionIndex {
+    pub const fn new(rule_index: usize, condition_index: usize) -> Self {
+        Self {
+            rule_index,
+            condition_index,
+        }
+    }
+
+    pub fn rule<'a>(&self, ruleset: &'a Ruleset) -> &'a Rule {
+        ruleset
+            .rules
+            .get(self.rule_index)
+            .expect("invalid rule index")
+    }
+    pub fn condition<'a>(&self, ruleset: &'a Ruleset) -> &'a Condition {
+        self.rule(ruleset)
+            .conditions
+            .get(self.condition_index)
+            .expect("invalid condition index")
+    }
+
+    pub fn rule_mut<'a>(&self, ruleset: &'a mut Ruleset) -> &'a mut Rule {
+        ruleset
+            .rules
+            .get_mut(self.rule_index)
+            .expect("invalid rule index")
+    }
+    pub fn condition_mut<'a>(&self, ruleset: &'a mut Ruleset) -> &'a mut Condition {
+        self.rule_mut(ruleset)
+            .conditions
+            .get_mut(self.condition_index)
+            .expect("invalid condition index")
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum CountVariant {
@@ -54,83 +99,35 @@ impl ConditionVariant {
         }
     }
 
-    fn display_editor(&self, cx: &mut Context, rule_index: usize, condition_index: usize) {
+    fn display_editor(&self, cx: &mut Context, index: ConditionIndex) {
         match self {
-            Self::Directional(_) => Self::display_directional(cx, rule_index, condition_index),
-            Self::Count(variant) => Self::display_count(variant, cx, rule_index, condition_index),
+            Self::Directional(_) => Self::display_directional(cx, index),
+            Self::Count(variant) => Self::display_count(variant, cx, index),
         }
     }
-    fn display_directional(cx: &mut Context, rule_index: usize, condition_index: usize) {
+    fn display_directional(cx: &mut Context, index: ConditionIndex) {
         HStack::new(cx, |cx| {
             VStack::new(cx, |cx| {
-                Self::direction_button(
-                    cx,
-                    rule_index,
-                    condition_index,
-                    /*"↖"*/ "+",
-                    Direction::Northwest,
-                );
-                Self::direction_button(
-                    cx,
-                    rule_index,
-                    condition_index,
-                    /*"←"*/ "",
-                    Direction::West,
-                );
-                Self::direction_button(
-                    cx,
-                    rule_index,
-                    condition_index,
-                    /*"↙"*/ "+",
-                    Direction::Southwest,
-                );
+                Self::direction_button(cx, index, /*"↖"*/ "+", Direction::Northwest);
+                Self::direction_button(cx, index, /*"←"*/ "", Direction::West);
+                Self::direction_button(cx, index, /*"↙"*/ "+", Direction::Southwest);
             })
             .background_color("red")
             .size(Stretch(1.0))
             .min_size(Auto);
             VStack::new(cx, |cx| {
-                Self::direction_button(
-                    cx,
-                    rule_index,
-                    condition_index,
-                    /*"↑"*/ "",
-                    Direction::North,
-                );
+                Self::direction_button(cx, index, /*"↑"*/ "", Direction::North);
                 Element::new(cx).min_size(Auto).size(Stretch(1.0));
-                Self::direction_button(
-                    cx,
-                    rule_index,
-                    condition_index,
-                    /*"↓"*/ "",
-                    Direction::South,
-                )
-                .translate((Pixels(0.0), Pixels(3.0)));
+                Self::direction_button(cx, index, /*"↓"*/ "", Direction::South)
+                    .translate((Pixels(0.0), Pixels(3.0)));
             })
             .background_color("green")
             .size(Stretch(1.0))
             .min_size(Auto);
             VStack::new(cx, |cx| {
-                Self::direction_button(
-                    cx,
-                    rule_index,
-                    condition_index,
-                    /*"↗"*/ "+",
-                    Direction::Northeast,
-                );
-                Self::direction_button(
-                    cx,
-                    rule_index,
-                    condition_index,
-                    /*"→"*/ "",
-                    Direction::East,
-                );
-                Self::direction_button(
-                    cx,
-                    rule_index,
-                    condition_index,
-                    /*"↘"*/ "+",
-                    Direction::Southeast,
-                );
+                Self::direction_button(cx, index, /*"↗"*/ "+", Direction::Northeast);
+                Self::direction_button(cx, index, /*"→"*/ "", Direction::East);
+                Self::direction_button(cx, index, /*"↘"*/ "+", Direction::Southeast);
             })
             .background_color("blue")
             .size(Stretch(1.0))
@@ -143,8 +140,7 @@ impl ConditionVariant {
     }
     fn direction_button<'c>(
         cx: &'c mut Context,
-        rule_index: usize,
-        condition_index: usize,
+        index: ConditionIndex,
         char: &str,
         direction: Direction,
     ) -> vizia::view::Handle<'c, Button> {
@@ -155,14 +151,7 @@ impl ConditionVariant {
                 .background_color("white")
         })
         .background_color(AppData::screen.map(move |screen| {
-            let condition = screen
-                .ruleset()
-                .rules
-                .get(rule_index)
-                .expect("Ruleset should contain Rule")
-                .conditions
-                .get(condition_index)
-                .expect("Rule should contain condition");
+            let condition = index.condition(screen.ruleset());
             match condition.variant.clone() {
                 Self::Directional(vec) => {
                     if vec.contains(&direction) {
@@ -175,11 +164,7 @@ impl ConditionVariant {
             }
         }))
         .on_press(move |cx| {
-            cx.emit(RuleEvent::ConditionDirectionToggled(
-                rule_index,
-                condition_index,
-                direction,
-            ));
+            cx.emit(RuleEvent::ConditionDirectionToggled(index, direction));
         })
         .border_width(Pixels(2.0))
         .border_color(Color::black())
@@ -188,12 +173,7 @@ impl ConditionVariant {
         // .size(Pixels(100.0))
         .size(Stretch(1.0))
     }
-    fn display_count(
-        variant: &CountVariant,
-        cx: &mut Context,
-        rule_index: usize,
-        condition_index: usize,
-    ) {
+    fn display_count(variant: &CountVariant, cx: &mut Context, index: ConditionIndex) {
         Button::new(cx, |cx| match variant {
             CountVariant::List(_) => Label::new(cx, "="),
             CountVariant::Greater(_) => Label::new(cx, ">"),
@@ -202,14 +182,7 @@ impl ConditionVariant {
         Textbox::new(
             cx,
             AppData::screen.map(move |screen| {
-                let condition = screen
-                    .ruleset()
-                    .rules
-                    .get(rule_index)
-                    .expect("Ruleset should contain Rule")
-                    .conditions
-                    .get(condition_index)
-                    .expect("Rule should contain condition");
+                let condition = index.condition(screen.ruleset());
                 let Self::Count(variant) = &condition.variant else {
                     return String::new();
                 };
@@ -222,11 +195,7 @@ impl ConditionVariant {
             }),
         )
         .on_submit(move |cx, text, _| {
-            cx.emit(RuleEvent::ConditionCountUpdated(
-                rule_index,
-                condition_index,
-                text,
-            ));
+            cx.emit(RuleEvent::ConditionCountUpdated(index, text));
         });
     }
 }
@@ -254,19 +223,12 @@ impl Condition {
         }
     }
 
-    pub fn display_editor(
-        &self,
-        cx: &mut Context,
-        rule_index: usize,
-        condition_index: usize,
-        ruleset: &Ruleset,
-    ) {
+    pub fn display_editor(&self, cx: &mut Context, index: ConditionIndex) {
         HStack::new(cx, move |cx| {
             VStack::new(cx, move |cx| {
                 Button::new(cx, move |cx| Label::new(cx, "123")).on_press(move |cx| {
                     cx.emit(RuleEvent::ConditionVariantChanged(
-                        rule_index,
-                        condition_index,
+                        index,
                         ConditionVariant::Count(CountVariant::List(vec![0])),
                     ));
                 });
@@ -274,8 +236,7 @@ impl Condition {
                     .width(Stretch(1.0))
                     .on_press(move |cx| {
                         cx.emit(RuleEvent::ConditionVariantChanged(
-                            rule_index,
-                            condition_index,
+                            index,
                             ConditionVariant::Directional(vec![]),
                         ));
                     });
@@ -284,7 +245,7 @@ impl Condition {
             .min_size(Auto)
             .height(Auto)
             .width(Auto);
-            self.variant.display_editor(cx, rule_index, condition_index);
+            self.variant.display_editor(cx, index);
             Label::new(cx, "=")
                 .background_color("gray")
                 .font_size("x-large")
@@ -292,11 +253,7 @@ impl Condition {
                 .height(Stretch(1.0))
                 .min_size(Auto);
             self.pattern.display_editor(cx, move |cx, selected_index| {
-                cx.emit(RuleEvent::ConditionPatternSet {
-                    rule_index,
-                    condition_index,
-                    pattern_index: selected_index,
-                });
+                cx.emit(RuleEvent::ConditionPatternSet(index, selected_index));
             });
         })
         .background_color("yellow")

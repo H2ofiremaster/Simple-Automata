@@ -3,9 +3,8 @@ use serde::{
     Deserialize, Serialize,
 };
 use vizia::{
-    binding::{LensExt, Map, Wrapper},
+    binding::LensExt,
     context::{Context, EventContext},
-    view::Handle,
     views::ComboBox,
 };
 
