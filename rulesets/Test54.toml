@@ -6,9 +6,17 @@ output = 3571558840
 
 [[rules.conditions]]
 pattern = "7390237m"
+inverted = false
 
 [rules.conditions.variant]
 Directional = ["West", "North", "South", "East"]
+
+[[rules.conditions]]
+pattern = "7390237m"
+inverted = true
+
+[rules.conditions.variant.Count]
+Greater = 6
 
 [[materials]]
 id = 7390237

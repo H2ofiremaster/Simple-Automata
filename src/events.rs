@@ -61,11 +61,15 @@ pub enum RuleEvent {
     Deleted(RuleIndex),
     OutputSet(RuleIndex, Index),
     InputSet(RuleIndex, Index),
-    ConditionCreated(RuleIndex),
-    ConditionPatternSet(ConditionIndex, Index),
-    ConditionDirectionToggled(ConditionIndex, Direction),
-    ConditionCountUpdated(ConditionIndex, String),
-    ConditionVariantChanged(ConditionIndex, ConditionVariant),
+}
+pub enum ConditionEvent {
+    Created(RuleIndex),
+    PatternSet(ConditionIndex, Index),
+    DirectionToggled(ConditionIndex, Direction),
+    CountUpdated(ConditionIndex, String),
+    VariantChanged(ConditionIndex, ConditionVariant),
+    OperatorChanged(ConditionIndex),
+    Inverted(ConditionIndex),
 }
 pub enum GridEvent {
     Stepped,

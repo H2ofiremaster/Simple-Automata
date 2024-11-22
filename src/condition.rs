@@ -3,7 +3,7 @@ use vizia::prelude::*;
 
 use crate::{
     display::style::{self, svg},
-    events::RuleEvent,
+    events::{ConditionEvent, RuleEvent},
     grid::CellNeighbors,
     id::Identifiable,
     pattern::Pattern,
@@ -52,12 +52,12 @@ impl ConditionIndex {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub enum CountVariant {
+pub enum Operator {
     List(Vec<u8>),
     Greater(u8),
     Less(u8),
 }
-impl CountVariant {
+impl Operator {
     fn contains(&self, element: u8) -> bool {
         match self {
             Self::List(vec) => vec.contains(&element),
@@ -89,7 +89,7 @@ pub enum Direction {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ConditionVariant {
     Directional(Vec<Direction>),
-    Count(CountVariant),
+    Count(Operator),
 }
 impl ConditionVariant {
     pub fn directions(&mut self) -> Option<&mut Vec<Direction>> {
@@ -156,17 +156,22 @@ impl ConditionVariant {
             }),
         )
         .on_press(move |cx| {
-            cx.emit(RuleEvent::ConditionDirectionToggled(index, direction));
+            cx.emit(ConditionEvent::DirectionToggled(index, direction));
         })
         .min_size(Auto)
         .size(Stretch(1.0))
     }
-    fn display_count(variant: &CountVariant, cx: &mut Context, index: ConditionIndex) {
+    fn display_count(variant: &Operator, cx: &mut Context, index: ConditionIndex) {
         Button::new(cx, |cx| match variant {
-            CountVariant::List(_) => Label::new(cx, "="),
-            CountVariant::Greater(_) => Label::new(cx, ">"),
-            CountVariant::Less(_) => Label::new(cx, "<"),
-        });
+            Operator::List(_) => Svg::new(cx, style::svg::EQUAL).class(style::SVG),
+            Operator::Greater(_) => Svg::new(cx, style::svg::GREATER).class(style::SVG),
+            Operator::Less(_) => Svg::new(cx, style::svg::LESS).class(style::SVG),
+        })
+        .size(Pixels(35.0))
+        .top(Stretch(1.0))
+        .bottom(Stretch(1.0))
+        .right(Pixels(15.0))
+        .on_press(move |cx| cx.emit(ConditionEvent::OperatorChanged(index)));
         Textbox::new(
             cx,
             AppData::screen.map(move |screen| {
@@ -175,16 +180,18 @@ impl ConditionVariant {
                     return String::new();
                 };
                 match variant {
-                    CountVariant::List(vec) => {
+                    Operator::List(vec) => {
                         vec.iter().map(u8::to_string).collect::<Vec<_>>().join(" ")
                     }
-                    CountVariant::Greater(value) | CountVariant::Less(value) => value.to_string(),
+                    Operator::Greater(value) | Operator::Less(value) => value.to_string(),
                 }
             }),
         )
         .on_submit(move |cx, text, _| {
-            cx.emit(RuleEvent::ConditionCountUpdated(index, text));
-        });
+            cx.emit(ConditionEvent::CountUpdated(index, text));
+        })
+        .top(Stretch(1.0))
+        .bottom(Stretch(1.0));
     }
 }
 
@@ -192,12 +199,14 @@ impl ConditionVariant {
 pub struct Condition {
     pub variant: ConditionVariant,
     pub pattern: Pattern,
+    pub inverted: bool,
 }
 impl Condition {
     pub fn new(ruleset: &Ruleset) -> Self {
         Self {
-            variant: ConditionVariant::Count(CountVariant::List(vec![0])),
+            variant: ConditionVariant::Count(Operator::List(vec![0])),
             pattern: Pattern::Material(ruleset.materials.default().id()),
+            inverted: false,
         }
     }
     pub fn matches(&self, neighbors: CellNeighbors, ruleset: &Ruleset) -> bool {
@@ -226,9 +235,9 @@ impl Condition {
                     }),
                 )
                 .on_press(move |cx| {
-                    cx.emit(RuleEvent::ConditionVariantChanged(
+                    cx.emit(ConditionEvent::VariantChanged(
                         index,
-                        ConditionVariant::Count(CountVariant::List(vec![0])),
+                        ConditionVariant::Count(Operator::List(vec![0])),
                     ));
                 });
                 Button::new(cx, move |cx| {
@@ -245,7 +254,7 @@ impl Condition {
                     }),
                 )
                 .on_press(move |cx| {
-                    cx.emit(RuleEvent::ConditionVariantChanged(
+                    cx.emit(ConditionEvent::VariantChanged(
                         index,
                         ConditionVariant::Directional(vec![]),
                     ));
@@ -255,10 +264,17 @@ impl Condition {
             .min_size(Auto)
             .size(Auto);
             self.variant.display_editor(cx, index);
-            Button::new(cx, |cx| Svg::new(cx, svg::EQUAL).class(style::SVG))
-                .class(style::CONDITION_INVERT_BUTTON);
+            Button::new(cx, |cx| {
+                if self.inverted {
+                    Svg::new(cx, svg::NOT_EQUAL).class(style::SVG)
+                } else {
+                    Svg::new(cx, svg::EQUAL).class(style::SVG)
+                }
+            })
+            .class(style::CONDITION_INVERT_BUTTON)
+            .on_press(move |cx| cx.emit(ConditionEvent::Inverted(index)));
             self.pattern.display_editor(cx, move |cx, selected_index| {
-                cx.emit(RuleEvent::ConditionPatternSet(index, selected_index));
+                cx.emit(ConditionEvent::PatternSet(index, selected_index));
             });
         })
         .class(style::CONDITION_EDITOR);

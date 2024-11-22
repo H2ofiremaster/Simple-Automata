@@ -414,6 +414,8 @@ pub mod style {
         pub const TRANSFORM_ARROW: &str = include_str!("../resources/svg/transform_arrow.svg");
         pub const EQUAL: &str = include_str!("../resources/svg/equal.svg");
         pub const NOT_EQUAL: &str = include_str!("../resources/svg/not_equal.svg");
+        pub const LESS: &str = include_str!("../resources/svg/less.svg");
+        pub const GREATER: &str = include_str!("../resources/svg/greater.svg");
 
         #[rustfmt::skip]
         pub const DIRECTIONAL_CONDITION: &str = include_str!("../resources/svg/directional_condition.svg");

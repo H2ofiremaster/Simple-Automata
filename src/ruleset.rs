@@ -15,7 +15,7 @@ use vizia::{
 use crate::{
     condition::{Condition, ConditionIndex},
     display::style::{self, svg},
-    events::RuleEvent,
+    events::{ConditionEvent, RuleEvent},
     grid::{Cell, Grid},
     id::{Identifiable, UniqueId},
     material::{GroupId, Material, MaterialGroup, MaterialId, MaterialMap},
@@ -223,7 +223,7 @@ impl Rule {
                 }
                 Button::new(cx, |cx| Label::new(cx, "New Condition").space(Stretch(1.0)))
                     .width(Stretch(1.0))
-                    .on_press(move |cx| cx.emit(RuleEvent::ConditionCreated(index)));
+                    .on_press(move |cx| cx.emit(ConditionEvent::Created(index)));
             })
             .class(style::CONDITION_CONTAINER);
         })
@@ -300,7 +300,7 @@ impl<'de> Deserialize<'de> for Rule {
 #[cfg(test)]
 mod tests {
     use crate::{
-        condition::{ConditionVariant, CountVariant, Direction},
+        condition::{ConditionVariant, Direction, Operator},
         id::UniqueId,
         ruleset::Rule,
     };
@@ -315,8 +315,9 @@ mod tests {
             output: UniqueId::new_unchecked(100),
             conditions: vec![
                 Condition {
-                    variant: ConditionVariant::Count(CountVariant::List(vec![1, 2, 3])),
+                    variant: ConditionVariant::Count(Operator::List(vec![1, 2, 3])),
                     pattern: Pattern::Group(UniqueId::new_unchecked(20)),
+                    inverted: false,
                 },
                 Condition {
                     variant: ConditionVariant::Directional(vec![
@@ -324,6 +325,7 @@ mod tests {
                         Direction::South,
                     ]),
                     pattern: Pattern::Group(UniqueId::new_unchecked(200)),
+                    inverted: false,
                 },
             ],
         };

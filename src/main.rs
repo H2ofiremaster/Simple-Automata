@@ -1,9 +1,10 @@
 #![allow(clippy::expl_impl_clone_on_copy)]
 
-use condition::{Condition, ConditionVariant};
+use condition::{Condition, ConditionVariant, Operator};
 use display::Screen;
 use events::{
-    EditorEvent, GridEvent, GroupEvent, MaterialEvent, RuleEvent, RulesetEvent, UpdateEvent,
+    ConditionEvent, EditorEvent, GridEvent, GroupEvent, MaterialEvent, RuleEvent, RulesetEvent,
+    UpdateEvent,
 };
 use grid::{Cell, Grid};
 use id::Identifiable;
@@ -244,12 +245,14 @@ impl Model for AppData {
                 };
                 rule_index.rule_mut(ruleset).input = pattern;
             }
-            RuleEvent::ConditionCreated(index) => {
+        });
+        event.map(|event: &ConditionEvent, _| match event {
+            ConditionEvent::Created(index) => {
                 let ruleset = self.screen.ruleset_mut();
                 let new_condition = Condition::new(ruleset);
                 index.rule_mut(ruleset).conditions.push(new_condition);
             }
-            RuleEvent::ConditionPatternSet(condition_index, pattern_index) => {
+            ConditionEvent::PatternSet(condition_index, pattern_index) => {
                 let ruleset = self.screen.ruleset_mut();
                 let Some(pattern) = Pattern::from_index(ruleset, *pattern_index) else {
                     return;
@@ -257,7 +260,7 @@ impl Model for AppData {
                 let condition = condition_index.condition_mut(ruleset);
                 condition.pattern = pattern;
             }
-            RuleEvent::ConditionDirectionToggled(index, direction) => {
+            ConditionEvent::DirectionToggled(index, direction) => {
                 let ruleset = self.screen.ruleset_mut();
                 let condition = index.condition_mut(ruleset);
                 let Some(directions) = condition.variant.directions() else {
@@ -271,7 +274,7 @@ impl Model for AppData {
                     None => directions.push(*direction),
                 }
             }
-            RuleEvent::ConditionCountUpdated(index, count_string) => {
+            ConditionEvent::CountUpdated(index, count_string) => {
                 let condition = index.condition_mut(self.screen.ruleset_mut());
 
                 let ConditionVariant::Count(variant) = &condition.variant else {
@@ -287,9 +290,27 @@ impl Model for AppData {
                 elements.dedup();
                 condition.variant = ConditionVariant::Count(variant.with_elements(dbg!(elements)));
             }
-            RuleEvent::ConditionVariantChanged(index, variant) => {
+            ConditionEvent::VariantChanged(index, variant) => {
                 let ruleset = self.screen.ruleset_mut();
                 index.condition_mut(ruleset).variant.clone_from(variant);
+            }
+            ConditionEvent::OperatorChanged(index) => {
+                let ruleset = self.screen.ruleset_mut();
+                let condition = index.condition_mut(ruleset);
+                let ConditionVariant::Count(variant) = &condition.variant else {
+                    return;
+                };
+                let new_variant = match variant {
+                    Operator::List(vec) => Operator::Greater(vec.first().copied().unwrap_or(0)),
+                    Operator::Greater(value) => Operator::Less(*value),
+                    Operator::Less(value) => Operator::List(vec![*value]),
+                };
+                condition.variant = ConditionVariant::Count(new_variant);
+            }
+            ConditionEvent::Inverted(index) => {
+                let ruleset = self.screen.ruleset_mut();
+                let condition = index.condition_mut(ruleset);
+                condition.inverted = !condition.inverted;
             }
         });
         event.map(|event: &GridEvent, _| match event {
