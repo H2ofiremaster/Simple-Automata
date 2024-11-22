@@ -8,7 +8,7 @@ output = 3571558840
 pattern = "7390237m"
 
 [rules.conditions.variant]
-Directional = []
+Directional = ["West", "North", "South", "East"]
 
 [[materials]]
 id = 7390237

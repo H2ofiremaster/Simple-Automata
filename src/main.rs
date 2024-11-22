@@ -244,6 +244,11 @@ impl Model for AppData {
                 };
                 rule_index.rule_mut(ruleset).input = pattern;
             }
+            RuleEvent::ConditionCreated(index) => {
+                let ruleset = self.screen.ruleset_mut();
+                let new_condition = Condition::new(ruleset);
+                index.rule_mut(ruleset).conditions.push(new_condition);
+            }
             RuleEvent::ConditionPatternSet(condition_index, pattern_index) => {
                 let ruleset = self.screen.ruleset_mut();
                 let Some(pattern) = Pattern::from_index(ruleset, *pattern_index) else {
@@ -281,11 +286,6 @@ impl Model for AppData {
                 elements.sort_unstable();
                 elements.dedup();
                 condition.variant = ConditionVariant::Count(variant.with_elements(dbg!(elements)));
-            }
-            RuleEvent::ConditionCreated(index) => {
-                let ruleset = self.screen.ruleset_mut();
-                let new_condition = Condition::new(ruleset);
-                index.rule_mut(ruleset).conditions.push(new_condition);
             }
             RuleEvent::ConditionVariantChanged(index, variant) => {
                 let ruleset = self.screen.ruleset_mut();

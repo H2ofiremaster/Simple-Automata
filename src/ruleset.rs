@@ -7,13 +7,14 @@ use serde::{
 use vizia::{
     binding::{Data, LensExt},
     context::{Context, EmitContext},
-    layout::Units::{Auto, Percentage, Stretch},
-    modifiers::{ActionModifiers, LayoutModifiers, TextModifiers},
-    views::{Button, ComboBox, HStack, Label, VStack},
+    layout::Units::{Auto, Percentage, Pixels, Stretch},
+    modifiers::{ActionModifiers, LayoutModifiers, StyleModifiers, TextModifiers},
+    views::{Button, ComboBox, HStack, Label, Svg, VStack, ZStack},
 };
 
 use crate::{
     condition::{Condition, ConditionIndex},
+    display::style::{self, svg},
     events::RuleEvent,
     grid::{Cell, Grid},
     id::{Identifiable, UniqueId},
@@ -187,9 +188,14 @@ impl Rule {
                 self.input.display_editor(cx, move |cx, selected| {
                     cx.emit(RuleEvent::InputSet(index, selected));
                 });
-                Label::new(cx, "=>")
-                    .font_size("x-large")
-                    .space(Stretch(0.05));
+                ZStack::new(cx, |cx| {
+                    Svg::new(cx, svg::TRANSFORM_ARROW)
+                        .size(Percentage(80.0))
+                        .top(Stretch(0.0))
+                        .space(Stretch(1.0));
+                })
+                .size(Pixels(80.0))
+                .background_color("green");
                 ComboBox::new(
                     cx,
                     AppData::screen.map(|screen| screen.ruleset().materials.names()),
@@ -201,24 +207,29 @@ impl Rule {
                             .expect("Output material should exist in the current ruleset.")
                     }),
                 )
+                .width(Stretch(1.0))
+                .top(Stretch(1.0))
+                .bottom(Stretch(1.0))
                 .on_select(move |cx, selected| {
                     cx.emit(RuleEvent::OutputSet(index, selected));
                 });
             })
+            .background_color("red")
             .height(Auto);
             VStack::new(cx, move |cx| {
                 for (condition_index, condition) in self.conditions.iter().enumerate() {
                     condition.display_editor(cx, index.with_condition(condition_index));
                 }
-                Button::new(cx, |cx| Label::new(cx, "New Condition"))
+                Button::new(cx, |cx| Label::new(cx, "New Condition").space(Stretch(1.0)))
+                    .width(Stretch(1.0))
                     .on_press(move |cx| cx.emit(RuleEvent::ConditionCreated(index)));
             })
-            .height(Auto);
+            .height(Auto)
+            .child_space(Percentage(5.0))
+            .row_between(Pixels(15.0));
         })
-        .left(Stretch(1.0))
-        .right(Stretch(1.0))
-        .width(Percentage(50.0))
-        .height(Auto);
+        .class(style::EDITOR)
+        .width(Percentage(50.0));
     }
 }
 struct RuleVisitor;

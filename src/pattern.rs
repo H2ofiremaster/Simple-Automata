@@ -5,6 +5,8 @@ use serde::{
 use vizia::{
     binding::LensExt,
     context::{Context, EventContext},
+    layout::Units::Stretch,
+    modifiers::LayoutModifiers,
     views::ComboBox,
 };
 
@@ -42,6 +44,9 @@ impl Pattern {
                     .expect("Displayed pattern should match the current ruleset."),
             }),
         )
+        .width(Stretch(1.0))
+        .top(Stretch(1.0))
+        .bottom(Stretch(1.0))
         .on_select(on_select);
     }
 

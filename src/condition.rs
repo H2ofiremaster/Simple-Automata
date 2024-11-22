@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use vizia::prelude::*;
 
 use crate::{
-    display::style,
+    display::style::{self, svg},
     events::RuleEvent,
     grid::CellNeighbors,
     id::Identifiable,
@@ -108,47 +108,45 @@ impl ConditionVariant {
     fn display_directional(cx: &mut Context, index: ConditionIndex) {
         HStack::new(cx, |cx| {
             VStack::new(cx, |cx| {
-                Self::direction_button(cx, index, /*"↖"*/ "+", Direction::Northwest);
-                Self::direction_button(cx, index, /*"←"*/ "", Direction::West);
-                Self::direction_button(cx, index, /*"↙"*/ "+", Direction::Southwest);
+                Self::direction_button(cx, index, svg::ARROW_NORTHWEST, Direction::Northwest);
+                Self::direction_button(cx, index, svg::ARROW_WEST, Direction::West);
+                Self::direction_button(cx, index, svg::ARROW_SOUTHWEST, Direction::Southwest);
             })
-            .background_color("red")
             .size(Stretch(1.0))
             .min_size(Auto);
             VStack::new(cx, |cx| {
-                Self::direction_button(cx, index, /*"↑"*/ "", Direction::North);
-                Element::new(cx).min_size(Auto).size(Stretch(1.0));
-                Self::direction_button(cx, index, /*"↓"*/ "", Direction::South)
-                    .translate((Pixels(0.0), Pixels(3.0)));
+                Self::direction_button(cx, index, svg::ARROW_NORTH, Direction::North);
+                Self::direction_button(cx, index, svg::DIRECTIONAL_CONDITION, Direction::North)
+                    .background_color(Color::transparent())
+                    .border_color(Color::transparent())
+                    .hoverable(false);
+                Self::direction_button(cx, index, svg::ARROW_SOUTH, Direction::South);
             })
-            .background_color("green")
             .size(Stretch(1.0))
             .min_size(Auto);
             VStack::new(cx, |cx| {
-                Self::direction_button(cx, index, /*"↗"*/ "+", Direction::Northeast);
-                Self::direction_button(cx, index, /*"→"*/ "", Direction::East);
-                Self::direction_button(cx, index, /*"↘"*/ "+", Direction::Southeast);
+                Self::direction_button(cx, index, svg::ARROW_NORTHEAST, Direction::Northeast);
+                Self::direction_button(cx, index, svg::ARROW_EAST, Direction::East);
+                Self::direction_button(cx, index, svg::ARROW_SOUTHEAST, Direction::Southeast);
             })
-            .background_color("blue")
             .size(Stretch(1.0))
             .min_size(Auto);
         })
-        // .child_space(Stretch(1.0))
-        .background_color("purple")
-        .size(Pixels(150.0))
+        .size(Pixels(100.0))
+        .top(Pixels(15.0))
+        .bottom(Pixels(15.0))
         .min_size(Auto);
     }
     fn direction_button<'c>(
         cx: &'c mut Context,
         index: ConditionIndex,
-        char: &str,
+        svg: &'static str,
         direction: Direction,
     ) -> vizia::view::Handle<'c, Button> {
         Button::new(cx, |cx| {
-            Label::new(cx, char)
-                .min_size(Auto)
+            Svg::new(cx, svg)
+                .max_size(Percentage(80.0))
                 .space(Stretch(1.0))
-                .background_color("white")
         })
         .background_color(AppData::screen.map(move |screen| {
             let condition = index.condition(screen.ruleset());
@@ -166,11 +164,7 @@ impl ConditionVariant {
         .on_press(move |cx| {
             cx.emit(RuleEvent::ConditionDirectionToggled(index, direction));
         })
-        .border_width(Pixels(2.0))
-        .border_color(Color::black())
-        // .space(Stretch(1.0))
         .min_size(Auto)
-        // .size(Pixels(100.0))
         .size(Stretch(1.0))
     }
     fn display_count(variant: &CountVariant, cx: &mut Context, index: ConditionIndex) {
@@ -226,38 +220,55 @@ impl Condition {
     pub fn display_editor(&self, cx: &mut Context, index: ConditionIndex) {
         HStack::new(cx, move |cx| {
             VStack::new(cx, move |cx| {
-                Button::new(cx, move |cx| Label::new(cx, "123")).on_press(move |cx| {
+                Button::new(cx, move |cx| {
+                    Svg::new(cx, svg::NUMBERIC_CONDITION)
+                        .max_size(Percentage(80.0))
+                        .space(Stretch(1.0))
+                })
+                .size(Pixels(50.0))
+                .background_color(style::PRESSED_BUTTON_COLOR)
+                .on_press(move |cx| {
                     cx.emit(RuleEvent::ConditionVariantChanged(
                         index,
                         ConditionVariant::Count(CountVariant::List(vec![0])),
                     ));
                 });
-                Button::new(cx, move |cx| Label::new(cx, "↑↓"))
-                    .width(Stretch(1.0))
-                    .on_press(move |cx| {
-                        cx.emit(RuleEvent::ConditionVariantChanged(
-                            index,
-                            ConditionVariant::Directional(vec![]),
-                        ));
-                    });
+                Button::new(cx, move |cx| {
+                    Svg::new(cx, svg::DIRECTIONAL_CONDITION)
+                        .max_size(Percentage(80.0))
+                        .space(Stretch(1.0))
+                })
+                .size(Pixels(50.0))
+                .background_color(style::PRESSED_BUTTON_COLOR)
+                .on_press(move |cx| {
+                    cx.emit(RuleEvent::ConditionVariantChanged(
+                        index,
+                        ConditionVariant::Directional(vec![]),
+                    ));
+                });
             })
-            .background_color("aqua")
+            .space(Pixels(15.0))
             .min_size(Auto)
-            .height(Auto)
-            .width(Auto);
+            .size(Auto);
             self.variant.display_editor(cx, index);
-            Label::new(cx, "=")
-                .background_color("gray")
-                .font_size("x-large")
-                .space(Stretch(0.05))
-                .height(Stretch(1.0))
-                .min_size(Auto);
+            Button::new(cx, |cx| {
+                Svg::new(cx, svg::EQUAL)
+                    .space(Stretch(1.0))
+                    .size(Percentage(80.0))
+                    .min_size(Percentage(100.0))
+            })
+            .background_color(style::BUTTON_COLOR)
+            .left(Pixels(15.0))
+            .right(Pixels(15.0))
+            .top(Stretch(1.0))
+            .bottom(Stretch(1.0))
+            .size(Pixels(50.0));
             self.pattern.display_editor(cx, move |cx, selected_index| {
                 cx.emit(RuleEvent::ConditionPatternSet(index, selected_index));
             });
         })
-        .background_color("yellow")
-        .child_space(Stretch(1.0))
+        .child_top(Stretch(1.0))
+        .child_bottom(Stretch(1.0))
         // .height(Pixels(200.0));
         .min_height(Auto);
     }

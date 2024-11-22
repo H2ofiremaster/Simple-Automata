@@ -1,7 +1,9 @@
+/* background: #000000 */
+/* foreground: #808080 */
+/* foreground-contrast: #404040 */
+
 .side-panel {
-    background-color: #888;
-    /* border-width: 5px;
-    border-color: #000;  */
+    background-color: #808080;
     corner-radius: 5%;
     child-space: 10px;
     space: 10px;
@@ -12,7 +14,7 @@
     width: 1s;
 }
 .center-panel {
-    background-color: #888;
+    background-color: #808080;
     corner-radius: 1%;
     child-space: 0.01s;
 }
@@ -45,10 +47,24 @@
     space: 0.1s;
 }
 .editor-panel {
-    background-color: gray;
+    background-color: #808080;
     child-space: 0.5%;
     space: 0.5%;
 }
+.editor {
+    left: 1s;
+    right: 1s;
+    height: Auto;
+    background-color: #404040;
+    child-space: 15px;
+    corner-radius: 15px;
+}
+.button {
+    background-color: #808080;
+    border-color: #000000;
+    border-width: 2px;
+}
+
 label {
-    font-size: 2em;
+    font-size: large;
 }

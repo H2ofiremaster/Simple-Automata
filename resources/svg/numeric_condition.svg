@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="50mm"
+   height="50mm"
+   viewBox="0 0 50 50"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.2 (732a01da63, 2022-12-09)"
+   sodipodi:docname="numeric_condition.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#000000"
+     bordercolor="#000000"
+     borderopacity="0.24705882"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#494949"
+     inkscape:document-units="mm"
+     showgrid="true"
+     inkscape:zoom="3.0752245"
+     inkscape:cx="67.31216"
+     inkscape:cy="111.21139"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1">
+    <inkscape:grid
+       type="xygrid"
+       id="grid132"
+       units="mm"
+       spacingx="1"
+       spacingy="1"
+       originx="0"
+       originy="0" />
+  </sodipodi:namedview>
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       aria-label="3"
+       id="text238"
+       style="font-size:40.0483px;font-family:'Noto Sans';-inkscape-font-specification:'Noto Sans, Normal';text-align:center;text-anchor:middle;fill:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round">
+      <path
+         d="m 48.118937,26.693097 q 0,1.922318 -0.720869,3.324009 -0.72087,1.40169 -2.082512,2.282753 -1.321594,0.881063 -3.123767,1.241497 v 0.160194 q 3.444154,0.400483 5.126182,2.162608 Q 49,37.626283 49,40.469713 q 0,2.482994 -1.161401,4.445361 -1.161401,1.922319 -3.604347,3.003623 -2.402898,1.081304 -6.207487,1.081304 -2.242705,0 -4.165023,-0.360435 -1.922319,-0.320386 -3.684444,-1.201449 v -3.283961 q 1.802174,0.881063 3.884685,1.401691 2.082512,0.48058 4.004831,0.48058 3.844637,0 5.526665,-1.481788 1.722077,-1.521835 1.722077,-4.165023 0,-1.802174 -0.961159,-2.883478 -0.921111,-1.121352 -2.723285,-1.64198 -1.802173,-0.520628 -4.325216,-0.520628 h -2.763333 v -3.003623 h 2.803381 q 2.36285,0 3.924734,-0.680821 1.601932,-0.680821 2.402898,-1.88227 0.841014,-1.241497 0.841014,-2.843429 0,-2.082512 -1.40169,-3.203865 -1.401691,-1.1614 -3.804589,-1.1614 -1.521835,0 -2.763333,0.320386 -1.241497,0.280338 -2.322801,0.841014 -1.041256,0.520628 -2.12256,1.241498 l -1.762126,-2.402898 q 1.521836,-1.201449 3.764541,-2.082512 2.282753,-0.881063 5.166231,-0.881063 4.485409,0 6.648018,2.002415 2.202656,2.002416 2.202656,5.086135 z"
+         id="path2178" />
+    </g>
+    <g
+       aria-label="2"
+       id="text954"
+       style="font-size:40.0483px;font-family:'Noto Sans';-inkscape-font-specification:'Noto Sans, Normal';text-align:center;text-anchor:middle;fill:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round">
+      <path
+         d="M 31.529168,38.994972 H 12.626369 v -2.923526 l 7.489033,-7.569129 q 2.162608,-2.162608 3.644395,-3.844637 1.481787,-1.682028 2.242705,-3.283961 0.760918,-1.64198 0.760918,-3.564298 0,-2.36285 -1.401691,-3.564299 -1.40169,-1.241498 -3.644395,-1.241498 -2.082512,0 -3.684444,0.72087 -1.561884,0.720869 -3.203864,2.002415 l -1.88227,-2.36285 q 1.121352,-0.961159 2.442946,-1.722077 1.361642,-0.760918 2.923526,-1.201449 1.601932,-0.440531 3.404106,-0.440531 2.683236,0 4.605554,0.921111 1.922319,0.921111 2.963575,2.643188 1.081304,1.682028 1.081304,4.044878 0,2.242705 -0.921111,4.205072 -0.921111,1.962367 -2.563091,3.884685 -1.641981,1.88227 -3.844637,4.044879 l -5.967197,5.8871 v 0.160193 h 14.457437 z"
+         id="path2175" />
+    </g>
+    <g
+       aria-label="1"
+       id="text960"
+       style="font-size:40.0483px;font-family:'Noto Sans';-inkscape-font-specification:'Noto Sans, Normal';text-align:center;text-anchor:middle;fill:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round">
+      <path
+         d="M 11.652848,29.594488 H 8.2086942 V 9.6103856 q 0,-1.1614008 0,-1.9623668 0.040048,-0.800966 0.080097,-1.4817871 Q 8.3288391,5.4453622 8.3688874,4.6844445 7.7281146,5.3252173 7.2074867,5.7657486 6.6868587,6.20628 5.8858927,6.8871011 L 2.8422218,9.3700958 0.9999999,7.007246 8.7293221,1.0000007 h 2.9235259 z"
+         id="path2172" />
+    </g>
+  </g>
+</svg>

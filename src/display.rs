@@ -357,6 +357,7 @@ pub mod style {
     pub const BUTTON: &str = "button";
     pub const MENU_ELEMENT: &str = "menu-element";
     pub const EDITOR_PANEL: &str = "editor-panel";
+    pub const EDITOR: &str = "editor";
 
     /// The maximum percentage of the screen the center square can take up.
     pub const CENTER_MARGIN_FACTOR: f32 = 0.6;
@@ -367,6 +368,32 @@ pub mod style {
     /// How many materials display per row on the right panel.
     pub const MATERIAL_ROW_LENGTH: usize = 3;
     /// The color of button when they're not pressed
-    pub const BUTTON_COLOR: Color = Color::rgb(221, 221, 221);
-    pub const PRESSED_BUTTON_COLOR: Color = Color::rgb(136, 136, 136);
+    pub const PRESSED_BUTTON_COLOR: Color = Color::rgb(72, 72, 72);
+    // pub const BUTTON_COLOR: Color = Color::transparent();
+    pub const BUTTON_COLOR: Color = Color::rgb(136, 136, 136);
+
+    pub mod svg {
+        pub const ARROW_NORTHWEST: &str = include_str!("../resources/svg/arrows/northwest.svg");
+        pub const ARROW_NORTH: &str = include_str!("../resources/svg/arrows/north.svg");
+        pub const ARROW_NORTHEAST: &str = include_str!("../resources/svg/arrows/northeast.svg");
+        pub const ARROW_WEST: &str = include_str!("../resources/svg/arrows/west.svg");
+        pub const ARROW_EAST: &str = include_str!("../resources/svg/arrows/east.svg");
+        pub const ARROW_SOUTHWEST: &str = include_str!("../resources/svg/arrows/southwest.svg");
+        pub const ARROW_SOUTH: &str = include_str!("../resources/svg/arrows/south.svg");
+        pub const ARROW_SOUTHEAST: &str = include_str!("../resources/svg/arrows/southeast.svg");
+
+        pub const ARROW_UP: &str = include_str!("../resources/svg/arrows/up.svg");
+        pub const ARROW_DOWN: &str = include_str!("../resources/svg/arrows/down.svg");
+
+        pub const COPY: &str = include_str!("../resources/svg/copy.svg");
+        pub const TRASH: &str = include_str!("../resources/svg/trash.svg");
+        pub const TRASH_OPEN: &str = include_str!("../resources/svg/trash_open.svg");
+        pub const TRANSFORM_ARROW: &str = include_str!("../resources/svg/transform_arrow.svg");
+        pub const EQUAL: &str = include_str!("../resources/svg/equal.svg");
+        pub const NOT_EQUAL: &str = include_str!("../resources/svg/not_equal.svg");
+
+        #[rustfmt::skip]
+        pub const DIRECTIONAL_CONDITION: &str = include_str!("../resources/svg/directional_condition.svg");
+        pub const NUMBERIC_CONDITION: &str = include_str!("../resources/svg/numeric_condition.svg");
+    }
 }
