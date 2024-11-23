@@ -3,7 +3,7 @@ use vizia::prelude::*;
 
 use crate::{
     display::style::{self, svg},
-    events::{ConditionEvent, RuleEvent},
+    events::ConditionEvent,
     grid::CellNeighbors,
     id::Identifiable,
     pattern::Pattern,

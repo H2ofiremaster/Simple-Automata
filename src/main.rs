@@ -34,6 +34,7 @@ pub struct AppData {
     selected_material: MaterialId,
     running: bool,
     speed: f32,
+    timer: Timer,
     grid_size: usize,
 
     tooltip: String,
@@ -44,8 +45,8 @@ pub struct AppData {
     editor_enabled: bool,
 }
 #[allow(clippy::cast_precision_loss)]
-impl Default for AppData {
-    fn default() -> Self {
+impl AppData {
+    fn new(timer: Timer) -> Self {
         let mut ruleset = Ruleset::blank();
         let mut second_material = Material::new(&ruleset);
         second_material.color = MaterialColor::new(255, 0, 0);
@@ -78,6 +79,7 @@ impl Default for AppData {
             selected_material: material,
             running: false,
             speed: 1.0,
+            timer,
             grid_size: 5,
 
             tooltip: String::new(),
@@ -336,8 +338,20 @@ impl Model for AppData {
                     grid.next_generation();
                 }
             }
-            GridEvent::Toggled => self.running = !self.running,
-            GridEvent::SpeedSet(speed) => self.speed = (*speed * 100.0).round() / 100.0,
+            GridEvent::Toggled => {
+                self.running = !self.running;
+                if self.running {
+                    cx.start_timer(self.timer);
+                } else {
+                    cx.stop_timer(self.timer);
+                }
+            }
+            GridEvent::SpeedSet(speed) => {
+                self.speed = (*speed * 100.0).round() / 100.0;
+                cx.modify_timer(self.timer, |state| {
+                    state.set_interval(Duration::from_secs_f32(self.speed));
+                });
+            }
         });
         event.map(|event: &EditorEvent, _| match event {
             EditorEvent::Enabled => {
@@ -360,7 +374,13 @@ fn main() -> Result<(), ApplicationError> {
         cx.add_stylesheet(include_style!("resources/style.css"))
             .expect("failed to add stylesheet.");
 
-        AppData::default().build(cx);
+        let timer = cx.add_timer(Duration::from_secs_f32(1.0), None, |cx, event| {
+            if let TimerAction::Tick(_) = event {
+                cx.emit(GridEvent::Stepped);
+            }
+        });
+
+        AppData::new(timer).build(cx);
         ZStack::new(cx, |cx| {
             Binding::new(cx, AppData::editor_enabled, |cx, enabled| {
                 if enabled.get(cx) {
