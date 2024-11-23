@@ -219,7 +219,9 @@ impl Condition {
                     .in_direction(dir)
                     .is_some_and(|cell| self.pattern.matches(ruleset, cell))
             }),
-            ConditionVariant::Count(counts) => counts.contains(neighbors.count()),
+            ConditionVariant::Count(counts) => {
+                counts.contains(neighbors.count_matching(ruleset, self.pattern))
+            }
         }
     }
 

@@ -9,7 +9,7 @@ use vizia::{
 
 use crate::{
     condition::Direction, display::style, events::UpdateEvent, id::Identifiable,
-    material::MaterialId, ruleset::Ruleset, AppData,
+    material::MaterialId, pattern::Pattern, ruleset::Ruleset, AppData,
 };
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -59,9 +59,9 @@ impl Grid {
             self.get_neighbor(index, 1, 0),
             self.get_neighbor(index, -1, 1),
             self.get_neighbor(index, 0, 1),
-            self.get_neighbor(index, -1, 1),
+            self.get_neighbor(index, 1, 1),
         ];
-        CellNeighbors(array)
+        CellNeighbors::new(array)
     }
     #[allow(clippy::cast_sign_loss, clippy::cast_possible_wrap)]
     pub fn get_neighbor(&self, index: usize, x_offset: i8, y_offset: i8) -> Option<Cell> {
@@ -168,16 +168,17 @@ impl Cell {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct CellNeighbors([Option<Cell>; 8]);
+pub struct CellNeighbors(pub [Option<Cell>; 8]);
 impl CellNeighbors {
     pub const fn new(array: [Option<Cell>; 8]) -> Self {
         Self(array)
     }
 
-    pub fn count(&self) -> u8 {
+    pub fn count_matching(&self, ruleset: &Ruleset, pattern: Pattern) -> u8 {
+        // println!("Matching: ---");
         self.0
             .iter()
-            .filter(|cell| cell.is_some())
+            .filter(|cell| cell.is_some_and(|cell| pattern.matches(ruleset, cell)))
             .count()
             .try_into()
             .expect("CellNeighbors count should not exceed 8.")
