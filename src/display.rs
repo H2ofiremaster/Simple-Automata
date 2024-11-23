@@ -191,8 +191,9 @@ pub fn game_board(cx: &mut Context) {
 fn left_panel(cx: &mut Context) {
     VStack::new(cx, |cx| {
         editor_button(cx);
-        controls(cx);
+        step_controls(cx);
         speed_controls(cx);
+        size_controls(cx);
         material_tooltip(cx);
     })
     .class(style::SIDE_PANEL);
@@ -205,7 +206,7 @@ fn editor_button(cx: &mut Context) {
     })
     .class(style::MENU_ELEMENT);
 }
-fn controls(cx: &mut Context) {
+fn step_controls(cx: &mut Context) {
     HStack::new(cx, |cx| {
         Button::new(cx, |cx| {
             Label::new(
@@ -241,6 +242,21 @@ fn speed_controls(cx: &mut Context) {
     })
     .class(style::MENU_ELEMENT);
 }
+fn size_controls(cx: &mut Context) {
+    HStack::new(cx, |cx| {
+        Label::new(cx, "Grid Size: ");
+        Textbox::new(cx, AppData::grid_size.map(|&x| x.to_string())).on_submit(
+            |cx, text, enter_pressed| {
+                if enter_pressed {
+                    if let Ok(size) = text.parse() {
+                        cx.emit(GridEvent::Resized(size));
+                    }
+                }
+            },
+        );
+    })
+    .class(style::MENU_ELEMENT);
+}
 fn material_tooltip(cx: &mut Context) {
     VStack::new(cx, |cx| {
         Label::new(cx, AppData::tooltip);
@@ -256,6 +272,7 @@ fn center_panel(cx: &mut Context) {
             }
         })
         .size(AppData::window_size.map(|bounds| Pixels(margined_square_size(bounds))))
+        .min_size(Auto)
         .class(style::CENTER_PANEL);
     });
 }
@@ -309,9 +326,12 @@ fn material_row(cx: &mut Context, row: &[Cell], ruleset: &Ruleset) {
 // Utility
 
 fn margined_square_size(bounds: &BoundingBox) -> f32 {
-    let max_width =
-        bounds.width() * style::BACKGROUND_PADDING.mul_add(-2.0, style::CENTER_MARGIN_FACTOR);
-    let max_height = bounds.height() * style::BACKGROUND_PADDING.mul_add(-2.0, 1.0);
+    let max_width = bounds.width().mul_add(
+        style::CENTER_MARGIN_FACTOR,
+        style::BACKGROUND_PADDING * -2.0,
+    );
+    let max_height = style::BACKGROUND_PADDING.mul_add(-2.0, bounds.height());
+    // let max_height = bounds.height() * style::BACKGROUND_PADDING.mul_add(-2.0, 1.0);
 
     max_width.min(max_height)
     // bounds
@@ -386,7 +406,7 @@ pub mod style {
     /// The maximum percentage of the screen the center square can take up.
     pub const CENTER_MARGIN_FACTOR: f32 = 0.6;
     /// Mirrors '.backround/child-space' in 'style.css'.
-    pub const BACKGROUND_PADDING: f32 = 0.01;
+    pub const BACKGROUND_PADDING: f32 = 10.0;
     /// How much darker the corners of a cell should be compared to the center, as a number from 0-255
     pub const CELL_GRADIENT_DARKEN: u8 = 92;
     /// How many materials display per row on the right panel.

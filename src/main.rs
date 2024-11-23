@@ -352,6 +352,12 @@ impl Model for AppData {
                     state.set_interval(Duration::from_secs_f32(self.speed));
                 });
             }
+            GridEvent::Resized(size) => {
+                self.grid_size = *size;
+                if let Screen::Grid(ref grid) = self.screen {
+                    self.screen = Screen::Grid(Grid::new(grid.ruleset.clone(), *size));
+                }
+            }
         });
         event.map(|event: &EditorEvent, _| match event {
             EditorEvent::Enabled => {

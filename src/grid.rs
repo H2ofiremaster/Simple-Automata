@@ -1,7 +1,8 @@
 use vizia::{
     binding::{Data, LensExt},
     context::{Context, EmitContext},
-    modifiers::{ActionModifiers, StyleModifiers},
+    layout::Units::Stretch,
+    modifiers::{ActionModifiers, LayoutModifiers, StyleModifiers},
     style::RGBA,
     view::Handle,
     views::{Button, Element, HStack, VStack},
@@ -95,12 +96,14 @@ impl Grid {
     pub fn display<'a>(&'a self, cx: &'a mut Context) {
         VStack::new(cx, |cx| {
             (0..self.size).for_each(|y| self.display_row(cx, y));
-        });
+        })
+        .size(Stretch(1.0));
     }
     fn display_row(&self, cx: &mut Context, y: usize) {
         HStack::new(cx, |cx| {
             (0..self.size).for_each(|x| self.display_cell(cx, x, y));
-        });
+        })
+        .size(Stretch(1.0));
     }
     fn display_cell(&self, cx: &mut Context, x: usize, y: usize) {
         let Some(cell) = self.cell_at(x, y) else {

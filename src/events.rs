@@ -78,6 +78,7 @@ pub enum GridEvent {
     Stepped,
     Toggled,
     SpeedSet(f32),
+    Resized(usize),
 }
 
 pub enum EditorEvent {
