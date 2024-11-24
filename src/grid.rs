@@ -1,16 +1,23 @@
 use vizia::{
-    binding::{Data, LensExt},
+    binding::{Data, Lens, LensExt, ResGet},
     context::{Context, EmitContext},
     layout::Units::Stretch,
     modifiers::{ActionModifiers, LayoutModifiers, StyleModifiers},
     style::RGBA,
-    view::Handle,
+    vg,
+    view::{Handle, View},
     views::{Button, Element, HStack, VStack},
 };
 
 use crate::{
-    condition::Direction, display::style, events::UpdateEvent, id::Identifiable,
-    material::MaterialId, pattern::Pattern, ruleset::Ruleset, AppData,
+    condition::Direction,
+    display::{self, style},
+    events::UpdateEvent,
+    id::Identifiable,
+    material::{MaterialColor, MaterialId},
+    pattern::Pattern,
+    ruleset::Ruleset,
+    AppData,
 };
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -93,12 +100,12 @@ impl Grid {
     }
 
     // Display
-    pub fn display<'a>(&'a self, cx: &'a mut Context) {
-        VStack::new(cx, |cx| {
-            (0..self.size).for_each(|y| self.display_row(cx, y));
-        })
-        .size(Stretch(1.0));
-    }
+    // pub fn display<'a>(&'a self, cx: &'a mut Context) {
+    //     // VStack::new(cx, |cx| {
+    //     //     (0..self.size).for_each(|y| self.display_row(cx, y));
+    //     // })
+    //     // .size(Stretch(1.0));
+    // }
     fn display_row(&self, cx: &mut Context, y: usize) {
         HStack::new(cx, |cx| {
             (0..self.size).for_each(|x| self.display_cell(cx, x, y));
@@ -122,10 +129,91 @@ impl Grid {
             .on_hover(move |cx| cx.emit(UpdateEvent::CellHovered { x, y }))
             .on_mouse_down(move |cx, button| cx.emit(UpdateEvent::CellClicked { x, y, button }));
     }
+
+    pub fn snapshot(&self) -> GridSnapshot {
+        GridSnapshot {
+            size: self.size,
+            cells: self.cells.iter().map(|&c| c.color(&self.ruleset)).collect(),
+        }
+    }
 }
 impl Data for Grid {
     fn same(&self, other: &Self) -> bool {
         self.size == other.size && self.cells == other.cells && self.ruleset == other.ruleset
+    }
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct GridSnapshot {
+    size: usize,
+    cells: Vec<MaterialColor>,
+}
+impl Data for GridSnapshot {
+    fn same(&self, other: &Self) -> bool {
+        self == other
+    }
+}
+
+pub struct GridDisplay<L1, L2>
+where
+    L1: Lens<Target = GridSnapshot>,
+    L2: Lens<Target = Option<usize>>,
+{
+    grid: L1,
+    hovered: L2,
+}
+impl<L1, L2> GridDisplay<L1, L2>
+where
+    L1: Lens<Target = GridSnapshot>,
+    L2: Lens<Target = Option<usize>>,
+{
+    pub fn new(cx: &mut Context, grid: L1, hovered: L2) -> Handle<Self> {
+        Self { grid, hovered }
+            .build(cx, move |_| {})
+            .bind(grid, |mut cx, _| cx.needs_redraw())
+            .bind(hovered, |mut cx, _| cx.needs_redraw())
+    }
+}
+impl<L1, L2> View for GridDisplay<L1, L2>
+where
+    L1: Lens<Target = GridSnapshot>,
+    L2: Lens<Target = Option<usize>>,
+{
+    #[allow(clippy::cast_precision_loss)]
+    fn draw(&self, cx: &mut vizia::context::DrawContext, canvas: &vizia::vg::Canvas) {
+        let mut main_paint = vg::Paint::default();
+        main_paint.set_color(cx.background_color());
+        let mut border_paint = vg::Paint::default();
+
+        let grid_size = self.grid.get(cx).size;
+        let hovered = self.hovered.get(cx);
+        let cells: &[MaterialColor] = &self.grid.get(cx).cells;
+
+        let full_bounds = cx.bounds();
+        let bounds = display::rect_bounds(&full_bounds);
+
+        let padding = 1.0_f32.max(0.1 * (bounds.width() / grid_size as f32));
+        let cell_size = (bounds.width() / grid_size as f32) - padding;
+        for y in 0..grid_size {
+            for x in 0..grid_size {
+                let cell_x = (x as f32).mul_add(padding + cell_size, bounds.left()) + padding / 2.;
+
+                let cell_y = (y as f32).mul_add(padding + cell_size, bounds.top()) + padding / 2.;
+                let rect = vg::Rect::from_xywh(cell_x, cell_y, cell_size, cell_size);
+
+                let color: MaterialColor = *cells
+                    .get((y * grid_size) + x)
+                    .unwrap_or(&MaterialColor::DEFAULT);
+                main_paint.set_color(color);
+                border_paint.set_color(color.invert_grayscale());
+
+                if hovered.is_some_and(|s| s == (y * grid_size) + x) {
+                    let border = rect.with_outset((cell_size * 0.05, cell_size * 0.05));
+                    canvas.draw_rect(border, &border_paint);
+                }
+                canvas.draw_rect(rect, &main_paint);
+            }
+        }
     }
 }
 
@@ -138,13 +226,12 @@ impl Cell {
         Self { material_id }
     }
 
-    pub fn color(self, ruleset: &Ruleset) -> RGBA {
+    pub fn color(self, ruleset: &Ruleset) -> MaterialColor {
         ruleset
             .materials
             .get(self.material_id)
             .expect("cell should point to a valid material id for this ruleset.")
             .color
-            .to_rgba()
     }
 
     pub fn display<'c>(self, cx: &'c mut Context, ruleset: &Ruleset) -> Handle<'c, Button> {
@@ -155,7 +242,7 @@ impl Cell {
     }
     #[rustfmt::skip]
     fn gradient(self, ruleset: &Ruleset) -> String {
-        let color = self.color(ruleset);
+        let color = self.color(ruleset).to_rgba();
         let darken_value = style::CELL_GRADIENT_DARKEN;
         let dark_color = RGBA::rgb(
             color.r().saturating_sub(darken_value),
