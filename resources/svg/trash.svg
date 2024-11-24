@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="50mm"
+   height="50mm"
+   viewBox="0 0 50 50"
+   version="1.1"
+   id="svg9411"
+   inkscape:version="1.2.2 (732a01da63, 2022-12-09)"
+   sodipodi:docname="trash.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview9413"
+     pagecolor="#000000"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#404040"
+     inkscape:document-units="mm"
+     showgrid="true"
+     inkscape:zoom="2.1745121"
+     inkscape:cx="128.07471"
+     inkscape:cy="52.425553"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1">
+    <inkscape:grid
+       type="xygrid"
+       id="grid9532"
+       units="mm"
+       spacingx="0.99999999"
+       spacingy="0.99999999" />
+  </sodipodi:namedview>
+  <defs
+     id="defs9408" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"
+       d="m 9.9999995,20 4e-7,27 L 40,47 V 20"
+       id="path9588"
+       sodipodi:nodetypes="cccc"
+       inkscape:label="Base" />
+    <path
+       style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"
+       d="M 6.9999999,15 H 43"
+       id="path9953"
+       sodipodi:nodetypes="cc"
+       inkscape:label="Lid" />
+    <path
+       style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"
+       d="m 20,9.9999998 v -3 h 10 v 3"
+       id="path9955"
+       sodipodi:nodetypes="cccc"
+       inkscape:label="Handle" />
+    <g
+       id="g13009"
+       inkscape:label="Lines">
+      <path
+         style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"
+         d="M 33,41 33,22"
+         id="path10687"
+         sodipodi:nodetypes="cc"
+         inkscape:label="3" />
+      <path
+         style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"
+         d="M 25,41 25,22"
+         id="path10683"
+         sodipodi:nodetypes="cc"
+         inkscape:label="2" />
+      <path
+         style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"
+         d="M 17,41 17,22"
+         id="path10685"
+         sodipodi:nodetypes="cc"
+         inkscape:label="1" />
+    </g>
+  </g>
+</svg>

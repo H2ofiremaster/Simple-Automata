@@ -1,0 +1,145 @@
+/* background: #000000 */
+/* foreground: #606060 */
+/* middle: #404040 */
+/* foreground-contrast: #202020 */
+
+.background {
+    child-space: 1%;
+    background-color: #000;
+}
+
+.side-panel {
+    background-color: #606060;
+    corner-radius: 5%;
+    child-space: 10px;
+    space: 10px;
+}
+.center-panel {
+    background-color: #808080;
+    corner-radius: 1%;
+    child-space: 0.01s;
+}
+.cell {
+    space: 0.03s;
+    size: 1s;
+    corner-radius: 5%;
+    border-width: 5px;
+}
+.material-display {
+    size: 128px;
+    space: 1s;
+    min_space: 128px;
+    border-width: 5px;
+}
+.material-row {
+    space: 15px;
+    height: auto;
+    min-width: auto;
+    width: 1s;
+}
+.control-button {
+    width: 1s;
+    child-space: 1s;
+    space: 0.1s;
+}
+
+combobox {
+    background-color: #505050;
+    color: #ffffff;
+}
+combobox .title {
+    background-color: #505050;
+    color: #ffffff;
+    border-color: #ffffff;
+    border-width: 1px;
+}
+combobox .title > label.placeholder {
+    color: #ffffff;
+}
+combobox .list {
+    background-color: #606060;
+    color: #ffffff;
+}
+
+.light-combobox {
+    background-color: #707070;
+}
+.light-combobox .title {
+    background-color: #707070;
+}
+
+textbox {
+    background-color: #505050;
+    color: #ffffff;
+    border-color: #ffffff;
+    border-width: 1px;
+}
+button {
+    background-color: #707070;
+    border-color: #000000;
+    border-width: 1px;
+    color: #ffffff
+}
+button:hover {
+    background-color: #505050;
+}
+.pressed-button {
+    background-color: #404040;
+}
+.pressed-button:hover {
+    background-color: #303030;
+}
+.menu-element {
+    child-space: 1%;
+    min-height: auto;
+    width: 1s;
+}
+.svg {
+    space: 1s;
+    size: 80%;
+    min_size: 100%;
+}
+
+.editor-panel {
+    background-color: #606060;
+    child-space: 15px;
+    space: 5px;
+    corner-radius: 15px;
+}
+.base-editor {
+    left: 1s;
+    right: 1s;
+    height: Auto;
+    background-color: #404040;
+    child-space: 15px;
+    row-between: 5px;
+    corner-radius: 15px;
+}
+.condition-editor {
+    child_top: 1s;
+    child_bottom: 1s;
+    child-left: 15px;
+    child-right: 15px;
+    min-height: Auto;
+    background-color: #606060;
+    corner-radius: 15px;
+}
+.condition-container {
+    height: Auto;
+    child-space: 10px;
+    row-between: 15px;
+    border-width: 2px;
+    border-color: #ffffff;
+    corner-radius: 15px;
+}
+.condition-invert-button {
+    left: 15px;
+    right: 15px;
+    top: 1s;
+    bottom: 1s;
+    size: 50px;
+}
+
+label {
+    font-size: large;
+}

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="60mm"
+   height="60mm"
+   viewBox="0 0 59.999998 59.999998"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   sodipodi:docname="transform_arrow.svg"
+   inkscape:export-filename="transform_arrow.png"
+   inkscape:export-xdpi="20.32"
+   inkscape:export-ydpi="20.32"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#000000"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#3a3a3a"
+     inkscape:document-units="mm"
+     showgrid="true"
+     inkscape:zoom="3.0752245"
+     inkscape:cx="105.52075"
+     inkscape:cy="103.56967"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1">
+    <inkscape:grid
+       type="xygrid"
+       id="grid703"
+       originx="0"
+       originy="0"
+       units="mm"
+       spacingx="0.99999994"
+       spacingy="0.99999994" />
+  </sodipodi:namedview>
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       id="g3223"
+       inkscape:label="Arrow"
+       style="stroke:#ffffff;stroke-opacity:1">
+      <path
+         style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+         d="m 44.999997,19.999999 12,9.999999 -12,10"
+         id="path3091"
+         sodipodi:nodetypes="ccc"
+         inkscape:label="Point" />
+      <path
+         style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+         d="M 52.999866,33.000053 H 42.999959"
+         id="path3206"
+         inkscape:label="Lower Right"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+         d="M 52.999866,26.999902 H 42.999959"
+         id="path3200"
+         inkscape:label="Upper Right"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+         d="M 13.00024,33.000053 H 2.9998169"
+         id="path3210"
+         inkscape:label="Lower Left"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+         d="M 12.999999,26.999998 H 2.9995761"
+         id="path3196"
+         sodipodi:nodetypes="cc"
+         inkscape:label="Upper Left" />
+    </g>
+    <path
+       style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;stroke-dasharray:none"
+       d="M 17.999999,19.999999 H 37.999998 V 39.999998 H 17.999999 Z"
+       id="path3166"
+       sodipodi:nodetypes="ccccc"
+       inkscape:label="Square" />
+    <path
+       style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       d="m 19.999999,56.999997 7.999999,-5 7,5"
+       id="path9097"
+       sodipodi:nodetypes="ccc"
+       inkscape:label="Point" />
+    <path
+       style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 30.999998,44.999997 0,8"
+       id="path3225"
+       inkscape:label="Bottom Right"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 24.999943,45.000365 5.6e-5,7.999632"
+       id="path3227"
+       sodipodi:nodetypes="cc"
+       inkscape:label="Bottom Left" />
+  </g>
+</svg>

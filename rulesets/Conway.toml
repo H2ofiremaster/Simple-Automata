@@ -1,0 +1,45 @@
+name = "Conway"
+groups = []
+
+[[rules]]
+input = "3672395516m"
+output = 2714925332
+
+[[rules.conditions]]
+pattern = "3672395516m"
+inverted = false
+
+[rules.conditions.variant.Count]
+Less = 2
+
+[[rules]]
+input = "3672395516m"
+output = 2714925332
+
+[[rules.conditions]]
+pattern = "3672395516m"
+inverted = false
+
+[rules.conditions.variant.Count]
+Greater = 3
+
+[[rules]]
+input = "2714925332m"
+output = 3672395516
+
+[[rules.conditions]]
+pattern = "3672395516m"
+inverted = false
+
+[rules.conditions.variant.Count]
+List = [3]
+
+[[materials]]
+id = 2714925332
+name = "Dead"
+color = "#000000"
+
+[[materials]]
+id = 3672395516
+name = "Alive"
+color = "#FFFFFF"

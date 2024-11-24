@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="50mm"
+   height="50mm"
+   viewBox="0 0 50 50"
+   version="1.1"
+   id="svg9411"
+   inkscape:version="1.2.2 (732a01da63, 2022-12-09)"
+   sodipodi:docname="trash_open.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview9413"
+     pagecolor="#000000"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#404040"
+     inkscape:document-units="mm"
+     showgrid="true"
+     inkscape:zoom="4.3490241"
+     inkscape:cx="78.408394"
+     inkscape:cy="66.451689"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1">
+    <inkscape:grid
+       type="xygrid"
+       id="grid9532"
+       units="mm"
+       spacingx="0.99999999"
+       spacingy="0.99999999"
+       color="#ffffff"
+       opacity="0.14901961"
+       empcolor="#80d5ff"
+       empopacity="0.30196078" />
+  </sodipodi:namedview>
+  <defs
+     id="defs9408" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"
+       d="m 9.9999999,20 0,27 H 40 V 20"
+       id="path9588"
+       sodipodi:nodetypes="cccc"
+       inkscape:label="Base" />
+    <path
+       style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"
+       d="M 6.9774334,15.589614 41.74876,6.264652"
+       id="path9953"
+       sodipodi:nodetypes="cc"
+       inkscape:label="Lid"
+       inkscape:transform-center-x="-17.366356"
+       inkscape:transform-center-y="-4.747129" />
+    <path
+       style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"
+       d="M 17.274448,7.6541552 16.497991,4.7563779 26.157249,2.1681876 26.933706,5.0659649"
+       id="path9955"
+       sodipodi:nodetypes="cccc"
+       inkscape:label="Handle"
+       inkscape:transform-center-x="-14.719108"
+       inkscape:transform-center-y="-10.76309" />
+    <g
+       id="g13009"
+       inkscape:label="Lines">
+      <path
+         style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"
+         d="M 33,41 V 22"
+         id="path10687"
+         sodipodi:nodetypes="cc"
+         inkscape:label="3" />
+      <path
+         style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"
+         d="M 25,41 25,22"
+         id="path10683"
+         sodipodi:nodetypes="cc"
+         inkscape:label="2" />
+      <path
+         style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"
+         d="M 17,41 17,22"
+         id="path10685"
+         sodipodi:nodetypes="cc"
+         inkscape:label="1" />
+    </g>
+  </g>
+</svg>

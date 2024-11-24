@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="50mm"
+   height="50mm"
+   viewBox="0 0 50 50"
+   version="1.1"
+   id="svg2388"
+   inkscape:version="1.2.2 (732a01da63, 2022-12-09)"
+   sodipodi:docname="copy.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview2390"
+     pagecolor="#000000"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#474747"
+     inkscape:document-units="mm"
+     showgrid="true"
+     inkscape:zoom="1.5376122"
+     inkscape:cx="21.461848"
+     inkscape:cy="70.889134"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1">
+    <inkscape:grid
+       type="xygrid"
+       id="grid2509"
+       units="mm"
+       spacingx="0.99999999"
+       spacingy="0.99999999" />
+  </sodipodi:namedview>
+  <defs
+     id="defs2385" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       id="g2902"
+       inkscape:label="Front">
+      <path
+         style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"
+         d="m 25,34 15,0"
+         id="path2519-3"
+         inkscape:label="Line 4"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"
+         d="m 25,26 15,0"
+         id="path2523-5"
+         inkscape:label="Line 3"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"
+         d="m 25,18 15,0"
+         id="path2517-4"
+         inkscape:label="Line 2"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"
+         d="m 25,9.9999999 h 8"
+         id="path2521-4"
+         sodipodi:nodetypes="cc"
+         inkscape:label="Line 1" />
+      <path
+         style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"
+         d="M 46,11 38,2.9999999"
+         id="path2515"
+         sodipodi:nodetypes="cc"
+         inkscape:label="Fold" />
+      <path
+         style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"
+         d="m 19,41 1e-6,-37.9999984 L 38,3 l 0,8 h 8 l 0,30 H 19"
+         id="path2513"
+         sodipodi:nodetypes="ccccccc"
+         inkscape:label="Page" />
+    </g>
+    <g
+       id="g2894"
+       inkscape:label="Back">
+      <path
+         style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"
+         d="M 9.9999999,41 14,41"
+         id="path2519"
+         inkscape:label="Line 4"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"
+         d="M 9.9999999,33 14,33"
+         id="path2523"
+         inkscape:label="Line 3"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"
+         d="M 9.9999999,25 H 14"
+         id="path2517"
+         inkscape:label="Line 2"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"
+         d="M 9.9999997,17 14,17"
+         id="path2521"
+         sodipodi:nodetypes="cc"
+         inkscape:label="Line 1" />
+      <path
+         style="fill:none;stroke:#ffffff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"
+         d="M 31,46 31,47.000001 4,47 3.9999998,11.000001 15,11"
+         id="path2511"
+         sodipodi:nodetypes="ccccc"
+         inkscape:label="Page" />
+    </g>
+  </g>
+</svg>
