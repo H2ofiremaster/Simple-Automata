@@ -213,7 +213,7 @@ impl Condition {
         }
     }
     pub fn matches(&self, neighbors: CellNeighbors, ruleset: &Ruleset) -> bool {
-        match &self.variant {
+        let matches = match &self.variant {
             ConditionVariant::Directional(directions) => directions.iter().any(|&dir| {
                 neighbors
                     .in_direction(dir)
@@ -222,7 +222,8 @@ impl Condition {
             ConditionVariant::Count(counts) => {
                 counts.contains(neighbors.count_matching(ruleset, self.pattern))
             }
-        }
+        };
+        matches != self.inverted
     }
 
     pub fn display_editor(&self, cx: &mut Context, index: ConditionIndex) {
@@ -294,8 +295,5 @@ impl Condition {
             .size(Auto);
         })
         .class(style::CONDITION_EDITOR);
-        // .child_top(Stretch(1.0))
-        // .child_bottom(Stretch(1.0))
-        // .min_height(Auto);
     }
 }
