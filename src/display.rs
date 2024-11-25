@@ -20,19 +20,16 @@ pub fn ruleset_editor(cx: &mut Context) {
         .height(Auto)
         .row_between(Pixels(5.0));
 
-        Binding::new(cx, AppData::selected_tab, move |cx, tab| {
-            //
-            match tab.get(cx) {
-                EditorTab::Materials => {
-                    HStack::new(cx, |cx| {
-                        material_editor(cx);
-                        group_editor(cx);
-                    })
-                    .space(Percentage(1.0));
-                }
-                EditorTab::Rules => rule_editor(cx),
-            }
-        });
+        // Materials
+        HStack::new(cx, |cx| {
+            material_editor(cx);
+            group_editor(cx);
+        })
+        .space(Percentage(1.0))
+        .display(AppData::selected_tab.map(|&tab| tab == EditorTab::Materials));
+        // Rules
+        HStack::new(cx, rule_editor)
+            .display(AppData::selected_tab.map(|&tab| tab == EditorTab::Rules));
     })
     .class(style::BACKGROUND);
 }
