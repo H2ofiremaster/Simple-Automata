@@ -138,7 +138,7 @@ fn group_editor(cx: &mut Context) {
                 let screen = screen.get(cx);
                 VStack::new(cx, |cx| {
                     for (index, group) in screen.ruleset().groups.iter().enumerate() {
-                        group.display_editor(cx, index, &screen.ruleset());
+                        group.display_editor(cx, index, screen.ruleset());
                     }
                 })
                 .row_between(Pixels(5.0))
@@ -345,21 +345,6 @@ fn material_row(cx: &mut Context, row: &[Cell], ruleset: &Ruleset) {
 }
 
 // Utility
-
-fn margined_square_size(bounds: &BoundingBox) -> f32 {
-    let max_width = bounds.width().mul_add(
-        style::CENTER_MARGIN_FACTOR,
-        style::BACKGROUND_PADDING * -2.0,
-    );
-    let max_height = style::BACKGROUND_PADDING.mul_add(-2.0, bounds.height());
-    // let max_height = bounds.height() * style::BACKGROUND_PADDING.mul_add(-2.0, 1.0);
-
-    max_width.min(max_height)
-    // bounds
-    //     .height()
-    //     .min(bounds.width() * style::CENTER_MARGIN_FACTOR)
-    //     - (bounds.width().max(bounds.height()) * style::BACKGROUND_PADDING)
-}
 
 fn border_color(color: RGBA) -> Color {
     let r = color.r();
