@@ -4,7 +4,7 @@ use crate::{
     events::{
         EditorEvent, GridEvent, GroupEvent, MaterialEvent, RuleEvent, RulesetEvent, UpdateEvent,
     },
-    grid::{Cell, Grid, GridDisplay, GridSnapshot},
+    grid::{Cell, Grid, GridDisplay, VisualGridState},
     id::Identifiable,
     ruleset::Ruleset,
     AppData,
@@ -194,7 +194,8 @@ fn left_panel(cx: &mut Context) {
         step_controls(cx);
         speed_controls(cx);
         size_controls(cx);
-        material_tooltip(cx);
+        savestate_controls(cx);
+        Element::new(cx).height(Stretch(5.0));
     })
     .class(style::SIDE_PANEL);
 }
@@ -257,11 +258,17 @@ fn size_controls(cx: &mut Context) {
     })
     .class(style::MENU_ELEMENT);
 }
-fn material_tooltip(cx: &mut Context) {
-    VStack::new(cx, |cx| {
-        Label::new(cx, AppData::tooltip);
+fn savestate_controls(cx: &mut Context) {
+    HStack::new(cx, |cx| {
+        Button::new(cx, |cx| Label::new(cx, "Save State"))
+            .class(style::CONTROL_BUTTON)
+            .on_press(|cx| cx.emit(GridEvent::StateSaved));
+        Button::new(cx, |cx| Label::new(cx, "Load State"))
+            .class(style::CONTROL_BUTTON)
+            .on_press(|cx| cx.emit(GridEvent::StateLoaded))
+            .disabled(AppData::saved_state.map(Option::is_none));
     })
-    .size(Stretch(10.));
+    .class(style::MENU_ELEMENT);
 }
 
 fn center_panel(cx: &mut Context) {
@@ -270,9 +277,9 @@ fn center_panel(cx: &mut Context) {
             cx,
             AppData::screen.map(|screen| {
                 if let Screen::Grid(grid) = screen {
-                    grid.snapshot()
+                    grid.visual_state()
                 } else {
-                    GridSnapshot::default()
+                    VisualGridState::default()
                 }
             }),
             AppData::hovered_index,

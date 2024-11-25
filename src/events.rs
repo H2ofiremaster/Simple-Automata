@@ -12,16 +12,9 @@ type HexColor = String;
 
 pub enum UpdateEvent {
     WindowSizeChanged,
-    CellHovered {
-        x: usize,
-        y: usize,
-    },
+    CellHovered { x: usize, y: usize },
     CellUnhovered,
-    CellClicked {
-        x: usize,
-        y: usize,
-        button: MouseButton,
-    },
+    CellClicked(MouseButton),
     MaterialSelected(MaterialId),
 }
 
@@ -79,6 +72,8 @@ pub enum GridEvent {
     Toggled,
     SpeedSet(f32),
     Resized(usize),
+    StateSaved,
+    StateLoaded,
 }
 
 pub enum EditorEvent {

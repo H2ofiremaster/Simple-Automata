@@ -39,6 +39,7 @@
 }
 .control-button {
     width: 1s;
+    min-widthe: Auto;
     child-space: 1s;
     space: 0.1s;
 }
@@ -82,6 +83,9 @@ button {
 }
 button:hover {
     background-color: #505050;
+}
+button:disabled {
+    background-color: #202020;
 }
 .pressed-button {
     background-color: #404040;

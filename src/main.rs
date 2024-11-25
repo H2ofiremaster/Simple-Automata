@@ -6,7 +6,7 @@ use events::{
     ConditionEvent, EditorEvent, GridEvent, GroupEvent, MaterialEvent, RuleEvent, RulesetEvent,
     UpdateEvent,
 };
-use grid::{Cell, Grid};
+use grid::{Cell, FunctionalGridState, Grid};
 use id::Identifiable;
 use material::{Material, MaterialColor, MaterialGroup, MaterialId};
 use pattern::Pattern;
@@ -36,6 +36,7 @@ pub struct AppData {
     speed: f32,
     timer: Timer,
     grid_size: usize,
+    saved_state: Option<FunctionalGridState>,
 
     tooltip: String,
     hovered_index: Option<usize>,
@@ -81,6 +82,7 @@ impl AppData {
             speed: 1.0,
             timer,
             grid_size: 5,
+            saved_state: None,
 
             tooltip: String::new(),
             hovered_index: None,
@@ -99,11 +101,24 @@ impl Model for AppData {
             UpdateEvent::WindowSizeChanged => self.window_size = cx.bounds(),
             UpdateEvent::CellHovered { x, y } => {
                 if let Screen::Grid(ref grid) = self.screen {
-                    self.hovered_index = Some(grid.cell_index(*x, *y));
+                    let index = grid.cell_index(*x, *y);
+                    if self.hovered_index.is_some_and(|i| i == index) {
+                        return;
+                    }
+                    self.hovered_index = Some(index);
+                    let mouse_state = cx.mouse();
+                    let button = match (mouse_state.left.state, mouse_state.right.state) {
+                        (MouseButtonState::Pressed, MouseButtonState::Released) => {
+                            MouseButton::Left
+                        }
+                        (_, MouseButtonState::Pressed) => MouseButton::Right,
+                        _ => return,
+                    };
+                    cx.emit(UpdateEvent::CellClicked(button));
                 }
             }
             UpdateEvent::CellUnhovered => self.hovered_index = None,
-            UpdateEvent::CellClicked { x, y, button } => {
+            UpdateEvent::CellClicked(button) => {
                 let Screen::Grid(ref mut grid) = self.screen else {
                     return;
                 };
@@ -112,9 +127,13 @@ impl Model for AppData {
                     MouseButton::Right => grid.ruleset.materials.default().id(),
                     _ => return,
                 };
-
                 let cell = Cell::new(new_material);
-                grid.set_cell(*x, *y, cell);
+                let Some(index) = self.hovered_index else {
+                    return;
+                };
+                let x = index % grid.size;
+                let y = index / grid.size;
+                grid.set_cell(x, y, cell);
             }
             UpdateEvent::MaterialSelected(material_id) => self.selected_material = *material_id,
         });
@@ -358,11 +377,24 @@ impl Model for AppData {
                     self.screen = Screen::Grid(Grid::new(grid.ruleset.clone(), *size));
                 }
             }
+            GridEvent::StateSaved => {
+                if let Screen::Grid(ref grid) = self.screen {
+                    self.saved_state = Some(grid.functional_state());
+                };
+            }
+            GridEvent::StateLoaded => {
+                if let Screen::Grid(ref mut grid) = self.screen {
+                    if let Some(state) = &self.saved_state {
+                        grid.load_state(state.clone());
+                    }
+                }
+            }
         });
         event.map(|event: &EditorEvent, _| match event {
             EditorEvent::Enabled => {
                 self.editor_enabled = true;
                 let ruleset = self.screen.ruleset().clone();
+                self.saved_state = None;
                 self.screen = Screen::Editor(ruleset);
             }
             EditorEvent::Disabled => {
