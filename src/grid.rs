@@ -6,7 +6,7 @@ use vizia::{
     style::RGBA,
     vg,
     view::{Handle, View},
-    views::{Button, Element, HStack, VStack},
+    views::{Button, Element, HStack},
     window::WindowEvent,
 };
 
