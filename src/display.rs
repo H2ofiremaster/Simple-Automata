@@ -4,7 +4,7 @@ use crate::{
     events::{
         EditorEvent, GridEvent, GroupEvent, MaterialEvent, RuleEvent, RulesetEvent, UpdateEvent,
     },
-    grid::{Cell, Grid},
+    grid::{Cell, Grid, GridDisplay, VisualGridState},
     id::Identifiable,
     ruleset::Ruleset,
     AppData,
@@ -194,7 +194,8 @@ fn left_panel(cx: &mut Context) {
         step_controls(cx);
         speed_controls(cx);
         size_controls(cx);
-        material_tooltip(cx);
+        savestate_controls(cx);
+        Element::new(cx).height(Stretch(5.0));
     })
     .class(style::SIDE_PANEL);
 }
@@ -257,24 +258,39 @@ fn size_controls(cx: &mut Context) {
     })
     .class(style::MENU_ELEMENT);
 }
-fn material_tooltip(cx: &mut Context) {
-    VStack::new(cx, |cx| {
-        Label::new(cx, AppData::tooltip);
+fn savestate_controls(cx: &mut Context) {
+    HStack::new(cx, |cx| {
+        Button::new(cx, |cx| Label::new(cx, "Save State"))
+            .class(style::CONTROL_BUTTON)
+            .on_press(|cx| cx.emit(GridEvent::StateSaved));
+        Button::new(cx, |cx| Label::new(cx, "Load State"))
+            .class(style::CONTROL_BUTTON)
+            .on_press(|cx| cx.emit(GridEvent::StateLoaded))
+            .disabled(AppData::saved_state.map(Option::is_none));
     })
-    .size(Stretch(10.));
+    .class(style::MENU_ELEMENT);
 }
 
 fn center_panel(cx: &mut Context) {
-    Binding::new(cx, AppData::screen, |cx, screen| {
-        ZStack::new(cx, |cx| {
-            if let Screen::Grid(grid) = screen.get(cx) {
-                grid.display(cx);
-            }
-        })
-        .size(AppData::window_size.map(|bounds| Pixels(margined_square_size(bounds))))
-        .min_size(Auto)
-        .class(style::CENTER_PANEL);
-    });
+    ZStack::new(cx, |cx| {
+        GridDisplay::new(
+            cx,
+            AppData::screen.map(|screen| {
+                if let Screen::Grid(grid) = screen {
+                    grid.visual_state()
+                } else {
+                    VisualGridState::default()
+                }
+            }),
+            AppData::hovered_index,
+        )
+        .size(Stretch(1.0))
+        .background_color(Color::rgba(255, 0, 0, 128));
+        // grid.display(cx);
+    })
+    .size(Stretch(3.0))
+    .min_size(Auto)
+    .class(style::CENTER_PANEL);
 }
 
 fn right_panel(cx: &mut Context) {
@@ -305,7 +321,7 @@ fn right_panel(cx: &mut Context) {
 fn material_row(cx: &mut Context, row: &[Cell], ruleset: &Ruleset) {
     HStack::new(cx, |cx| {
         for &cell in row {
-            let border_color = border_color(cell.color(ruleset));
+            let border_color = border_color(cell.color(ruleset).to_rgba());
             cell.display(cx, ruleset)
                 .on_press(move |cx| {
                     cx.emit(UpdateEvent::MaterialSelected(cell.material_id));
@@ -349,6 +365,18 @@ fn border_color(color: RGBA) -> Color {
         Color::black()
     } else {
         Color::white()
+    }
+}
+
+pub fn rect_bounds(bounds: &BoundingBox) -> BoundingBox {
+    let target_size = bounds.width().min(bounds.height());
+    let left = (bounds.width() / 2.0) - (target_size / 2.0) + bounds.left();
+    let top = (bounds.height() / 2.0) - (target_size / 2.0) + bounds.top();
+    BoundingBox {
+        x: left,
+        y: top,
+        w: target_size,
+        h: target_size,
     }
 }
 

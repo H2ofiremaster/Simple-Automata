@@ -1,16 +1,24 @@
 use vizia::{
-    binding::{Data, LensExt},
+    binding::{Data, Lens, LensExt, ResGet},
     context::{Context, EmitContext},
-    layout::Units::Stretch,
+    layout::{BoundingBox, Units::Stretch},
     modifiers::{ActionModifiers, LayoutModifiers, StyleModifiers},
     style::RGBA,
-    view::Handle,
+    vg,
+    view::{Handle, View},
     views::{Button, Element, HStack, VStack},
+    window::WindowEvent,
 };
 
 use crate::{
-    condition::Direction, display::style, events::UpdateEvent, id::Identifiable,
-    material::MaterialId, pattern::Pattern, ruleset::Ruleset, AppData,
+    condition::Direction,
+    display::{self, style},
+    events::UpdateEvent,
+    id::Identifiable,
+    material::{MaterialColor, MaterialId},
+    pattern::Pattern,
+    ruleset::Ruleset,
+    AppData,
 };
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -93,12 +101,12 @@ impl Grid {
     }
 
     // Display
-    pub fn display<'a>(&'a self, cx: &'a mut Context) {
-        VStack::new(cx, |cx| {
-            (0..self.size).for_each(|y| self.display_row(cx, y));
-        })
-        .size(Stretch(1.0));
-    }
+    // pub fn display<'a>(&'a self, cx: &'a mut Context) {
+    //     // VStack::new(cx, |cx| {
+    //     //     (0..self.size).for_each(|y| self.display_row(cx, y));
+    //     // })
+    //     // .size(Stretch(1.0));
+    // }
     fn display_row(&self, cx: &mut Context, y: usize) {
         HStack::new(cx, |cx| {
             (0..self.size).for_each(|x| self.display_cell(cx, x, y));
@@ -119,13 +127,169 @@ impl Grid {
                     "transparent"
                 }
             }))
-            .on_hover(move |cx| cx.emit(UpdateEvent::CellHovered { x, y }))
-            .on_mouse_down(move |cx, button| cx.emit(UpdateEvent::CellClicked { x, y, button }));
+            .on_hover(move |cx| cx.emit(UpdateEvent::CellHovered { x, y }));
+        // .on_mouse_down(move |cx, button| cx.emit(UpdateEvent::CellClicked { x, y, button }));
+    }
+
+    pub fn visual_state(&self) -> VisualGridState {
+        VisualGridState {
+            size: self.size,
+            cells: self.cells.iter().map(|&c| c.color(&self.ruleset)).collect(),
+        }
+    }
+    pub fn functional_state(&self) -> FunctionalGridState {
+        FunctionalGridState {
+            size: self.size,
+            cells: self.cells.clone(),
+        }
+    }
+
+    pub fn load_state(&mut self, state: FunctionalGridState) {
+        self.size = state.size;
+        self.cells = state.cells;
     }
 }
 impl Data for Grid {
     fn same(&self, other: &Self) -> bool {
         self.size == other.size && self.cells == other.cells && self.ruleset == other.ruleset
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct FunctionalGridState {
+    size: usize,
+    cells: Vec<Cell>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct VisualGridState {
+    size: usize,
+    cells: Vec<MaterialColor>,
+}
+impl Data for VisualGridState {
+    fn same(&self, other: &Self) -> bool {
+        self == other
+    }
+}
+
+pub struct GridDisplay<L1, L2>
+where
+    L1: Lens<Target = VisualGridState>,
+    L2: Lens<Target = Option<usize>>,
+{
+    grid: L1,
+    hovered: L2,
+}
+impl<L1, L2> GridDisplay<L1, L2>
+where
+    L1: Lens<Target = VisualGridState>,
+    L2: Lens<Target = Option<usize>>,
+{
+    const PADDING_MARGIN: f32 = 0.1;
+    pub fn new(cx: &mut Context, grid: L1, hovered: L2) -> Handle<Self> {
+        Self { grid, hovered }
+            .build(cx, move |_| {})
+            .bind(grid, |mut cx, _| cx.needs_redraw())
+            .bind(hovered, |mut cx, _| cx.needs_redraw())
+    }
+
+    #[allow(clippy::cast_precision_loss)]
+    fn cell_size(grid_size: usize, bounds: BoundingBox) -> (f32, f32) {
+        let original_cell_size = bounds.width() / grid_size as f32;
+        let padding = 1.0_f32.max(Self::PADDING_MARGIN * original_cell_size);
+        let cell_size = original_cell_size - padding;
+        (cell_size, padding)
+    }
+}
+impl<L1, L2> View for GridDisplay<L1, L2>
+where
+    L1: Lens<Target = VisualGridState>,
+    L2: Lens<Target = Option<usize>>,
+{
+    #[allow(clippy::cast_precision_loss)]
+    fn draw(&self, cx: &mut vizia::context::DrawContext, canvas: &vizia::vg::Canvas) {
+        let mut main_paint = vg::Paint::default();
+        main_paint.set_color(cx.background_color());
+        let mut border_paint = vg::Paint::default();
+
+        let grid_size = self.grid.get(cx).size;
+        let hovered = self.hovered.get(cx);
+        let cells: &[MaterialColor] = &self.grid.get(cx).cells;
+
+        let full_bounds = cx.bounds();
+        let bounds = display::rect_bounds(&full_bounds);
+        let (cell_size, padding) = Self::cell_size(grid_size, bounds);
+        for y in 0..grid_size {
+            for x in 0..grid_size {
+                let cell_x = (x as f32).mul_add(padding + cell_size, bounds.left()) + padding / 2.0;
+                //(x * (padding + cell_size) + bounds.left) + padding / 2.0
+                let cell_y = (y as f32).mul_add(padding + cell_size, bounds.top()) + padding / 2.0;
+                let rect = vg::Rect::from_xywh(cell_x, cell_y, cell_size, cell_size);
+
+                let color: MaterialColor = *cells
+                    .get((y * grid_size) + x)
+                    .unwrap_or(&MaterialColor::DEFAULT);
+                main_paint.set_color(color);
+                border_paint.set_color(color.invert_grayscale());
+
+                if hovered.is_some_and(|s| s == (y * grid_size) + x) {
+                    let border = rect.with_outset((cell_size * 0.05, cell_size * 0.05));
+                    canvas.draw_rect(border, &border_paint);
+                }
+                canvas.draw_rect(rect, &main_paint);
+            }
+        }
+    }
+
+    fn event(&mut self, cx: &mut vizia::context::EventContext, event: &mut vizia::events::Event) {
+        event.map(|event: &WindowEvent, meta| match event {
+            WindowEvent::MouseMove(x, y) => {
+                if meta.target != cx.current() {
+                    return;
+                }
+                let full_bounds = cx.bounds();
+                if !full_bounds.contains_point(*x, *y) {
+                    return;
+                }
+                let bounds = display::rect_bounds(&full_bounds);
+                if !bounds.contains_point(*x, *y) {
+                    return;
+                }
+                let grid_size = self.grid.get(cx).size;
+                let (cell_size, padding) = Self::cell_size(grid_size, bounds);
+                let x = x - bounds.left() - (padding / 2.0);
+                let y = y - bounds.top() - (padding / 2.0);
+                // let grid_size = grid_size as f32;
+                // println!("Pos: {x}, {y}");
+                let normalized_x = x / (cell_size + padding);
+                let normalized_y = y / (cell_size + padding);
+                // println!(
+                //     "Divided: {}, {}",
+                //     x / (padding + cell_size),
+                //     y / (padding + cell_size)
+                // );
+                let in_cell = normalized_x - normalized_x.floor() < 1.0 - Self::PADDING_MARGIN
+                    && normalized_y - normalized_y.floor() < 1.0 - Self::PADDING_MARGIN;
+                // println!("In cell: {in_cell}",);
+                //(x * (padding + cell_size) + bounds.left) + padding / 2.0
+
+                // let index_x = x / self.grid.get(cx).size as f32 +  ;
+                // let index_y = x / self.grid.get(cx).size as f32;
+                if in_cell {
+                    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+                    cx.emit(UpdateEvent::CellHovered {
+                        x: normalized_x as usize,
+                        y: normalized_y as usize,
+                    });
+                } else {
+                    cx.emit(UpdateEvent::CellUnhovered);
+                }
+            }
+            WindowEvent::MouseDown(button) => {
+                cx.emit(UpdateEvent::CellClicked(*button));
+            }
+            _ => {}
+        });
     }
 }
 
@@ -138,13 +302,12 @@ impl Cell {
         Self { material_id }
     }
 
-    pub fn color(self, ruleset: &Ruleset) -> RGBA {
+    pub fn color(self, ruleset: &Ruleset) -> MaterialColor {
         ruleset
             .materials
             .get(self.material_id)
             .expect("cell should point to a valid material id for this ruleset.")
             .color
-            .to_rgba()
     }
 
     pub fn display<'c>(self, cx: &'c mut Context, ruleset: &Ruleset) -> Handle<'c, Button> {
@@ -155,7 +318,7 @@ impl Cell {
     }
     #[rustfmt::skip]
     fn gradient(self, ruleset: &Ruleset) -> String {
-        let color = self.color(ruleset);
+        let color = self.color(ruleset).to_rgba();
         let darken_value = style::CELL_GRADIENT_DARKEN;
         let dark_color = RGBA::rgb(
             color.r().saturating_sub(darken_value),

@@ -180,7 +180,7 @@ pub struct MaterialColor {
     b: u8,
 }
 impl MaterialColor {
-    const DEFAULT: Self = Self::new(0, 0, 0);
+    pub const DEFAULT: Self = Self::new(0, 0, 0);
     const BLANK: Self = Self::new(255, 255, 255);
 
     pub const fn new(r: u8, g: u8, b: u8) -> Self {
@@ -188,6 +188,16 @@ impl MaterialColor {
     }
     pub const fn to_rgba(self) -> RGBA {
         RGBA::rgb(self.r, self.g, self.b)
+    }
+    #[allow(clippy::cast_possible_truncation)]
+    pub const fn invert_grayscale(self) -> Self {
+        let avg =
+            (((255 - self.r) as u32 + (255 - self.g) as u32 + (255 - self.b) as u32) / 3) as u8;
+        Self {
+            r: avg,
+            g: avg,
+            b: avg,
+        }
     }
 }
 impl Display for MaterialColor {
@@ -228,6 +238,11 @@ impl FromStr for MaterialColor {
             return Err(String::from("Too many numbers. Expected '3'."));
         }
         Ok(Self::new(r, g, b))
+    }
+}
+impl From<MaterialColor> for vizia::vg::Color {
+    fn from(value: MaterialColor) -> Self {
+        Self::from_rgb(value.r, value.g, value.b)
     }
 }
 impl Serialize for MaterialColor {
