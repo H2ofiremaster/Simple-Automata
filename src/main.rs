@@ -48,18 +48,7 @@ pub struct AppData {
 #[allow(clippy::cast_precision_loss)]
 impl AppData {
     fn new(timer: Timer) -> Self {
-        let mut ruleset = Ruleset::blank();
-        let mut second_material = Material::new(&ruleset);
-        second_material.color = MaterialColor::new(255, 0, 0);
-        second_material.name = String::from("Red");
-        ruleset.materials.push(second_material);
-
-        let mut ruleset_2 = Ruleset::blank();
-        ruleset_2.name = String::from("Second");
-        let mut r2m2 = Material::new(&ruleset);
-        r2m2.color = MaterialColor::new(0, 255, 0);
-        r2m2.name = String::from("Green");
-        ruleset_2.materials.push(r2m2);
+        let ruleset = Ruleset::blank();
 
         let material = ruleset.materials.default().id();
         let grid = Grid::new(ruleset.clone(), 5);
