@@ -189,8 +189,8 @@ where
         let (cell_size, padding) = Self::cell_size(grid_size, bounds);
         for y in 0..grid_size {
             for x in 0..grid_size {
+                // Equivelent to: ((x as f32) * (padding + cell_size) + bounds.left) + padding / 2.0;
                 let cell_x = (x as f32).mul_add(padding + cell_size, bounds.left()) + padding / 2.0;
-                //(x * (padding + cell_size) + bounds.left) + padding / 2.0
                 let cell_y = (y as f32).mul_add(padding + cell_size, bounds.top()) + padding / 2.0;
                 let rect = vg::Rect::from_xywh(cell_x, cell_y, cell_size, cell_size);
 
@@ -227,22 +227,10 @@ where
                 let (cell_size, padding) = Self::cell_size(grid_size, bounds);
                 let x = x - bounds.left() - (padding / 2.0);
                 let y = y - bounds.top() - (padding / 2.0);
-                // let grid_size = grid_size as f32;
-                // println!("Pos: {x}, {y}");
                 let normalized_x = x / (cell_size + padding);
                 let normalized_y = y / (cell_size + padding);
-                // println!(
-                //     "Divided: {}, {}",
-                //     x / (padding + cell_size),
-                //     y / (padding + cell_size)
-                // );
                 let in_cell = normalized_x - normalized_x.floor() < 1.0 - Self::PADDING_MARGIN
                     && normalized_y - normalized_y.floor() < 1.0 - Self::PADDING_MARGIN;
-                // println!("In cell: {in_cell}",);
-                //(x * (padding + cell_size) + bounds.left) + padding / 2.0
-
-                // let index_x = x / self.grid.get(cx).size as f32 +  ;
-                // let index_y = x / self.grid.get(cx).size as f32;
                 if in_cell {
                     #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
                     cx.emit(UpdateEvent::CellHovered {
