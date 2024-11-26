@@ -210,7 +210,7 @@ impl Rule {
                             .ruleset()
                             .materials
                             .index_of(output)
-                            .expect("Output material should exist in the current ruleset.")
+                            .unwrap_or_default()
                     }),
                 )
                 .class(style::LIGHT_COMBOBOX)

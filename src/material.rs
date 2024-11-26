@@ -10,7 +10,7 @@ use vizia::{
     layout::Units::{Auto, Percentage, Pixels, Stretch},
     modifiers::{ActionModifiers, LayoutModifiers, StyleModifiers},
     style::RGBA,
-    views::{Button, ComboBox, HStack, Label, Textbox, VStack},
+    views::{Button, ComboBox, HStack, Label, Svg, Textbox, VStack},
 };
 
 use crate::{
@@ -59,10 +59,8 @@ impl Material {
         VStack::new(cx, |cx| {
             let cell = Cell::new(self.id);
             let id = self.id;
-            cell.display(cx, ruleset).size(Pixels(256.0));
+            cell.display(cx, ruleset).size(Pixels(250.0));
             HStack::new(cx, move |cx| {
-                Button::new(cx, |cx| Label::new(cx, "Delete"))
-                    .on_press(move |cx| cx.emit(MaterialEvent::Deleted(id)));
                 Textbox::new(
                     cx,
                     AppData::screen.map(move |screen| {
@@ -92,6 +90,11 @@ impl Material {
                 )
                 .width(Stretch(1.0))
                 .on_submit(move |cx, text, _| cx.emit(MaterialEvent::Renamed(index, text)));
+                Button::new(cx, |cx| Svg::new(cx, style::svg::TRASH).class(style::SVG))
+                    .class(style::TRASH_BUTTON)
+                    .size(Pixels(30.0))
+                    .on_press(move |cx| cx.emit(MaterialEvent::Deleted(id)))
+                    .display(AppData::screen.map(|screen| screen.ruleset().materials.len() != 1));
             })
             .width(Stretch(1.0))
             .height(Auto);
