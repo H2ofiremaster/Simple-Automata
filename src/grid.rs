@@ -1,12 +1,12 @@
 use vizia::{
-    binding::{Data, Lens, LensExt, ResGet},
+    binding::{Data, Lens, ResGet},
     context::{Context, EmitContext},
-    layout::{BoundingBox, Units::Stretch},
-    modifiers::{ActionModifiers, LayoutModifiers, StyleModifiers},
+    layout::BoundingBox,
+    modifiers::{ActionModifiers, StyleModifiers},
     style::RGBA,
     vg,
     view::{Handle, View},
-    views::{Button, Element, HStack, VStack},
+    views::{Button, Element},
     window::WindowEvent,
 };
 
@@ -18,7 +18,6 @@ use crate::{
     material::{MaterialColor, MaterialId},
     pattern::Pattern,
     ruleset::Ruleset,
-    AppData,
 };
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -98,37 +97,6 @@ impl Grid {
             })
             .collect();
         self.cells = new_cells;
-    }
-
-    // Display
-    // pub fn display<'a>(&'a self, cx: &'a mut Context) {
-    //     // VStack::new(cx, |cx| {
-    //     //     (0..self.size).for_each(|y| self.display_row(cx, y));
-    //     // })
-    //     // .size(Stretch(1.0));
-    // }
-    fn display_row(&self, cx: &mut Context, y: usize) {
-        HStack::new(cx, |cx| {
-            (0..self.size).for_each(|x| self.display_cell(cx, x, y));
-        })
-        .size(Stretch(1.0));
-    }
-    fn display_cell(&self, cx: &mut Context, x: usize, y: usize) {
-        let Some(cell) = self.cell_at(x, y) else {
-            println!("Cell at '{x}, {y}' doesn't exist; skipping...");
-            return;
-        };
-        let cell_index = self.cell_index(x, y);
-        cell.display(cx, &self.ruleset)
-            .border_color(AppData::hovered_index.map(move |index| {
-                if index.is_some_and(|index| cell_index == index) {
-                    "black"
-                } else {
-                    "transparent"
-                }
-            }))
-            .on_hover(move |cx| cx.emit(UpdateEvent::CellHovered { x, y }));
-        // .on_mouse_down(move |cx, button| cx.emit(UpdateEvent::CellClicked { x, y, button }));
     }
 
     pub fn visual_state(&self) -> VisualGridState {

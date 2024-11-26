@@ -20,23 +20,16 @@ pub fn ruleset_editor(cx: &mut Context) {
         .height(Auto)
         .row_between(Pixels(5.0));
 
-        Binding::new(cx, AppData::screen, |cx, screen| {
-            let screen = screen.get(cx);
-            let ruleset = screen.ruleset().clone();
-            Binding::new(cx, AppData::selected_tab, move |cx, tab| {
-                //
-                match tab.get(cx) {
-                    EditorTab::Materials => {
-                        HStack::new(cx, |cx| {
-                            material_editor(cx, ruleset.clone());
-                            group_editor(cx, ruleset.clone());
-                        })
-                        .space(Percentage(1.0));
-                    }
-                    EditorTab::Rules => rule_editor(cx, ruleset.clone()),
-                }
-            });
-        });
+        // Materials
+        HStack::new(cx, |cx| {
+            material_editor(cx);
+            group_editor(cx);
+        })
+        .space(Percentage(1.0))
+        .display(AppData::selected_tab.map(|&tab| tab == EditorTab::Materials));
+        // Rules
+        HStack::new(cx, rule_editor)
+            .display(AppData::selected_tab.map(|&tab| tab == EditorTab::Rules));
     })
     .class(style::BACKGROUND);
 }
@@ -112,15 +105,18 @@ fn tabs(cx: &mut Context) {
     .height(Auto);
 }
 
-fn material_editor(cx: &mut Context, ruleset: Ruleset) {
+fn material_editor(cx: &mut Context) {
     VStack::new(cx, |cx| {
         ScrollView::new(cx, 0.0, 0.0, true, true, move |cx| {
-            VStack::new(cx, |cx| {
-                for (index, material) in ruleset.materials.iter().enumerate() {
-                    material.display_editor(cx, index, &ruleset);
-                }
-            })
-            .min_height(Auto);
+            Binding::new(cx, AppData::screen, |cx, screen| {
+                let screen = screen.get(cx);
+                VStack::new(cx, |cx| {
+                    for (index, material) in screen.ruleset().materials.iter().enumerate() {
+                        material.display_editor(cx, index, screen.ruleset());
+                    }
+                })
+                .min_height(Auto);
+            });
         })
         .space(Percentage(1.0));
         Button::new(cx, |cx| Label::new(cx, "New Material"))
@@ -132,16 +128,19 @@ fn material_editor(cx: &mut Context, ruleset: Ruleset) {
     .class(style::EDITOR_PANEL);
 }
 
-fn group_editor(cx: &mut Context, ruleset: Ruleset) {
+fn group_editor(cx: &mut Context) {
     VStack::new(cx, |cx| {
         ScrollView::new(cx, 0.0, 0.0, true, true, move |cx| {
-            VStack::new(cx, |cx| {
-                for (index, group) in ruleset.groups.iter().enumerate() {
-                    group.display_editor(cx, index, &ruleset);
-                }
-            })
-            .row_between(Pixels(5.0))
-            .min_height(Auto);
+            Binding::new(cx, AppData::screen, |cx, screen| {
+                let screen = screen.get(cx);
+                VStack::new(cx, |cx| {
+                    for (index, group) in screen.ruleset().groups.iter().enumerate() {
+                        group.display_editor(cx, index, screen.ruleset());
+                    }
+                })
+                .row_between(Pixels(5.0))
+                .min_height(Auto);
+            });
         })
         .space(Percentage(1.0));
         Button::new(cx, |cx| Label::new(cx, "New Group"))
@@ -152,16 +151,19 @@ fn group_editor(cx: &mut Context, ruleset: Ruleset) {
     })
     .class(style::EDITOR_PANEL);
 }
-fn rule_editor(cx: &mut Context, ruleset: Ruleset) {
+fn rule_editor(cx: &mut Context) {
     VStack::new(cx, |cx| {
         ScrollView::new(cx, 0.0, 0.0, true, true, |cx| {
-            VStack::new(cx, move |cx| {
-                for (index, rule) in ruleset.rules.iter().enumerate() {
-                    rule.display_editor(cx, index.into());
-                }
-            })
-            .row_between(Pixels(5.0))
-            .min_height(Auto);
+            Binding::new(cx, AppData::screen, |cx, screen| {
+                VStack::new(cx, move |cx| {
+                    for (index, rule) in screen.get(cx).ruleset().rules.iter().enumerate() {
+                        rule.display_editor(cx, index.into());
+                    }
+                })
+                .row_between(Pixels(5.0))
+                .bottom(Pixels(150.0))
+                .min_height(Auto);
+            });
         });
         Button::new(cx, |cx| Label::new(cx, "New Rule"))
             .on_press(|cx| cx.emit(RuleEvent::Created))
@@ -288,7 +290,7 @@ fn center_panel(cx: &mut Context) {
         .background_color(Color::rgba(255, 0, 0, 128));
         // grid.display(cx);
     })
-    .size(Stretch(3.0))
+    .size(Stretch(2.2))
     .min_size(Auto)
     .class(style::CENTER_PANEL);
 }
@@ -340,21 +342,6 @@ fn material_row(cx: &mut Context, row: &[Cell], ruleset: &Ruleset) {
 }
 
 // Utility
-
-fn margined_square_size(bounds: &BoundingBox) -> f32 {
-    let max_width = bounds.width().mul_add(
-        style::CENTER_MARGIN_FACTOR,
-        style::BACKGROUND_PADDING * -2.0,
-    );
-    let max_height = style::BACKGROUND_PADDING.mul_add(-2.0, bounds.height());
-    // let max_height = bounds.height() * style::BACKGROUND_PADDING.mul_add(-2.0, 1.0);
-
-    max_width.min(max_height)
-    // bounds
-    //     .height()
-    //     .min(bounds.width() * style::CENTER_MARGIN_FACTOR)
-    //     - (bounds.width().max(bounds.height()) * style::BACKGROUND_PADDING)
-}
 
 fn border_color(color: RGBA) -> Color {
     let r = color.r();
