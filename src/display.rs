@@ -71,7 +71,8 @@ fn toolbar(cx: &mut Context) {
         Button::new(cx, |cx| Label::new(cx, "Save"))
             .on_press(|cx| cx.emit(RulesetEvent::Saved))
             .top(Stretch(1.0))
-            .bottom(Stretch(1.0));
+            .bottom(Stretch(1.0))
+            .disabled(AppData::selected_ruleset.map(|&index| index == 0));
 
         Button::new(cx, |cx| Label::new(cx, "Reload"))
             .on_press(|cx| cx.emit(RulesetEvent::Reloaded))

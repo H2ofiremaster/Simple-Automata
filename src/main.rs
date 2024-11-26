@@ -8,7 +8,7 @@ use events::{
 };
 use grid::{Cell, FunctionalGridState, Grid};
 use id::Identifiable;
-use material::{Material, MaterialColor, MaterialGroup, MaterialId};
+use material::{Material, MaterialGroup, MaterialId};
 use pattern::Pattern;
 use ruleset::{Rule, Ruleset};
 use vizia::prelude::*;
