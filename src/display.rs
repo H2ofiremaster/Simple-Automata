@@ -25,7 +25,6 @@ pub fn ruleset_editor(cx: &mut Context) {
             material_editor(cx);
             group_editor(cx);
         })
-        .space(Percentage(1.0))
         .display(AppData::selected_tab.map(|&tab| tab == EditorTab::Materials));
         // Rules
         HStack::new(cx, rule_editor)
@@ -36,10 +35,8 @@ pub fn ruleset_editor(cx: &mut Context) {
 
 fn toolbar(cx: &mut Context) {
     HStack::new(cx, |cx| {
-        Button::new(cx, |cx| Label::new(cx, "Back"))
-            .on_press(|cx| cx.emit(EditorEvent::Disabled))
-            .top(Stretch(1.0))
-            .bottom(Stretch(1.0));
+        Button::new(cx, |cx| Label::new(cx, "Dummy")).display(false);
+        Button::new(cx, |cx| Label::new(cx, "Back")).on_press(|cx| cx.emit(EditorEvent::Disabled));
 
         ComboBox::new(
             cx,
@@ -51,33 +48,22 @@ fn toolbar(cx: &mut Context) {
             }),
             AppData::selected_ruleset,
         )
-        .on_select(|cx, index| cx.emit(RulesetEvent::Selected(index)))
-        .top(Stretch(1.0))
-        .bottom(Stretch(1.0));
+        .on_select(|cx, index| cx.emit(RulesetEvent::Selected(index)));
 
         Textbox::new(cx, AppData::screen.map(|s| s.ruleset().name.clone()))
             .on_submit(|cx, text, _| {
                 cx.emit(RulesetEvent::Renamed(text));
             })
-            .min_width(Pixels(100.0))
-            .top(Stretch(1.0))
-            .bottom(Stretch(1.0));
+            .min_width(Pixels(100.0));
 
-        Button::new(cx, |cx| Label::new(cx, "New"))
-            .on_press(|cx| cx.emit(RulesetEvent::Created))
-            .top(Stretch(1.0))
-            .bottom(Stretch(1.0));
+        Button::new(cx, |cx| Label::new(cx, "New")).on_press(|cx| cx.emit(RulesetEvent::Created));
 
         Button::new(cx, |cx| Label::new(cx, "Save"))
             .on_press(|cx| cx.emit(RulesetEvent::Saved))
-            .top(Stretch(1.0))
-            .bottom(Stretch(1.0))
             .disabled(AppData::selected_ruleset.map(|&index| index == 0));
 
         Button::new(cx, |cx| Label::new(cx, "Reload"))
-            .on_press(|cx| cx.emit(RulesetEvent::Reloaded))
-            .top(Stretch(1.0))
-            .bottom(Stretch(1.0));
+            .on_press(|cx| cx.emit(RulesetEvent::Reloaded));
     })
     .height(Auto);
 }
@@ -396,8 +382,6 @@ pub enum EditorTab {
 
 #[allow(dead_code)]
 pub mod style {
-    use vizia::style::Color;
-
     pub const BACKGROUND: &str = "background";
 
     pub const SIDE_PANEL: &str = "side-panel";
@@ -407,7 +391,6 @@ pub mod style {
     pub const MATERIAL_ROW: &str = "material-row";
     pub const CONTROL_BUTTON: &str = "control-button";
 
-    // pub const BUTTON: &str = "button";
     pub const PRESSED_BUTTON: &str = "pressed-button";
     pub const LIGHT_COMBOBOX: &str = "light-combobox";
     pub const MENU_ELEMENT: &str = "menu-element";
@@ -427,10 +410,6 @@ pub mod style {
     pub const CELL_GRADIENT_DARKEN: u8 = 92;
     /// How many materials display per row on the right panel.
     pub const MATERIAL_ROW_LENGTH: usize = 3;
-    /// The color of buttons in various states.
-    pub const PRESSED_BUTTON_COLOR: Color = Color::rgb(64, 64, 64);
-    pub const HOVERED_BUTTON_COLOR: Color = Color::rgb(96, 96, 96);
-    pub const BUTTON_COLOR: Color = Color::rgb(128, 128, 128);
 
     pub mod svg {
         pub const ARROW_NORTHWEST: &str = include_str!("../resources/svg/arrows/northwest.svg");
