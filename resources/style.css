@@ -91,9 +91,11 @@ button:disabled {
     background-color: #202020;
 }
 .pressed-button {
+    background-image: none;
     background-color: #404040;
 }
 .pressed-button:hover {
+    background-image: none;
     background-color: #303030;
 }
 .menu-element {
