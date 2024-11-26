@@ -222,6 +222,7 @@ impl Rule {
                 });
 
                 Button::new(cx, |cx| Svg::new(cx, svg::TRASH).class(style::SVG))
+                    .class(style::TRASH_BUTTON)
                     .on_press(move |cx| cx.emit(RuleEvent::Deleted(index)))
                     .size(Pixels(50.0))
                     .top(Stretch(1.0))

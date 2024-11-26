@@ -392,6 +392,7 @@ pub mod style {
     pub const CONTROL_BUTTON: &str = "control-button";
 
     pub const PRESSED_BUTTON: &str = "pressed-button";
+    pub const TRASH_BUTTON: &str = "trash-button";
     pub const LIGHT_COMBOBOX: &str = "light-combobox";
     pub const MENU_ELEMENT: &str = "menu-element";
     pub const SVG: &str = "svg";

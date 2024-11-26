@@ -90,14 +90,23 @@ button:disabled {
     background-image: none;
     background-color: #202020;
 }
+
 .pressed-button {
     background-image: none;
     background-color: #404040;
 }
 .pressed-button:hover {
     background-image: none;
-    background-color: #303030;
+    background-color: #404040;
 }
+
+.trash-button {
+    background-image: radial-gradient(#600000, #700000);
+}
+.trash-button:hover {
+    background-image: radial-gradient(#400000, #500000);
+}
+
 .menu-element {
     child-space: 1%;
     min-height: auto;
