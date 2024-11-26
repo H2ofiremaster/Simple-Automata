@@ -77,14 +77,14 @@ textbox {
 }
 button {
     background-color: #707070;
-    background-image: radial-gradient(#505050, #707070);
+    background-image: radial-gradient(#606060, #707070);
     border-color: #000000;
     border-width: 1px;
     color: #ffffff
 }
 button:hover {
     background-color: #505050;
-    background-image: radial-gradient(#303030, #505050);
+    background-image: radial-gradient(#404040, #505050);
 }
 button:disabled {
     background-image: none;
