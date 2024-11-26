@@ -290,7 +290,7 @@ fn center_panel(cx: &mut Context) {
         .background_color(Color::rgba(255, 0, 0, 128));
         // grid.display(cx);
     })
-    .size(Stretch(3.0))
+    .size(Stretch(2.2))
     .min_size(Auto)
     .class(style::CENTER_PANEL);
 }
