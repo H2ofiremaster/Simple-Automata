@@ -376,9 +376,7 @@ impl MaterialGroup {
                     AppData::screen.map(move |s| {
                         s.ruleset()
                             .group(id)
-                            .expect("Group should exist.")
-                            .name
-                            .clone()
+                            .map_or_else(|| String::from("ERROR"), |g| g.name.clone())
                     }),
                 )
                 .on_submit(move |cx, text, _| cx.emit(GroupEvent::Renamed(index, text)));

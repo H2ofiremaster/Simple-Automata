@@ -262,7 +262,10 @@ impl Cell {
         ruleset
             .materials
             .get(self.material_id)
-            .expect("cell should point to a valid material id for this ruleset.")
+            .unwrap_or_else(|| {
+                println!("'Cell::color' called on foreign cell.");
+                ruleset.materials.default()
+            })
             .color
     }
 
