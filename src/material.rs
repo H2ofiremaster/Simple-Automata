@@ -59,8 +59,26 @@ impl Material {
         VStack::new(cx, |cx| {
             let cell = Cell::new(self.id);
             let id = self.id;
-            cell.display(cx, ruleset).size(Pixels(250.0));
-            HStack::new(cx, move |cx| {
+
+            Textbox::new(
+                cx,
+                AppData::screen.map(move |screen| {
+                    screen
+                        .ruleset()
+                        .materials
+                        .get_at(index)
+                        .expect("The specified index did not contain a material")
+                        .name
+                        .clone()
+                }),
+            )
+            .width(Stretch(1.0))
+            .on_submit(move |cx, text, _| cx.emit(MaterialEvent::Renamed(index, text)));
+
+            cell.display(cx, ruleset)
+                .size(Pixels(style::EDITOR_MATERIAL_SIZE));
+
+            HStack::new(cx, |cx| {
                 Textbox::new(
                     cx,
                     AppData::screen.map(move |screen| {
@@ -76,20 +94,7 @@ impl Material {
                 .width(Stretch(1.0))
                 .on_submit(move |cx, text, _| cx.emit(MaterialEvent::Recolored(index, text)))
                 .min_height(Pixels(30.0));
-                Textbox::new(
-                    cx,
-                    AppData::screen.map(move |screen| {
-                        screen
-                            .ruleset()
-                            .materials
-                            .get_at(index)
-                            .expect("The specified index did not contain a material")
-                            .name
-                            .clone()
-                    }),
-                )
-                .width(Stretch(1.0))
-                .on_submit(move |cx, text, _| cx.emit(MaterialEvent::Renamed(index, text)));
+
                 Button::new(cx, |cx| Svg::new(cx, style::svg::TRASH).class(style::SVG))
                     .class(style::TRASH_BUTTON)
                     .size(Pixels(30.0))
@@ -99,10 +104,7 @@ impl Material {
             .width(Stretch(1.0))
             .height(Auto);
         })
-        .width(Auto)
-        .height(Auto)
-        .space(Percentage(1.0))
-        .child_space(Percentage(5.0));
+        .size(Auto);
     }
 }
 impl Default for Material {

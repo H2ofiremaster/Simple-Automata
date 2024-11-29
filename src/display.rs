@@ -6,6 +6,7 @@ use crate::{
     },
     grid::{Cell, Grid, GridDisplay, VisualGridState},
     id::Identifiable,
+    material::Material,
     ruleset::Ruleset,
     AppData,
 };
@@ -97,12 +98,17 @@ fn material_editor(cx: &mut Context) {
         ScrollView::new(cx, 0.0, 0.0, true, true, move |cx| {
             Binding::new(cx, AppData::screen, |cx, screen| {
                 let screen = screen.get(cx);
+                let materials: Vec<(usize, &Material)> =
+                    screen.ruleset().materials.iter().enumerate().collect();
                 VStack::new(cx, |cx| {
-                    for (index, material) in screen.ruleset().materials.iter().enumerate() {
-                        material.display_editor(cx, index, screen.ruleset());
+                    for chunk in materials.chunks(style::EDITOR_ROW_LENGTH) {
+                        editor_material_row(cx, chunk, screen.ruleset());
                     }
                 })
-                .min_height(Auto);
+                .row_between(Pixels(15.0))
+                .left(Stretch(0.1))
+                .right(Stretch(0.1))
+                .size(Auto);
             });
         })
         .space(Percentage(1.0));
@@ -113,6 +119,20 @@ fn material_editor(cx: &mut Context) {
             .child_space(Stretch(1.0));
     })
     .class(style::EDITOR_PANEL);
+}
+
+fn editor_material_row(cx: &mut Context, row: &[(usize, &Material)], ruleset: &Ruleset) {
+    HStack::new(cx, |cx| {
+        for i in 0..style::EDITOR_ROW_LENGTH {
+            if let Some((index, material)) = row.get(i) {
+                material.display_editor(cx, *index, ruleset);
+            } else {
+                Element::new(cx).size(Pixels(style::EDITOR_MATERIAL_SIZE));
+            }
+        }
+    })
+    .col_between(Pixels(15.0))
+    .size(Auto);
 }
 
 fn group_editor(cx: &mut Context) {
@@ -411,6 +431,10 @@ pub mod style {
     pub const CELL_GRADIENT_DARKEN: u8 = 92;
     /// How many materials display per row on the right panel.
     pub const MATERIAL_ROW_LENGTH: usize = 3;
+    /// How many materials display per row in the editor.
+    pub const EDITOR_ROW_LENGTH: usize = 5;
+    /// How many pixels each material takes up in the editor.
+    pub const EDITOR_MATERIAL_SIZE: f32 = 150.0;
 
     pub mod svg {
         pub const ARROW_NORTHWEST: &str = include_str!("../resources/svg/arrows/northwest.svg");
