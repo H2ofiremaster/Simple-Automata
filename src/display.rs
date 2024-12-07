@@ -254,7 +254,9 @@ fn speed_controls(cx: &mut Context) {
 }
 fn size_controls(cx: &mut Context) {
     HStack::new(cx, |cx| {
-        Label::new(cx, "Grid Size: ");
+        Label::new(cx, "Grid Size: ")
+            .height(Stretch(1.0))
+            .child_space(Stretch(1.0));
         Textbox::new(cx, AppData::grid_size.map(|&x| x.to_string())).on_submit(
             |cx, text, enter_pressed| {
                 if enter_pressed {
@@ -265,6 +267,7 @@ fn size_controls(cx: &mut Context) {
             },
         );
     })
+    .col_between(Pixels(5.0))
     .class(style::MENU_ELEMENT);
 }
 fn savestate_controls(cx: &mut Context) {

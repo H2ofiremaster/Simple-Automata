@@ -13,6 +13,7 @@
     corner-radius: 5%;
     child-space: 10px;
     space: 10px;
+    row-between: 10px;
 }
 .center-panel {
     background-color: #808080;
@@ -87,12 +88,16 @@ textbox {
     border-color: #ffffff;
     border-width: 1px;
 }
+
+label {
+    color: #ffffff;
+}
 button {
     background-color: #707070;
     background-image: radial-gradient(#606060, #707070);
     border-color: #000000;
     border-width: 1px;
-    color: #ffffff
+    color: #ffffff;
 }
 button:hover {
     background-color: #505050;
@@ -120,8 +125,9 @@ button:disabled {
 }
 
 .menu-element {
-    child-space: 1%;
-    min-height: auto;
+    child-space: 15px;
+    min-height: Auto;
+    height: Auto;
     width: 1s;
 }
 .svg {
