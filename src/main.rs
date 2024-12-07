@@ -137,6 +137,13 @@ impl Model for AppData {
                     MouseButton::Right => grid.ruleset.materials.default().id(),
                     _ => return,
                 };
+                self.tooltip = (
+                    grid.ruleset
+                        .materials
+                        .get(new_material)
+                        .map_or_else(String::new, |m| m.name.clone()),
+                    Color::yellow(),
+                );
                 let cell = Cell::new(new_material);
                 let Some(index) = self.hovered_index else {
                     return;
