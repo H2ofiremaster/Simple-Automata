@@ -303,7 +303,10 @@ fn center_panel(cx: &mut Context) {
 }
 
 fn right_panel(cx: &mut Context) {
-    ZStack::new(cx, |cx| {
+    VStack::new(cx, |cx| {
+        Label::new(cx, AppData::tooltip.map(|(text, _)| text.clone()))
+            .class(style::MATERIAL_TOOLTIP)
+            .color(AppData::tooltip.map(|(_, color)| *color));
         ScrollView::new(cx, 0., 0., true, true, |cx| {
             VStack::new(cx, |cx| {
                 Binding::new(cx, AppData::screen, |cx, screen| {
@@ -335,6 +338,8 @@ fn material_row(cx: &mut Context, row: &[Cell], ruleset: &Ruleset) {
                 .on_press(move |cx| {
                     cx.emit(UpdateEvent::MaterialSelected(cell.material_id));
                 })
+                .on_hover(move |cx| cx.emit(UpdateEvent::MaterialHovered(cell.material_id)))
+                .on_hover_out(|cx| cx.emit(UpdateEvent::MaterialUnhovered))
                 .border_color(AppData::selected_material.map(move |id| {
                     if *id == cell.material_id {
                         border_color
@@ -410,6 +415,7 @@ pub mod style {
     pub const MATERIAL_DISPLAY: &str = "material-display";
     pub const MATERIAL_ROW: &str = "material-row";
     pub const CONTROL_BUTTON: &str = "control-button";
+    pub const MATERIAL_TOOLTIP: &str = "material-tooltip";
 
     pub const PRESSED_BUTTON: &str = "pressed-button";
     pub const TRASH_BUTTON: &str = "trash-button";

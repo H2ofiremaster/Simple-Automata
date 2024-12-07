@@ -38,7 +38,7 @@ pub struct AppData {
     grid_size: usize,
     saved_state: Option<FunctionalGridState>,
 
-    tooltip: String,
+    tooltip: (String, Color),
     hovered_index: Option<usize>,
     selected_tab: display::EditorTab,
     group_material_index: usize,
@@ -73,7 +73,7 @@ impl AppData {
             grid_size: 5,
             saved_state: None,
 
-            tooltip: String::new(),
+            tooltip: (String::new(), Color::white()),
             hovered_index: None,
             selected_tab: display::EditorTab::Materials,
             group_material_index: 0,
@@ -95,6 +95,17 @@ impl Model for AppData {
                         return;
                     }
                     self.hovered_index = Some(index);
+
+                    if let Some(cell) = grid.cell_at(*x, *y) {
+                        self.tooltip = (
+                            grid.ruleset
+                                .materials
+                                .get(cell.material_id)
+                                .map_or_else(String::new, |m| m.name.clone()),
+                            Color::yellow(),
+                        );
+                    }
+
                     let mouse_state = cx.mouse();
                     let button = match (mouse_state.left.state, mouse_state.right.state) {
                         (MouseButtonState::Pressed, MouseButtonState::Released) => {
@@ -106,7 +117,17 @@ impl Model for AppData {
                     cx.emit(UpdateEvent::CellClicked(button));
                 }
             }
-            UpdateEvent::CellUnhovered => self.hovered_index = None,
+            UpdateEvent::CellUnhovered => {
+                self.hovered_index = None;
+                self.tooltip = (
+                    self.screen
+                        .ruleset()
+                        .materials
+                        .get(self.selected_material)
+                        .map_or_else(String::new, |m| m.name.clone()),
+                    Color::white(),
+                );
+            }
             UpdateEvent::CellClicked(button) => {
                 let Screen::Grid(ref mut grid) = self.screen else {
                     return;
@@ -125,6 +146,26 @@ impl Model for AppData {
                 grid.set_cell(x, y, cell);
             }
             UpdateEvent::MaterialSelected(material_id) => self.selected_material = *material_id,
+            UpdateEvent::MaterialHovered(material_id) => {
+                self.tooltip = (
+                    self.screen
+                        .ruleset()
+                        .materials
+                        .get(*material_id)
+                        .map_or_else(String::new, |m| m.name.clone()),
+                    Color::aqua(),
+                );
+            }
+            UpdateEvent::MaterialUnhovered => {
+                self.tooltip = (
+                    self.screen
+                        .ruleset()
+                        .materials
+                        .get(self.selected_material)
+                        .map_or_else(String::new, |m| m.name.clone()),
+                    Color::white(),
+                );
+            }
         });
         event.map(|event: &RulesetEvent, _| match event {
             RulesetEvent::Selected(index) => {

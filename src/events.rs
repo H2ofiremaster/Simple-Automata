@@ -16,6 +16,8 @@ pub enum UpdateEvent {
     CellUnhovered,
     CellClicked(MouseButton),
     MaterialSelected(MaterialId),
+    MaterialHovered(MaterialId),
+    MaterialUnhovered,
 }
 
 pub enum RulesetEvent {
