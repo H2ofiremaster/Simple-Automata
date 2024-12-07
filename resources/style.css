@@ -38,9 +38,16 @@
     min-width: auto;
     width: 1s;
 }
+.ruleset-button {
+    width: 1s;
+    min-width: Auto;
+    child-space: 1s;
+    space: 0.1s;
+    font-size: x-large;
+}
 .control-button {
     width: 1s;
-    min-widthe: Auto;
+    min-width: Auto;
     child-space: 1s;
     space: 0.1s;
 }

@@ -212,7 +212,8 @@ fn left_panel(cx: &mut Context) {
 fn editor_button(cx: &mut Context) {
     HStack::new(cx, |cx| {
         Button::new(cx, |cx| Label::new(cx, "Edit Ruleset"))
-            .on_press(|cx| cx.emit(EditorEvent::Enabled));
+            .on_press(|cx| cx.emit(EditorEvent::Enabled))
+            .class(style::RULESET_BUTTON);
     })
     .class(style::MENU_ELEMENT);
 }
@@ -417,6 +418,7 @@ pub mod style {
     pub const CELL: &str = "cell";
     pub const MATERIAL_DISPLAY: &str = "material-display";
     pub const MATERIAL_ROW: &str = "material-row";
+    pub const RULESET_BUTTON: &str = "ruleset-button";
     pub const CONTROL_BUTTON: &str = "control-button";
     pub const MATERIAL_TOOLTIP: &str = "material-tooltip";
 
