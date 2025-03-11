@@ -259,7 +259,7 @@ impl Serialize for MaterialColor {
     }
 }
 struct MaterialColorVisitor;
-impl<'de> Visitor<'de> for MaterialColorVisitor {
+impl Visitor<'_> for MaterialColorVisitor {
     type Value = MaterialColor;
 
     fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
