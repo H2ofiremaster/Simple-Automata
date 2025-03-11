@@ -140,39 +140,49 @@ impl Data for VisualGridState {
     }
 }
 
-pub struct GridDisplay<L1, L2>
+pub struct GridDisplay<L1, L2, L3>
 where
     L1: Lens<Target = VisualGridState>,
     L2: Lens<Target = Option<usize>>,
+    L3: Lens<Target = bool>,
 {
     grid: L1,
     hovered: L2,
+    lines_enabled: L3,
 }
-impl<L1, L2> GridDisplay<L1, L2>
+impl<L1, L2, L3> GridDisplay<L1, L2, L3>
 where
     L1: Lens<Target = VisualGridState>,
     L2: Lens<Target = Option<usize>>,
+    L3: Lens<Target = bool>,
 {
     const PADDING_MARGIN: f32 = 0.1;
-    pub fn new(cx: &mut Context, grid: L1, hovered: L2) -> Handle<Self> {
-        Self { grid, hovered }
-            .build(cx, move |_| {})
-            .bind(grid, |mut cx, _| cx.needs_redraw())
-            .bind(hovered, |mut cx, _| cx.needs_redraw())
+    pub fn new(cx: &mut Context, grid: L1, hovered: L2, lines_enabled: L3) -> Handle<Self> {
+        Self {
+            grid,
+            hovered,
+            lines_enabled,
+        }
+        .build(cx, move |_| {})
+        .bind(grid, |mut cx, _| cx.needs_redraw())
+        .bind(hovered, |mut cx, _| cx.needs_redraw())
+        .bind(lines_enabled, |mut cx, _| cx.needs_redraw())
     }
 
     #[allow(clippy::cast_precision_loss)]
-    fn cell_size(grid_size: usize, bounds: BoundingBox) -> (f32, f32) {
+    fn cell_size(grid_size: usize, bounds: BoundingBox, lines_enabled: bool) -> (f32, f32) {
         let original_cell_size = bounds.width() / grid_size as f32;
-        let padding = 1.0_f32.max(Self::PADDING_MARGIN * original_cell_size);
+        let padding =
+            1.0_f32.max(Self::PADDING_MARGIN * original_cell_size) * f32::from(lines_enabled);
         let cell_size = original_cell_size - padding;
         (cell_size, padding)
     }
 }
-impl<L1, L2> View for GridDisplay<L1, L2>
+impl<L1, L2, L3> View for GridDisplay<L1, L2, L3>
 where
     L1: Lens<Target = VisualGridState>,
     L2: Lens<Target = Option<usize>>,
+    L3: Lens<Target = bool>,
 {
     #[allow(clippy::cast_precision_loss)]
     fn draw(&self, cx: &mut vizia::context::DrawContext, canvas: &vizia::vg::Canvas) {
@@ -182,11 +192,12 @@ where
 
         let grid_size = self.grid.get(cx).size;
         let hovered = self.hovered.get(cx);
+        let lines_enabled = self.lines_enabled.get(cx);
         let cells: &[MaterialColor] = &self.grid.get(cx).cells;
 
         let full_bounds = cx.bounds();
         let bounds = display::rect_bounds(&full_bounds);
-        let (cell_size, padding) = Self::cell_size(grid_size, bounds);
+        let (cell_size, padding) = Self::cell_size(grid_size, bounds, lines_enabled);
         for y in 0..grid_size {
             for x in 0..grid_size {
                 // Equivelent to: ((x as f32) * (padding + cell_size) + bounds.left) + padding / 2.0;
@@ -224,7 +235,8 @@ where
                     return;
                 }
                 let grid_size = self.grid.get(cx).size;
-                let (cell_size, padding) = Self::cell_size(grid_size, bounds);
+                let (cell_size, padding) =
+                    Self::cell_size(grid_size, bounds, self.lines_enabled.get(cx));
                 let x = x - bounds.left() - (padding / 2.0);
                 let y = y - bounds.top() - (padding / 2.0);
                 let normalized_x = x / (cell_size + padding);

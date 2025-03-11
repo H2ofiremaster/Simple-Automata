@@ -37,6 +37,7 @@ pub struct AppData {
     timer: Timer,
     grid_size: usize,
     saved_state: Option<FunctionalGridState>,
+    grid_lines_enabled: bool,
 
     tooltip: (String, Color),
     hovered_index: Option<usize>,
@@ -72,6 +73,7 @@ impl AppData {
             timer,
             grid_size: 5,
             saved_state: None,
+            grid_lines_enabled: true,
 
             tooltip: (String::new(), Color::white()),
             hovered_index: None,
@@ -426,6 +428,7 @@ impl Model for AppData {
                     }
                 }
             }
+            GridEvent::GridLinesToggled => self.grid_lines_enabled = !self.grid_lines_enabled,
         });
         event.map(|event: &EditorEvent, _| match event {
             EditorEvent::Enabled => {

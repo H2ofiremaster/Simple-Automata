@@ -204,6 +204,11 @@ fn left_panel(cx: &mut Context) {
         speed_controls(cx);
         size_controls(cx);
         savestate_controls(cx);
+        HStack::new(cx, |cx| {
+            Checkbox::new(cx, AppData::grid_lines_enabled)
+                .on_toggle(|cx| cx.emit(GridEvent::GridLinesToggled));
+            Label::new(cx, "Toggle Grid Lines");
+        });
         Element::new(cx).height(Stretch(5.0));
     })
     .class(style::SIDE_PANEL);
@@ -296,6 +301,7 @@ fn center_panel(cx: &mut Context) {
                 }
             }),
             AppData::hovered_index,
+            AppData::grid_lines_enabled,
         )
         .size(Stretch(1.0))
         .background_color(Color::rgba(255, 0, 0, 128));

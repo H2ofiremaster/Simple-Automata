@@ -76,6 +76,7 @@ pub enum GridEvent {
     Resized(usize),
     StateSaved,
     StateLoaded,
+    GridLinesToggled,
 }
 
 pub enum EditorEvent {
