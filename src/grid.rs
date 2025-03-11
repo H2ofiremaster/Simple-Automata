@@ -312,13 +312,13 @@ impl CellNeighbors {
     }
 
     pub fn count_matching(&self, ruleset: &Ruleset, pattern: Pattern) -> u8 {
-        // println!("Matching: ---");
-        self.0
-            .iter()
-            .filter(|cell| cell.is_some_and(|cell| pattern.matches(ruleset, cell)))
-            .count()
-            .try_into()
-            .expect("CellNeighbors count should not exceed 8.")
+        let mut count: u8 = 0;
+        for cell in &self.0 {
+            if cell.is_some_and(|cell| pattern.matches(ruleset, cell)) {
+                count += 1;
+            }
+        }
+        count
     }
     pub const fn in_direction(&self, direction: Direction) -> Option<Cell> {
         match direction {
