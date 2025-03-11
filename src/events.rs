@@ -16,6 +16,8 @@ pub enum UpdateEvent {
     CellUnhovered,
     CellClicked(MouseButton),
     MaterialSelected(MaterialId),
+    MaterialHovered(MaterialId),
+    MaterialUnhovered,
 }
 
 pub enum RulesetEvent {
@@ -74,6 +76,7 @@ pub enum GridEvent {
     Resized(usize),
     StateSaved,
     StateLoaded,
+    GridLinesToggled,
 }
 
 pub enum EditorEvent {

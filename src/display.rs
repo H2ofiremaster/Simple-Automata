@@ -6,6 +6,7 @@ use crate::{
     },
     grid::{Cell, Grid, GridDisplay, VisualGridState},
     id::Identifiable,
+    material::Material,
     ruleset::Ruleset,
     AppData,
 };
@@ -25,7 +26,6 @@ pub fn ruleset_editor(cx: &mut Context) {
             material_editor(cx);
             group_editor(cx);
         })
-        .space(Percentage(1.0))
         .display(AppData::selected_tab.map(|&tab| tab == EditorTab::Materials));
         // Rules
         HStack::new(cx, rule_editor)
@@ -36,10 +36,8 @@ pub fn ruleset_editor(cx: &mut Context) {
 
 fn toolbar(cx: &mut Context) {
     HStack::new(cx, |cx| {
-        Button::new(cx, |cx| Label::new(cx, "Back"))
-            .on_press(|cx| cx.emit(EditorEvent::Disabled))
-            .top(Stretch(1.0))
-            .bottom(Stretch(1.0));
+        Button::new(cx, |cx| Label::new(cx, "Dummy")).display(false);
+        Button::new(cx, |cx| Label::new(cx, "Back")).on_press(|cx| cx.emit(EditorEvent::Disabled));
 
         ComboBox::new(
             cx,
@@ -51,32 +49,22 @@ fn toolbar(cx: &mut Context) {
             }),
             AppData::selected_ruleset,
         )
-        .on_select(|cx, index| cx.emit(RulesetEvent::Selected(index)))
-        .top(Stretch(1.0))
-        .bottom(Stretch(1.0));
+        .on_select(|cx, index| cx.emit(RulesetEvent::Selected(index)));
 
         Textbox::new(cx, AppData::screen.map(|s| s.ruleset().name.clone()))
             .on_submit(|cx, text, _| {
                 cx.emit(RulesetEvent::Renamed(text));
             })
-            .min_width(Pixels(100.0))
-            .top(Stretch(1.0))
-            .bottom(Stretch(1.0));
+            .min_width(Pixels(100.0));
 
-        Button::new(cx, |cx| Label::new(cx, "New"))
-            .on_press(|cx| cx.emit(RulesetEvent::Created))
-            .top(Stretch(1.0))
-            .bottom(Stretch(1.0));
+        Button::new(cx, |cx| Label::new(cx, "New")).on_press(|cx| cx.emit(RulesetEvent::Created));
 
         Button::new(cx, |cx| Label::new(cx, "Save"))
             .on_press(|cx| cx.emit(RulesetEvent::Saved))
-            .top(Stretch(1.0))
-            .bottom(Stretch(1.0));
+            .disabled(AppData::selected_ruleset.map(|&index| index == 0));
 
         Button::new(cx, |cx| Label::new(cx, "Reload"))
-            .on_press(|cx| cx.emit(RulesetEvent::Reloaded))
-            .top(Stretch(1.0))
-            .bottom(Stretch(1.0));
+            .on_press(|cx| cx.emit(RulesetEvent::Reloaded));
     })
     .height(Auto);
 }
@@ -110,12 +98,17 @@ fn material_editor(cx: &mut Context) {
         ScrollView::new(cx, 0.0, 0.0, true, true, move |cx| {
             Binding::new(cx, AppData::screen, |cx, screen| {
                 let screen = screen.get(cx);
+                let materials: Vec<(usize, &Material)> =
+                    screen.ruleset().materials.iter().enumerate().collect();
                 VStack::new(cx, |cx| {
-                    for (index, material) in screen.ruleset().materials.iter().enumerate() {
-                        material.display_editor(cx, index, screen.ruleset());
+                    for chunk in materials.chunks(style::EDITOR_ROW_LENGTH) {
+                        editor_material_row(cx, chunk, screen.ruleset());
                     }
                 })
-                .min_height(Auto);
+                .row_between(Pixels(15.0))
+                .left(Stretch(0.1))
+                .right(Stretch(0.1))
+                .size(Auto);
             });
         })
         .space(Percentage(1.0));
@@ -126,6 +119,20 @@ fn material_editor(cx: &mut Context) {
             .child_space(Stretch(1.0));
     })
     .class(style::EDITOR_PANEL);
+}
+
+fn editor_material_row(cx: &mut Context, row: &[(usize, &Material)], ruleset: &Ruleset) {
+    HStack::new(cx, |cx| {
+        for i in 0..style::EDITOR_ROW_LENGTH {
+            if let Some((index, material)) = row.get(i) {
+                material.display_editor(cx, *index, ruleset);
+            } else {
+                Element::new(cx).size(Pixels(style::EDITOR_MATERIAL_SIZE));
+            }
+        }
+    })
+    .col_between(Pixels(15.0))
+    .size(Auto);
 }
 
 fn group_editor(cx: &mut Context) {
@@ -197,6 +204,11 @@ fn left_panel(cx: &mut Context) {
         speed_controls(cx);
         size_controls(cx);
         savestate_controls(cx);
+        HStack::new(cx, |cx| {
+            Checkbox::new(cx, AppData::grid_lines_enabled)
+                .on_toggle(|cx| cx.emit(GridEvent::GridLinesToggled));
+            Label::new(cx, "Toggle Grid Lines");
+        });
         Element::new(cx).height(Stretch(5.0));
     })
     .class(style::SIDE_PANEL);
@@ -205,7 +217,8 @@ fn left_panel(cx: &mut Context) {
 fn editor_button(cx: &mut Context) {
     HStack::new(cx, |cx| {
         Button::new(cx, |cx| Label::new(cx, "Edit Ruleset"))
-            .on_press(|cx| cx.emit(EditorEvent::Enabled));
+            .on_press(|cx| cx.emit(EditorEvent::Enabled))
+            .class(style::RULESET_BUTTON);
     })
     .class(style::MENU_ELEMENT);
 }
@@ -247,7 +260,9 @@ fn speed_controls(cx: &mut Context) {
 }
 fn size_controls(cx: &mut Context) {
     HStack::new(cx, |cx| {
-        Label::new(cx, "Grid Size: ");
+        Label::new(cx, "Grid Size: ")
+            .height(Stretch(1.0))
+            .child_space(Stretch(1.0));
         Textbox::new(cx, AppData::grid_size.map(|&x| x.to_string())).on_submit(
             |cx, text, enter_pressed| {
                 if enter_pressed {
@@ -258,6 +273,7 @@ fn size_controls(cx: &mut Context) {
             },
         );
     })
+    .col_between(Pixels(5.0))
     .class(style::MENU_ELEMENT);
 }
 fn savestate_controls(cx: &mut Context) {
@@ -285,6 +301,7 @@ fn center_panel(cx: &mut Context) {
                 }
             }),
             AppData::hovered_index,
+            AppData::grid_lines_enabled,
         )
         .size(Stretch(1.0))
         .background_color(Color::rgba(255, 0, 0, 128));
@@ -296,7 +313,10 @@ fn center_panel(cx: &mut Context) {
 }
 
 fn right_panel(cx: &mut Context) {
-    ZStack::new(cx, |cx| {
+    VStack::new(cx, |cx| {
+        Label::new(cx, AppData::tooltip.map(|(text, _)| text.clone()))
+            .class(style::MATERIAL_TOOLTIP)
+            .color(AppData::tooltip.map(|(_, color)| *color));
         ScrollView::new(cx, 0., 0., true, true, |cx| {
             VStack::new(cx, |cx| {
                 Binding::new(cx, AppData::screen, |cx, screen| {
@@ -328,6 +348,8 @@ fn material_row(cx: &mut Context, row: &[Cell], ruleset: &Ruleset) {
                 .on_press(move |cx| {
                     cx.emit(UpdateEvent::MaterialSelected(cell.material_id));
                 })
+                .on_hover(move |cx| cx.emit(UpdateEvent::MaterialHovered(cell.material_id)))
+                .on_hover_out(|cx| cx.emit(UpdateEvent::MaterialUnhovered))
                 .border_color(AppData::selected_material.map(move |id| {
                     if *id == cell.material_id {
                         border_color
@@ -395,8 +417,6 @@ pub enum EditorTab {
 
 #[allow(dead_code)]
 pub mod style {
-    use vizia::style::Color;
-
     pub const BACKGROUND: &str = "background";
 
     pub const SIDE_PANEL: &str = "side-panel";
@@ -404,10 +424,12 @@ pub mod style {
     pub const CELL: &str = "cell";
     pub const MATERIAL_DISPLAY: &str = "material-display";
     pub const MATERIAL_ROW: &str = "material-row";
+    pub const RULESET_BUTTON: &str = "ruleset-button";
     pub const CONTROL_BUTTON: &str = "control-button";
+    pub const MATERIAL_TOOLTIP: &str = "material-tooltip";
 
-    // pub const BUTTON: &str = "button";
     pub const PRESSED_BUTTON: &str = "pressed-button";
+    pub const TRASH_BUTTON: &str = "trash-button";
     pub const LIGHT_COMBOBOX: &str = "light-combobox";
     pub const MENU_ELEMENT: &str = "menu-element";
     pub const SVG: &str = "svg";
@@ -426,10 +448,10 @@ pub mod style {
     pub const CELL_GRADIENT_DARKEN: u8 = 92;
     /// How many materials display per row on the right panel.
     pub const MATERIAL_ROW_LENGTH: usize = 3;
-    /// The color of buttons in various states.
-    pub const PRESSED_BUTTON_COLOR: Color = Color::rgb(64, 64, 64);
-    pub const HOVERED_BUTTON_COLOR: Color = Color::rgb(96, 96, 96);
-    pub const BUTTON_COLOR: Color = Color::rgb(128, 128, 128);
+    /// How many materials display per row in the editor.
+    pub const EDITOR_ROW_LENGTH: usize = 5;
+    /// How many pixels each material takes up in the editor.
+    pub const EDITOR_MATERIAL_SIZE: f32 = 150.0;
 
     pub mod svg {
         pub const ARROW_NORTHWEST: &str = include_str!("../resources/svg/arrows/northwest.svg");

@@ -32,16 +32,12 @@ impl Pattern {
             cx,
             AppData::screen.map(|screen| screen.ruleset().pattern_values()),
             AppData::screen.map(move |screen| match self {
-                Self::Material(id) => screen
-                    .ruleset()
-                    .materials
-                    .index_of(id)
-                    .expect("Displayed pattern should match the current ruleset."),
+                Self::Material(id) => screen.ruleset().materials.index_of(id).unwrap_or_default(),
                 Self::Group(id) => screen
                     .ruleset()
                     .index_of_group(id)
                     .map(|index| screen.ruleset().materials.len() + index)
-                    .expect("Displayed pattern should match the current ruleset."),
+                    .unwrap_or_default(),
             }),
         )
         .width(Stretch(1.0))
@@ -82,7 +78,7 @@ impl<'de> Deserialize<'de> for Pattern {
     }
 }
 struct PatternVisitor;
-impl<'de> Visitor<'de> for PatternVisitor {
+impl Visitor<'_> for PatternVisitor {
     type Value = Pattern;
 
     fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {

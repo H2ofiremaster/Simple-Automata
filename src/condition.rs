@@ -283,10 +283,11 @@ impl Condition {
                 cx.emit(ConditionEvent::PatternSet(index, selected_index));
             });
             VStack::new(cx, |cx| {
-                Button::new(cx, |cx| Svg::new(cx, style::svg::COPY).class(style::SVG))
+                Button::new(cx, |cx| Svg::new(cx, svg::COPY).class(style::SVG))
                     .on_press(move |cx| cx.emit(ConditionEvent::Copied(index)))
                     .size(Pixels(50.0));
-                Button::new(cx, |cx| Svg::new(cx, style::svg::TRASH).class(style::SVG))
+                Button::new(cx, |cx| Svg::new(cx, svg::TRASH).class(style::SVG))
+                    .class(style::TRASH_BUTTON)
                     .on_press(move |cx| cx.emit(ConditionEvent::Deleted(index)))
                     .size(Pixels(50.0));
             })

@@ -13,6 +13,7 @@
     corner-radius: 5%;
     child-space: 10px;
     space: 10px;
+    row-between: 10px;
 }
 .center-panel {
     background-color: #808080;
@@ -37,11 +38,30 @@
     min-width: auto;
     width: 1s;
 }
-.control-button {
+.ruleset-button {
     width: 1s;
-    min-widthe: Auto;
+    min-width: Auto;
     child-space: 1s;
     space: 0.1s;
+    font-size: x-large;
+}
+.control-button {
+    width: 1s;
+    min-width: Auto;
+    child-space: 1s;
+    space: 0.1s;
+}
+.material-tooltip {
+    width: 1s;
+    height: auto;
+    min-height: 38px;
+    child-space: 1s;
+    child-top: 5px;
+    child-bottom: 5px;
+    font-size: xx-large;
+    color: #ffffff;
+    background-color: #404040;
+    corner-radius: 15px;
 }
 
 combobox {
@@ -75,27 +95,46 @@ textbox {
     border-color: #ffffff;
     border-width: 1px;
 }
+
+label {
+    color: #ffffff;
+}
 button {
     background-color: #707070;
+    background-image: radial-gradient(#606060, #707070);
     border-color: #000000;
     border-width: 1px;
-    color: #ffffff
+    color: #ffffff;
 }
 button:hover {
     background-color: #505050;
+    background-image: radial-gradient(#404040, #505050);
 }
 button:disabled {
+    background-image: none;
     background-color: #202020;
 }
+
 .pressed-button {
+    background-image: none;
     background-color: #404040;
 }
 .pressed-button:hover {
-    background-color: #303030;
+    background-image: none;
+    background-color: #404040;
 }
+
+.trash-button {
+    background-image: radial-gradient(#600000, #700000);
+}
+.trash-button:hover {
+    background-image: radial-gradient(#400000, #500000);
+}
+
 .menu-element {
-    child-space: 1%;
-    min-height: auto;
+    child-space: 15px;
+    min-height: Auto;
+    height: Auto;
     width: 1s;
 }
 .svg {

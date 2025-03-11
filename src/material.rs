@@ -10,7 +10,7 @@ use vizia::{
     layout::Units::{Auto, Percentage, Pixels, Stretch},
     modifiers::{ActionModifiers, LayoutModifiers, StyleModifiers},
     style::RGBA,
-    views::{Button, ComboBox, HStack, Label, Textbox, VStack},
+    views::{Button, ComboBox, HStack, Label, Svg, Textbox, VStack},
 };
 
 use crate::{
@@ -59,10 +59,26 @@ impl Material {
         VStack::new(cx, |cx| {
             let cell = Cell::new(self.id);
             let id = self.id;
-            cell.display(cx, ruleset).size(Pixels(256.0));
-            HStack::new(cx, move |cx| {
-                Button::new(cx, |cx| Label::new(cx, "Delete"))
-                    .on_press(move |cx| cx.emit(MaterialEvent::Deleted(id)));
+
+            Textbox::new(
+                cx,
+                AppData::screen.map(move |screen| {
+                    screen
+                        .ruleset()
+                        .materials
+                        .get_at(index)
+                        .expect("The specified index did not contain a material")
+                        .name
+                        .clone()
+                }),
+            )
+            .width(Stretch(1.0))
+            .on_submit(move |cx, text, _| cx.emit(MaterialEvent::Renamed(index, text)));
+
+            cell.display(cx, ruleset)
+                .size(Pixels(style::EDITOR_MATERIAL_SIZE));
+
+            HStack::new(cx, |cx| {
                 Textbox::new(
                     cx,
                     AppData::screen.map(move |screen| {
@@ -78,28 +94,17 @@ impl Material {
                 .width(Stretch(1.0))
                 .on_submit(move |cx, text, _| cx.emit(MaterialEvent::Recolored(index, text)))
                 .min_height(Pixels(30.0));
-                Textbox::new(
-                    cx,
-                    AppData::screen.map(move |screen| {
-                        screen
-                            .ruleset()
-                            .materials
-                            .get_at(index)
-                            .expect("The specified index did not contain a material")
-                            .name
-                            .clone()
-                    }),
-                )
-                .width(Stretch(1.0))
-                .on_submit(move |cx, text, _| cx.emit(MaterialEvent::Renamed(index, text)));
+
+                Button::new(cx, |cx| Svg::new(cx, style::svg::TRASH).class(style::SVG))
+                    .class(style::TRASH_BUTTON)
+                    .size(Pixels(30.0))
+                    .on_press(move |cx| cx.emit(MaterialEvent::Deleted(id)))
+                    .display(AppData::screen.map(|screen| screen.ruleset().materials.len() != 1));
             })
             .width(Stretch(1.0))
             .height(Auto);
         })
-        .width(Auto)
-        .height(Auto)
-        .space(Percentage(1.0))
-        .child_space(Percentage(5.0));
+        .size(Auto);
     }
 }
 impl Default for Material {
@@ -254,7 +259,7 @@ impl Serialize for MaterialColor {
     }
 }
 struct MaterialColorVisitor;
-impl<'de> Visitor<'de> for MaterialColorVisitor {
+impl Visitor<'_> for MaterialColorVisitor {
     type Value = MaterialColor;
 
     fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -373,9 +378,7 @@ impl MaterialGroup {
                     AppData::screen.map(move |s| {
                         s.ruleset()
                             .group(id)
-                            .expect("Group should exist.")
-                            .name
-                            .clone()
+                            .map_or_else(|| String::from("ERROR"), |g| g.name.clone())
                     }),
                 )
                 .on_submit(move |cx, text, _| cx.emit(GroupEvent::Renamed(index, text)));
