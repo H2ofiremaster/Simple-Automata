@@ -1,4 +1,4 @@
 /target
 /rulesets/*.toml
 !/rulesets/conway.toml
-*flamegraph.svg
+flamegraph.svg
