@@ -71,15 +71,15 @@ impl Grid {
         ];
         CellNeighbors::new(array)
     }
-    #[allow(clippy::cast_sign_loss, clippy::cast_possible_wrap)]
-    pub fn get_neighbor(&self, index: usize, x_offset: i8, y_offset: i8) -> Option<Cell> {
+
+    pub fn get_neighbor(&self, index: usize, x_offset: isize, y_offset: isize) -> Option<Cell> {
         let (x, y) = self.cell_coordinates(index);
-        let x = x as isize + x_offset as isize;
-        let y = y as isize + y_offset as isize;
-        if x < 0 || x >= self.size as isize || y < 0 || y >= self.size as isize {
+        let x = x.wrapping_add_signed(x_offset);
+        let y = y.wrapping_add_signed(y_offset);
+        if x >= self.size || y >= self.size {
             None
         } else {
-            self.cell_at(x as usize, y as usize)
+            self.cell_at(x, y)
         }
     }
 
@@ -330,6 +330,68 @@ impl CellNeighbors {
             Direction::Southwest => self.0[5],
             Direction::South => self.0[6],
             Direction::Southeast => self.0[7],
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        condition::{Condition, ConditionVariant},
+        material::Material,
+        ruleset::Rule,
+    };
+
+    use super::*;
+
+    fn test_ruleset() -> Ruleset {
+        let mut ruleset = Ruleset::new();
+
+        let mut material = Material::new(&ruleset);
+        material.color = MaterialColor::new(255, 255, 255);
+        material.name = String::from("Filled");
+        ruleset.materials.push(material);
+
+        let blank_id = ruleset.materials.default().id();
+        let filled_id = ruleset.materials.get_mut_at(1).expect("").id();
+
+        let mut rule = Rule::new(&ruleset);
+        rule.input = Pattern::Material(blank_id);
+        rule.output = filled_id;
+
+        let mut condition = Condition::new(&ruleset);
+        condition.variant = ConditionVariant::Directional(vec![
+            Direction::North,
+            Direction::South,
+            Direction::East,
+            Direction::West,
+        ]);
+        condition.pattern = Pattern::Material(blank_id);
+        rule.conditions.push(condition);
+
+        ruleset.rules.push(rule);
+
+        let mut rule = Rule::new(&ruleset);
+        rule.input = Pattern::Material(filled_id);
+        rule.output = blank_id;
+
+        let mut condition = Condition::new(&ruleset);
+        condition.variant = ConditionVariant::Count(crate::condition::Operator::Greater(4));
+        condition.pattern = Pattern::Material(filled_id);
+        rule.conditions.push(condition);
+
+        ruleset.rules.push(rule);
+
+        ruleset
+    }
+
+    #[test]
+    fn perf_test() {
+        let ruleset = test_ruleset();
+        let mut grid = Grid::new(ruleset, 500);
+
+        for _ in 0..10000 {
+            grid.next_generation();
         }
     }
 }
