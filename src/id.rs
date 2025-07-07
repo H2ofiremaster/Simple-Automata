@@ -17,9 +17,9 @@ impl<T: Identifiable> UniqueId<T> {
             std::any::type_name::<T>(),
             current.len()
         );
-        let mut random = rand::thread_rng();
+        let mut random = rand::rng();
         loop {
-            let candidate = Self(random.gen(), PhantomData);
+            let candidate = Self(random.random(), PhantomData);
             if !current.iter().any(|m| m.id() == candidate) {
                 return candidate;
             }
