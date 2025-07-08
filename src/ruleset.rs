@@ -14,11 +14,14 @@ use vizia::{
 
 use crate::{
     condition::{Condition, ConditionIndex},
-    display::style::{self, svg},
+    display::{
+        style::{self, svg},
+        RulesetLens,
+    },
     events::{ConditionEvent, RuleEvent},
     grid::{Cell, Grid},
     id::{Identifiable, UniqueId},
-    material::{GroupId, Material, MaterialGroup, MaterialId, MaterialMap},
+    material::{GroupId, Material, MaterialGroup, MaterialId, MaterialMap, MaterialMapLens},
     pattern::Pattern,
     AppData,
 };
@@ -110,7 +113,7 @@ impl Ruleset {
 
     pub fn pattern_values(&self) -> Vec<String> {
         let material_names = self.materials.iter().map(|m| m.name.clone());
-        let group_names = self.groups.iter().map(|g| format!("#{}", g.name.clone()));
+        let group_names = self.groups.iter().map(|g| format!("#{}", g.name));
         material_names.chain(group_names).collect()
     }
 }
@@ -204,14 +207,14 @@ impl Rule {
                 // .background_color("green");
                 ComboBox::new(
                     cx,
-                    AppData::screen.map(|screen| screen.ruleset().materials.names()),
-                    AppData::screen.map(move |screen| {
-                        screen
-                            .ruleset()
-                            .materials
-                            .index_of(output)
-                            .unwrap_or_default()
-                    }),
+                    AppData::screen
+                        .then(RulesetLens)
+                        .then(MaterialMapLens)
+                        .map(super::material::MaterialMap::names),
+                    AppData::screen
+                        .then(RulesetLens)
+                        .then(MaterialMapLens)
+                        .map(move |materials| materials.index_of(output).unwrap_or_default()),
                 )
                 .class(style::LIGHT_COMBOBOX)
                 .width(Stretch(1.0))

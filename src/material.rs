@@ -5,7 +5,7 @@ use serde::{
     Deserialize, Serialize,
 };
 use vizia::{
-    binding::LensExt,
+    binding::{Lens, LensExt, LensValue},
     context::{Context, EmitContext},
     layout::Units::{Auto, Percentage, Pixels, Stretch},
     modifiers::{ActionModifiers, LayoutModifiers, StyleModifiers},
@@ -14,7 +14,7 @@ use vizia::{
 };
 
 use crate::{
-    display::style,
+    display::{style, RulesetLens},
     events::{GroupEvent, MaterialEvent},
     grid::Cell,
     id::{Identifiable, UniqueId},
@@ -335,6 +335,21 @@ impl MaterialMap {
     }
 }
 
+#[derive(Debug, Hash, Clone, Copy)]
+pub struct MaterialMapLens;
+impl Lens for MaterialMapLens {
+    type Source = Ruleset;
+
+    type Target = MaterialMap;
+
+    fn view<'a>(
+        &self,
+        source: &'a Self::Source,
+    ) -> Option<vizia::binding::LensValue<'a, Self::Target>> {
+        Some(LensValue::Borrowed(&source.materials))
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct MaterialGroup {
     id: UniqueId<Self>,
@@ -416,15 +431,18 @@ impl MaterialGroup {
             });
             ComboBox::new(
                 cx,
-                AppData::screen.map(|screen| screen.ruleset().materials.names()),
-                AppData::screen.map(move |screen| {
-                    let Some(group) = screen.ruleset().groups.get(group_index) else {
+                AppData::screen
+                    .then(RulesetLens)
+                    .then(MaterialMapLens)
+                    .map(MaterialMap::names),
+                AppData::screen.then(RulesetLens).map(move |ruleset| {
+                    let Some(group) = ruleset.groups.get(group_index) else {
                         return 0;
                     };
                     let Some(material) = group.materials.get(material_index) else {
                         return 0;
                     };
-                    let Some(index) = screen.ruleset().materials.index_of(*material) else {
+                    let Some(index) = ruleset.materials.index_of(*material) else {
                         return 0;
                     };
                     index

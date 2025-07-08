@@ -1,15 +1,19 @@
 use vizia::prelude::*;
 
 use crate::{
+    display::grid::{GridDisplay, VisualGridState},
     events::{
         EditorEvent, GridEvent, GroupEvent, MaterialEvent, RuleEvent, RulesetEvent, UpdateEvent,
     },
-    grid::{Cell, Grid, GridDisplay, VisualGridState},
+    grid::{Cell, Grid},
     id::Identifiable,
     material::Material,
     ruleset::Ruleset,
     AppData,
 };
+
+pub mod grid;
+pub mod rule;
 
 pub fn ruleset_editor(cx: &mut Context) {
     VStack::new(cx, |cx| {
@@ -51,11 +55,14 @@ fn toolbar(cx: &mut Context) {
         )
         .on_select(|cx, index| cx.emit(RulesetEvent::Selected(index)));
 
-        Textbox::new(cx, AppData::screen.map(|s| s.ruleset().name.clone()))
-            .on_submit(|cx, text, _| {
-                cx.emit(RulesetEvent::Renamed(text));
-            })
-            .min_width(Pixels(100.0));
+        Textbox::new(
+            cx,
+            AppData::screen.then(RulesetLens).map(|s| s.name.clone()),
+        )
+        .on_submit(|cx, text, _| {
+            cx.emit(RulesetEvent::Renamed(text));
+        })
+        .min_width(Pixels(100.0));
 
         Button::new(cx, |cx| Label::new(cx, "New")).on_press(|cx| cx.emit(RulesetEvent::Created));
 
@@ -96,13 +103,13 @@ fn tabs(cx: &mut Context) {
 fn material_editor(cx: &mut Context) {
     VStack::new(cx, |cx| {
         ScrollView::new(cx, 0.0, 0.0, true, true, move |cx| {
-            Binding::new(cx, AppData::screen, |cx, screen| {
-                let screen = screen.get(cx);
+            Binding::new(cx, AppData::screen.then(RulesetLens), |cx, ruleset| {
+                let ruleset = ruleset.get(cx);
                 let materials: Vec<(usize, &Material)> =
-                    screen.ruleset().materials.iter().enumerate().collect();
+                    ruleset.materials.iter().enumerate().collect();
                 VStack::new(cx, |cx| {
                     for chunk in materials.chunks(style::EDITOR_ROW_LENGTH) {
-                        editor_material_row(cx, chunk, screen.ruleset());
+                        editor_material_row(cx, chunk, &ruleset);
                     }
                 })
                 .row_between(Pixels(15.0))
@@ -138,11 +145,11 @@ fn editor_material_row(cx: &mut Context, row: &[(usize, &Material)], ruleset: &R
 fn group_editor(cx: &mut Context) {
     VStack::new(cx, |cx| {
         ScrollView::new(cx, 0.0, 0.0, true, true, move |cx| {
-            Binding::new(cx, AppData::screen, |cx, screen| {
-                let screen = screen.get(cx);
+            Binding::new(cx, AppData::screen.then(RulesetLens), |cx, ruleset| {
+                let ruleset = ruleset.get(cx);
                 VStack::new(cx, |cx| {
-                    for (index, group) in screen.ruleset().groups.iter().enumerate() {
-                        group.display_editor(cx, index, screen.ruleset());
+                    for (index, group) in ruleset.groups.iter().enumerate() {
+                        group.display_editor(cx, index, &ruleset);
                     }
                 })
                 .row_between(Pixels(5.0))
@@ -161,9 +168,9 @@ fn group_editor(cx: &mut Context) {
 fn rule_editor(cx: &mut Context) {
     VStack::new(cx, |cx| {
         ScrollView::new(cx, 0.0, 0.0, true, true, |cx| {
-            Binding::new(cx, AppData::screen, |cx, screen| {
+            Binding::new(cx, AppData::screen.then(RulesetLens), |cx, ruleset| {
                 VStack::new(cx, move |cx| {
-                    for (index, rule) in screen.get(cx).ruleset().rules.iter().enumerate() {
+                    for (index, rule) in ruleset.get(cx).rules.iter().enumerate() {
                         rule.display_editor(cx, index.into());
                     }
                 })
@@ -293,13 +300,9 @@ fn center_panel(cx: &mut Context) {
     ZStack::new(cx, |cx| {
         GridDisplay::new(
             cx,
-            AppData::screen.map(|screen| {
-                if let Screen::Grid(grid) = screen {
-                    grid.visual_state()
-                } else {
-                    VisualGridState::default()
-                }
-            }),
+            AppData::screen
+                .then(GridLens)
+                .map(super::grid::Grid::visual_state),
             AppData::hovered_index,
             AppData::grid_lines_enabled,
         )
@@ -319,10 +322,8 @@ fn right_panel(cx: &mut Context) {
             .color(AppData::tooltip.map(|(_, color)| *color));
         ScrollView::new(cx, 0., 0., true, true, |cx| {
             VStack::new(cx, |cx| {
-                Binding::new(cx, AppData::screen, |cx, screen| {
-                    let Screen::Grid(grid) = screen.get(cx) else {
-                        return;
-                    };
+                Binding::new(cx, AppData::screen.then(GridLens), |cx, grid| {
+                    let grid = grid.get(cx);
                     let ruleset = grid.ruleset;
                     let cells: Vec<Cell> = ruleset
                         .materials
@@ -409,6 +410,34 @@ impl Screen {
     }
 }
 
+#[derive(Debug, Hash, Clone, Copy)]
+pub struct RulesetLens;
+impl Lens for RulesetLens {
+    type Source = Screen;
+
+    type Target = Ruleset;
+
+    fn view<'a>(&self, source: &'a Self::Source) -> Option<LensValue<'a, Self::Target>> {
+        Some(LensValue::Borrowed(source.ruleset()))
+    }
+}
+
+#[derive(Debug, Hash, Clone, Copy)]
+pub struct GridLens;
+impl Lens for GridLens {
+    type Source = Screen;
+
+    type Target = Grid;
+
+    fn view<'a>(&self, source: &'a Self::Source) -> Option<LensValue<'a, Self::Target>> {
+        if let Screen::Grid(ref grid) = source {
+            Some(LensValue::Borrowed(grid))
+        } else {
+            None
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Data)]
 pub enum EditorTab {
     Materials,
@@ -453,30 +482,30 @@ pub mod style {
     /// How many pixels each material takes up in the editor.
     pub const EDITOR_MATERIAL_SIZE: f32 = 150.0;
 
+    #[rustfmt::skip]
     pub mod svg {
-        pub const ARROW_NORTHWEST: &str = include_str!("../resources/svg/arrows/northwest.svg");
-        pub const ARROW_NORTH: &str = include_str!("../resources/svg/arrows/north.svg");
-        pub const ARROW_NORTHEAST: &str = include_str!("../resources/svg/arrows/northeast.svg");
-        pub const ARROW_WEST: &str = include_str!("../resources/svg/arrows/west.svg");
-        pub const ARROW_EAST: &str = include_str!("../resources/svg/arrows/east.svg");
-        pub const ARROW_SOUTHWEST: &str = include_str!("../resources/svg/arrows/southwest.svg");
-        pub const ARROW_SOUTH: &str = include_str!("../resources/svg/arrows/south.svg");
-        pub const ARROW_SOUTHEAST: &str = include_str!("../resources/svg/arrows/southeast.svg");
+        pub const ARROW_NORTHWEST: &str = include_str!("../../resources/svg/arrows/northwest.svg");
+        pub const ARROW_NORTH: &str = include_str!("../../resources/svg/arrows/north.svg");
+        pub const ARROW_NORTHEAST: &str = include_str!("../../resources/svg/arrows/northeast.svg");
+        pub const ARROW_WEST: &str = include_str!("../../resources/svg/arrows/west.svg");
+        pub const ARROW_EAST: &str = include_str!("../../resources/svg/arrows/east.svg");
+        pub const ARROW_SOUTHWEST: &str = include_str!("../../resources/svg/arrows/southwest.svg");
+        pub const ARROW_SOUTH: &str = include_str!("../../resources/svg/arrows/south.svg");
+        pub const ARROW_SOUTHEAST: &str = include_str!("../../resources/svg/arrows/southeast.svg");
 
-        pub const ARROW_UP: &str = include_str!("../resources/svg/arrows/up.svg");
-        pub const ARROW_DOWN: &str = include_str!("../resources/svg/arrows/down.svg");
+        pub const ARROW_UP: &str = include_str!("../../resources/svg/arrows/up.svg");
+        pub const ARROW_DOWN: &str = include_str!("../../resources/svg/arrows/down.svg");
 
-        pub const COPY: &str = include_str!("../resources/svg/copy.svg");
-        pub const TRASH: &str = include_str!("../resources/svg/trash.svg");
-        pub const TRASH_OPEN: &str = include_str!("../resources/svg/trash_open.svg");
-        pub const TRANSFORM_ARROW: &str = include_str!("../resources/svg/transform_arrow.svg");
-        pub const EQUAL: &str = include_str!("../resources/svg/equal.svg");
-        pub const NOT_EQUAL: &str = include_str!("../resources/svg/not_equal.svg");
-        pub const LESS: &str = include_str!("../resources/svg/less.svg");
-        pub const GREATER: &str = include_str!("../resources/svg/greater.svg");
+        pub const COPY: &str = include_str!("../../resources/svg/copy.svg");
+        pub const TRASH: &str = include_str!("../../resources/svg/trash.svg");
+        pub const TRASH_OPEN: &str = include_str!("../../resources/svg/trash_open.svg");
+        pub const TRANSFORM_ARROW: &str = include_str!("../../resources/svg/transform_arrow.svg");
+        pub const EQUAL: &str = include_str!("../../resources/svg/equal.svg");
+        pub const NOT_EQUAL: &str = include_str!("../../resources/svg/not_equal.svg");
+        pub const LESS: &str = include_str!("../../resources/svg/less.svg");
+        pub const GREATER: &str = include_str!("../../resources/svg/greater.svg");
 
-        #[rustfmt::skip]
-        pub const DIRECTIONAL_CONDITION: &str = include_str!("../resources/svg/directional_condition.svg");
-        pub const NUMBERIC_CONDITION: &str = include_str!("../resources/svg/numeric_condition.svg");
+        pub const DIRECTIONAL_CONDITION: &str = include_str!("../../resources/svg/directional_condition.svg");
+        pub const NUMBERIC_CONDITION: &str = include_str!("../../resources/svg/numeric_condition.svg");
     }
 }

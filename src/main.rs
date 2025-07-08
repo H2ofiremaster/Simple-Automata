@@ -449,7 +449,7 @@ impl Model for AppData {
 
 fn main() -> Result<(), ApplicationError> {
     Application::new(|cx| {
-        cx.add_stylesheet(include_style!("resources/style.css"))
+        cx.add_stylesheet(include_style!("resources/style_f.css"))
             .expect("failed to add stylesheet.");
 
         let timer = cx.add_timer(Duration::from_secs_f32(1.0), None, |cx, event| {

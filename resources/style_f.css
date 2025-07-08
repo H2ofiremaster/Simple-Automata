@@ -1,0 +1,214 @@
+/*
+Full Background: #000000 
+Element Background: #3030A0
+Border Color: 
+
+*/
+.vars {
+    --full-background: #000;
+    --background: #3030a0;
+    --light-background: #6060d0;
+    --dark-background: #101080;
+
+    --trash-background: #700000;
+    --light-trash-background: #A00000;
+
+    --border: #5050c0;
+    --dark-border: #2020a0;
+    --text-color: #fff;
+
+    --border-width: 2px;
+}
+
+.background {
+    child-space: 1%;
+    background-color: #000;
+}
+
+.side-panel {
+    background-color: #3030a0;
+    border-color: #5050c0;
+    border-width: 2px;
+    corner-radius: 5%;
+    child-space: 10px;
+    space: 10px;
+    row-between: 10px;
+}
+.center-panel {
+    background-color: #3030a0;
+    border-color: #5050c0;
+    border-width: 2px;
+    corner-radius: 1%;
+    child-space: 0.01s;
+}
+.cell {
+    space: 0.03s;
+    size: 1s;
+    corner-radius: 5%;
+    border-width: 5px;
+}
+.material-display {
+    size: 128px;
+    space: 1s;
+    min_space: 128px;
+    border-width: 5px;
+}
+.material-row {
+    space: 15px;
+    height: auto;
+    min-width: auto;
+    width: 1s;
+}
+.ruleset-button {
+    width: 1s;
+    min-width: Auto;
+    child-space: 1s;
+    space: 0.1s;
+    font-size: x-large;
+}
+.control-button {
+    width: 1s;
+    min-width: Auto;
+    child-space: 1s;
+    space: 0.1s;
+}
+.material-tooltip {
+    width: 1s;
+    height: auto;
+    min-height: 38px;
+    child-space: 1s;
+    child-top: 5px;
+    child-bottom: 5px;
+    font-size: xx-large;
+    color: #fff;
+    background-color: #3030a0;
+    border-color: #5050c0;
+    border-width: 2px;
+    corner-radius: 15px;
+}
+
+combobox {
+    background-color: #3030a0;
+    color: #fff;
+}
+combobox .title {
+    background-color: #3030a0;
+    color: #fff;
+    border-color: #fff;
+    border-width: 1px;
+}
+combobox .title > label.placeholder {
+    color: #fff;
+}
+combobox .list {
+    background-color: #3030a0;
+    color: #fff;
+}
+
+.light-combobox {
+    background-color: #6060d0;
+}
+.light-combobox .title {
+    background-color: #6060d0;
+}
+
+textbox {
+    background-color: #3030a0;
+    color: #fff;
+    border-color: #2020a0;
+    border-width: 2px;
+}
+
+label {
+    color: #fff;
+}
+button {
+    background-color: #3030a0;
+    /* background-image: radial-gradient(#606060, #707070); */
+    border-color: #5050c0;
+    border-width: 2px;
+    color: #fff;
+}
+button:hover {
+    background-color: #6060d0;
+    /* background-image: radial-gradient(#404040, #505050); */
+}
+button:disabled {
+    /* background-image: none; */
+    background-color: #101080;
+}
+
+.pressed-button {
+    background-color: #101080;
+}
+.pressed-button:hover {
+    background-color: #3030a0;
+}
+
+.trash-button {
+    background-color: #700000;
+}
+.trash-button:hover {
+    background-color: #A00000;
+}
+
+.menu-element {
+    child-space: 15px;
+    min-height: Auto;
+    height: Auto;
+    width: 1s;
+}
+.svg {
+    space: 1s;
+    size: 80%;
+    min_size: 100%;
+}
+
+.editor-panel {
+    background-color: #3030a0;
+    border-color: #5050c0;
+    border-width: 2px;
+    child-space: 15px;
+    space: 5px;
+    corner-radius: 15px;
+}
+.base-editor {
+    left: 1s;
+    right: 1s;
+    height: Auto;
+    background-color: #404040;
+    child-space: 15px;
+    row-between: 5px;
+    corner-radius: 15px;
+}
+.condition-editor {
+    background-color: #3030a0;
+    border-color: #5050c0;
+    border-width: 2px;
+    child_top: 1s;
+    child_bottom: 1s;
+    child-left: 15px;
+    child-right: 15px;
+    min-height: Auto;
+    corner-radius: 15px;
+}
+.condition-container {
+    background-color: #3030a0;
+    height: Auto;
+    child-space: 10px;
+    row-between: 15px;
+    border-width: 2px;
+    border-color: #5050c0;
+    corner-radius: 15px;
+}
+.condition-invert-button {
+    left: 15px;
+    right: 15px;
+    top: 1s;
+    bottom: 1s;
+    size: 50px;
+}
+
+label {
+    font-size: large;
+}

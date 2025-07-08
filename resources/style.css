@@ -1,22 +1,43 @@
-/* background: #000000 */
-/* foreground: #606060 */
-/* middle: #404040 */
-/* foreground-contrast: #202020 */
+/*
+Full Background: #000000 
+Element Background: #3030A0
+Border Color: 
+
+*/
+.vars {
+    --full-background: #000;
+    --background: #3030a0;
+    --light-background: #6060d0;
+    --dark-background: #101080;
+
+    --trash-background: #700000;
+    --light-trash-background: #A00000;
+
+    --border: #5050c0;
+    --dark-border: #2020a0;
+    --text-color: #fff;
+
+    --border-width: 2px;
+}
 
 .background {
     child-space: 1%;
-    background-color: #000;
+    background-color: var(--full-background);
 }
 
 .side-panel {
-    background-color: #606060;
+    background-color: var(--background);
+    border-color: var(--border);
+    border-width: var(--border-width);
     corner-radius: 5%;
     child-space: 10px;
     space: 10px;
     row-between: 10px;
 }
 .center-panel {
-    background-color: #808080;
+    background-color: var(--background);
+    border-color: var(--border);
+    border-width: var(--border-width);
     corner-radius: 1%;
     child-space: 0.01s;
 }
@@ -59,76 +80,76 @@
     child-top: 5px;
     child-bottom: 5px;
     font-size: xx-large;
-    color: #ffffff;
-    background-color: #404040;
+    color: var(--text-color);
+    background-color: var(--background);
+    border-color: var(--border);
+    border-width: var(--border-width);
     corner-radius: 15px;
 }
 
 combobox {
-    background-color: #505050;
-    color: #ffffff;
+    background-color: var(--background);
+    color: var(--text-color);
 }
 combobox .title {
-    background-color: #505050;
-    color: #ffffff;
-    border-color: #ffffff;
+    background-color: var(--background);
+    color: var(--text-color);
+    border-color: var(--text-color);
     border-width: 1px;
 }
 combobox .title > label.placeholder {
-    color: #ffffff;
+    color: var(--text-color);
 }
 combobox .list {
-    background-color: #606060;
-    color: #ffffff;
+    background-color: var(--background);
+    color: var(--text-color);
 }
 
 .light-combobox {
-    background-color: #707070;
+    background-color: var(--light-background);
 }
 .light-combobox .title {
-    background-color: #707070;
+    background-color: var(--light-background);
 }
 
 textbox {
-    background-color: #505050;
-    color: #ffffff;
-    border-color: #ffffff;
-    border-width: 1px;
+    background-color: var(--background);
+    color: var(--text-color);
+    border-color: var(--dark-border);
+    border-width: var(--border-width);
 }
 
 label {
-    color: #ffffff;
+    color: var(--text-color);
 }
 button {
-    background-color: #707070;
-    background-image: radial-gradient(#606060, #707070);
-    border-color: #000000;
-    border-width: 1px;
-    color: #ffffff;
+    background-color: var(--background);
+    /* background-image: radial-gradient(#606060, #707070); */
+    border-color: var(--border);
+    border-width: var(--border-width);
+    color: var(--text-color);
 }
 button:hover {
-    background-color: #505050;
-    background-image: radial-gradient(#404040, #505050);
+    background-color: var(--light-background);
+    /* background-image: radial-gradient(#404040, #505050); */
 }
 button:disabled {
-    background-image: none;
-    background-color: #202020;
+    /* background-image: none; */
+    background-color: var(--dark-background);
 }
 
 .pressed-button {
-    background-image: none;
-    background-color: #404040;
+    background-color: var(--dark-background);
 }
 .pressed-button:hover {
-    background-image: none;
-    background-color: #404040;
+    background-color: var(--background);
 }
 
 .trash-button {
-    background-image: radial-gradient(#600000, #700000);
+    background-color: var(--trash-background);
 }
 .trash-button:hover {
-    background-image: radial-gradient(#400000, #500000);
+    background-color: var(--light-trash-background);
 }
 
 .menu-element {
@@ -144,7 +165,9 @@ button:disabled {
 }
 
 .editor-panel {
-    background-color: #606060;
+    background-color: var(--background);
+    border-color: var(--border);
+    border-width: var(--border-width);
     child-space: 15px;
     space: 5px;
     corner-radius: 15px;
@@ -159,20 +182,23 @@ button:disabled {
     corner-radius: 15px;
 }
 .condition-editor {
+    background-color: var(--background);
+    border-color: var(--border);
+    border-width: var(--border-width);
     child_top: 1s;
     child_bottom: 1s;
     child-left: 15px;
     child-right: 15px;
     min-height: Auto;
-    background-color: #606060;
     corner-radius: 15px;
 }
 .condition-container {
+    background-color: var(--background);
     height: Auto;
     child-space: 10px;
     row-between: 15px;
-    border-width: 2px;
-    border-color: #ffffff;
+    border-width: var(--border-width);
+    border-color: var(--border);
     corner-radius: 15px;
 }
 .condition-invert-button {
