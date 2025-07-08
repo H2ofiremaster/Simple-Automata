@@ -2,20 +2,12 @@ use serde::{
     de::{self, Visitor},
     Deserialize, Serialize,
 };
-use vizia::{
-    binding::LensExt,
-    context::{Context, EventContext},
-    layout::Units::Stretch,
-    modifiers::{LayoutModifiers, StyleModifiers},
-    views::ComboBox,
-};
 
 use crate::{
     grid::Cell,
     id::{Identifiable, UniqueId},
     material::{GroupId, MaterialId},
     ruleset::Ruleset,
-    AppData,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -24,29 +16,6 @@ pub enum Pattern {
     Group(GroupId),
 }
 impl Pattern {
-    pub fn display_editor<F>(self, cx: &mut Context, on_select: F)
-    where
-        F: Fn(&mut EventContext, usize) + 'static,
-    {
-        ComboBox::new(
-            cx,
-            AppData::screen.map(|screen| screen.ruleset().pattern_values()),
-            AppData::screen.map(move |screen| match self {
-                Self::Material(id) => screen.ruleset().materials.index_of(id).unwrap_or_default(),
-                Self::Group(id) => screen
-                    .ruleset()
-                    .index_of_group(id)
-                    .map(|index| screen.ruleset().materials.len() + index)
-                    .unwrap_or_default(),
-            }),
-        )
-        .width(Stretch(1.0))
-        .top(Stretch(1.0))
-        .bottom(Stretch(1.0))
-        .on_select(on_select)
-        .class(crate::display::style::LIGHT_COMBOBOX);
-    }
-
     pub fn matches(self, ruleset: &Ruleset, target: Cell) -> bool {
         match self {
             Self::Material(id) => id == target.material_id,

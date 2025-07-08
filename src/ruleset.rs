@@ -4,26 +4,14 @@ use serde::{
     de::{self, Visitor},
     Deserialize, Serialize,
 };
-use vizia::{
-    binding::{Data, LensExt},
-    context::{Context, EmitContext},
-    layout::Units::{Auto, Percentage, Pixels, Stretch},
-    modifiers::{ActionModifiers, LayoutModifiers, StyleModifiers},
-    views::{Button, ComboBox, HStack, Label, Svg, VStack, ZStack},
-};
+use vizia::binding::Data;
 
 use crate::{
     condition::{Condition, ConditionIndex},
-    display::{
-        style::{self, svg},
-        RulesetLens,
-    },
-    events::{ConditionEvent, RuleEvent},
     grid::{Cell, Grid},
     id::{Identifiable, UniqueId},
-    material::{GroupId, Material, MaterialGroup, MaterialId, MaterialMap, MaterialMapLens},
+    material::{GroupId, Material, MaterialGroup, MaterialId, MaterialMap},
     pattern::Pattern,
-    AppData,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -135,7 +123,7 @@ impl RuleIndex {
     pub const fn value(self) -> usize {
         self.index
     }
-    const fn with_condition(self, condition_index: usize) -> ConditionIndex {
+    pub const fn with_condition(self, condition_index: usize) -> ConditionIndex {
         ConditionIndex::new(self.index, condition_index)
     }
     pub fn rule(self, ruleset: &Ruleset) -> &Rule {
@@ -182,71 +170,6 @@ impl Rule {
             return None;
         }
         Some(Cell::new(self.output))
-    }
-
-    pub fn display_editor(&self, cx: &mut Context, index: RuleIndex) {
-        let output = self.output;
-        VStack::new(cx, move |cx| {
-            HStack::new(cx, move |cx| {
-                Button::new(cx, |cx| Svg::new(cx, svg::COPY).class(style::SVG))
-                    .on_press(move |cx| cx.emit(RuleEvent::Copied(index)))
-                    .size(Pixels(50.0))
-                    .top(Stretch(1.0))
-                    .right(Pixels(15.0))
-                    .bottom(Stretch(1.0));
-
-                self.input.display_editor(cx, move |cx, selected| {
-                    cx.emit(RuleEvent::InputSet(index, selected));
-                });
-                ZStack::new(cx, |cx| {
-                    Svg::new(cx, svg::TRANSFORM_ARROW)
-                        .size(Percentage(80.0))
-                        .space(Stretch(1.0));
-                })
-                .size(Pixels(80.0));
-                // .background_color("green");
-                ComboBox::new(
-                    cx,
-                    AppData::screen
-                        .then(RulesetLens)
-                        .then(MaterialMapLens)
-                        .map(super::material::MaterialMap::names),
-                    AppData::screen
-                        .then(RulesetLens)
-                        .then(MaterialMapLens)
-                        .map(move |materials| materials.index_of(output).unwrap_or_default()),
-                )
-                .class(style::LIGHT_COMBOBOX)
-                .width(Stretch(1.0))
-                .top(Stretch(1.0))
-                .bottom(Stretch(1.0))
-                .on_select(move |cx, selected| {
-                    cx.emit(RuleEvent::OutputSet(index, selected));
-                });
-
-                Button::new(cx, |cx| Svg::new(cx, svg::TRASH).class(style::SVG))
-                    .class(style::TRASH_BUTTON)
-                    .on_press(move |cx| cx.emit(RuleEvent::Deleted(index)))
-                    .size(Pixels(50.0))
-                    .top(Stretch(1.0))
-                    .left(Pixels(15.0))
-                    .bottom(Stretch(1.0));
-            })
-            // .background_color("red")
-            .top(Pixels(-5.0))
-            .height(Auto);
-            VStack::new(cx, move |cx| {
-                for (condition_index, condition) in self.conditions.iter().enumerate() {
-                    condition.display_editor(cx, index.with_condition(condition_index));
-                }
-                Button::new(cx, |cx| Label::new(cx, "New Condition").space(Stretch(1.0)))
-                    .width(Stretch(1.0))
-                    .on_press(move |cx| cx.emit(ConditionEvent::Created(index)));
-            })
-            .class(style::CONDITION_CONTAINER);
-        })
-        .class(style::BASE_EDITOR)
-        .width(Percentage(50.0));
     }
 }
 struct RuleVisitor;

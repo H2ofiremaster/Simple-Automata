@@ -4,22 +4,11 @@ use serde::{
     de::{self, Visitor},
     Deserialize, Serialize,
 };
-use vizia::{
-    binding::{Lens, LensExt, LensValue},
-    context::{Context, EmitContext},
-    layout::Units::{Auto, Percentage, Pixels, Stretch},
-    modifiers::{ActionModifiers, LayoutModifiers, StyleModifiers},
-    style::RGBA,
-    views::{Button, ComboBox, HStack, Label, Svg, Textbox, VStack},
-};
+use vizia::style::RGBA;
 
 use crate::{
-    display::{style, RulesetLens},
-    events::{GroupEvent, MaterialEvent},
-    grid::Cell,
     id::{Identifiable, UniqueId},
     ruleset::Ruleset,
-    AppData,
 };
 
 pub type MaterialId = UniqueId<Material>;
@@ -53,58 +42,6 @@ impl Material {
             name: String::from("Blank"),
             color: MaterialColor::BLANK,
         }
-    }
-
-    pub fn display_editor(&self, cx: &mut Context, index: usize, ruleset: &Ruleset) {
-        VStack::new(cx, |cx| {
-            let cell = Cell::new(self.id);
-            let id = self.id;
-
-            Textbox::new(
-                cx,
-                AppData::screen.map(move |screen| {
-                    screen
-                        .ruleset()
-                        .materials
-                        .get_at(index)
-                        .expect("The specified index did not contain a material")
-                        .name
-                        .clone()
-                }),
-            )
-            .width(Stretch(1.0))
-            .on_submit(move |cx, text, _| cx.emit(MaterialEvent::Renamed(index, text)));
-
-            cell.display(cx, ruleset)
-                .size(Pixels(style::EDITOR_MATERIAL_SIZE));
-
-            HStack::new(cx, |cx| {
-                Textbox::new(
-                    cx,
-                    AppData::screen.map(move |screen| {
-                        screen
-                            .ruleset()
-                            .materials
-                            .get_at(index)
-                            .expect("The specified index did not contain a material")
-                            .color
-                            .to_string()
-                    }),
-                )
-                .width(Stretch(1.0))
-                .on_submit(move |cx, text, _| cx.emit(MaterialEvent::Recolored(index, text)))
-                .min_height(Pixels(30.0));
-
-                Button::new(cx, |cx| Svg::new(cx, style::svg::TRASH).class(style::SVG))
-                    .class(style::TRASH_BUTTON)
-                    .size(Pixels(30.0))
-                    .on_press(move |cx| cx.emit(MaterialEvent::Deleted(id)))
-                    .display(AppData::screen.map(|screen| screen.ruleset().materials.len() != 1));
-            })
-            .width(Stretch(1.0))
-            .height(Auto);
-        })
-        .size(Auto);
     }
 }
 impl Default for Material {
@@ -335,26 +272,11 @@ impl MaterialMap {
     }
 }
 
-#[derive(Debug, Hash, Clone, Copy)]
-pub struct MaterialMapLens;
-impl Lens for MaterialMapLens {
-    type Source = Ruleset;
-
-    type Target = MaterialMap;
-
-    fn view<'a>(
-        &self,
-        source: &'a Self::Source,
-    ) -> Option<vizia::binding::LensValue<'a, Self::Target>> {
-        Some(LensValue::Borrowed(&source.materials))
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct MaterialGroup {
     id: UniqueId<Self>,
     pub name: String,
-    materials: Vec<MaterialId>,
+    pub materials: Vec<MaterialId>,
 }
 impl MaterialGroup {
     pub fn new(ruleset: &Ruleset) -> Self {
@@ -382,82 +304,6 @@ impl MaterialGroup {
     }
     pub fn remove_at(&mut self, index: usize) {
         self.materials.remove(index);
-    }
-
-    pub fn display_editor(&self, cx: &mut Context, index: usize, ruleset: &Ruleset) {
-        let id = self.id;
-        VStack::new(cx, move |cx| {
-            HStack::new(cx, move |cx| {
-                Textbox::new(
-                    cx,
-                    AppData::screen.map(move |s| {
-                        s.ruleset()
-                            .group(id)
-                            .map_or_else(|| String::from("ERROR"), |g| g.name.clone())
-                    }),
-                )
-                .on_submit(move |cx, text, _| cx.emit(GroupEvent::Renamed(index, text)));
-                Button::new(cx, |cx| Label::new(cx, "New Material"))
-                    .on_press(move |cx| cx.emit(GroupEvent::EntryAdded(index)));
-                Button::new(cx, |cx| Label::new(cx, "Delete"))
-                    .on_press(move |cx| cx.emit(GroupEvent::Deleted(index)));
-            })
-            .height(Auto);
-
-            self.materials
-                .iter()
-                .enumerate()
-                .filter_map(|(index, id)| ruleset.materials.get(*id).map(|_| index))
-                .enumerate()
-                .for_each(|(entry_index, material_index)| {
-                    Self::display_entry(cx, index, material_index, entry_index);
-                });
-        })
-        .width(Percentage(100.0))
-        .class(style::BASE_EDITOR);
-    }
-    fn display_entry(
-        cx: &mut Context,
-        group_index: usize,
-        material_index: usize,
-        entry_index: usize,
-    ) {
-        HStack::new(cx, |cx| {
-            Button::new(cx, |cx| Label::new(cx, "-")).on_press(move |cx| {
-                cx.emit(GroupEvent::EntryDeleted {
-                    group_index,
-                    entry_index,
-                });
-            });
-            ComboBox::new(
-                cx,
-                AppData::screen
-                    .then(RulesetLens)
-                    .then(MaterialMapLens)
-                    .map(MaterialMap::names),
-                AppData::screen.then(RulesetLens).map(move |ruleset| {
-                    let Some(group) = ruleset.groups.get(group_index) else {
-                        return 0;
-                    };
-                    let Some(material) = group.materials.get(material_index) else {
-                        return 0;
-                    };
-                    let Some(index) = ruleset.materials.index_of(*material) else {
-                        return 0;
-                    };
-                    index
-                }),
-            )
-            .on_select(move |cx, selected_index| {
-                cx.emit(GroupEvent::Edited {
-                    group_index,
-                    entry_index: material_index,
-                    new_material_index: selected_index,
-                });
-            });
-        })
-        .height(Auto)
-        .width(Stretch(1.0));
     }
 }
 impl Identifiable for MaterialGroup {

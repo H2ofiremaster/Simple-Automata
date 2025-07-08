@@ -2,12 +2,21 @@ use vizia::{
     binding::{Data, Lens, ResGet},
     context::{Context, EmitContext},
     layout::BoundingBox,
+    modifiers::{ActionModifiers, StyleModifiers},
+    style::RGBA,
     vg,
     view::{Handle, View},
+    views::{Button, Element},
     window::WindowEvent,
 };
 
-use crate::{display, events::UpdateEvent, material::MaterialColor};
+use crate::{
+    display::{self, style},
+    events::UpdateEvent,
+    grid::Cell,
+    material::MaterialColor,
+    ruleset::Ruleset,
+};
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct VisualGridState {
@@ -145,3 +154,25 @@ where
         });
     }
 }
+
+pub fn cell<'c>(this: Cell, cx: &'c mut Context, ruleset: &Ruleset) -> Handle<'c, Button> {
+    Button::new(cx, Element::new)
+        .class(style::CELL)
+        .background_gradient(gradient(this, ruleset).as_str())
+        .on_hover_out(|cx| cx.emit(UpdateEvent::CellUnhovered))
+}
+#[rustfmt::skip]
+    fn gradient(this: Cell, ruleset: &Ruleset) -> String {
+        let color = this.color(ruleset).to_rgba();
+        let darken_value = style::CELL_GRADIENT_DARKEN;
+        let dark_color = RGBA::rgb(
+            color.r().saturating_sub(darken_value),
+            color.g().saturating_sub(darken_value),
+            color.b().saturating_sub(darken_value)
+        );
+        format!(
+            "radial-gradient(rgba({}, {}, {}), rgba({}, {}, {}))",
+            color.r(),      color.g(),      color.b(),
+            dark_color.r(), dark_color.g(), dark_color.b()
+        )
+    }
