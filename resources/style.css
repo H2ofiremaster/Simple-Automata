@@ -45,6 +45,7 @@ combobox .list {
 textbox {
     background-color: var(--background);
     color: var(--text-color);
+    font-size: large;
     border-color: var(--border);
     border-width: var(--border-width);
 }
@@ -103,7 +104,8 @@ slider .thumb {
 
 /* Classes */
 .background {
-    child-space: 1%;
+    padding: 1%;
+    horizontal-gap: .5%;
     background-color: var(--full-background);
 }
 
@@ -112,16 +114,16 @@ slider .thumb {
     border-color: var(--dark-border);
     border-width: var(--border-width);
     corner-radius: 5%;
-    child-space: 10px;
-    space: 10px;
-    row-between: 10px;
+    padding: 2%;
+    gap: 2%;
 }
 .center-panel {
+    alignment: center;
     background-color: var(--background);
     border-color: var(--dark-border);
     border-width: var(--border-width);
     corner-radius: 1%;
-    child-space: 0.01s;
+    padding: 1%;
 }
 .cell {
     space: 0.03s;
@@ -132,7 +134,7 @@ slider .thumb {
 .material-display {
     size: 128px;
     space: 1s;
-    min_space: 128px;
+    min-space: 128px;
     border-width: 5px;
 }
 .material-row {
@@ -144,21 +146,20 @@ slider .thumb {
 .ruleset-button {
     width: 1s;
     min-width: Auto;
-    child-space: 1s;
-    space: 0.1s;
+    padding: 1s;
     font-size: x-large;
 }
 .control-button {
     width: 1s;
     min-width: Auto;
-    child-space: 1s;
+    padding: 1s;
     space: 0.1s;
 }
 .material-tooltip {
     width: 1s;
     height: auto;
     min-height: 38px;
-    child-space: 1s;
+    alignment: center;
     child-top: 5px;
     child-bottom: 5px;
     font-size: xx-large;
@@ -193,7 +194,7 @@ slider .thumb {
 }
 
 .menu-element {
-    child-space: 15px;
+    padding: 2%;
     min-height: Auto;
     height: Auto;
     width: 1s;
@@ -205,12 +206,13 @@ slider .thumb {
 }
 
 .editor-panel {
+    alignment: center;
     background-color: var(--background);
     border-color: var(--dark-border);
     border-width: var(--border-width);
-    child-space: 15px;
-    space: 5px;
     corner-radius: 15px;
+    padding: 15px;
+    space: 5px;
 }
 .base-editor {
     background-color: var(--background);
@@ -219,7 +221,7 @@ slider .thumb {
     left: 1s;
     right: 1s;
     height: Auto;
-    child-space: 15px;
+    padding: 15px;
     row-between: 5px;
     corner-radius: 15px;
 }
@@ -237,7 +239,7 @@ slider .thumb {
 .condition-container {
     background-color: var(--background);
     height: Auto;
-    child-space: 10px;
+    padding: 10px;
     vertical-gap: 15px;
     border-width: var(--border-width);
     border-color: var(--dark-border);

@@ -1,4 +1,5 @@
 use vizia::prelude::*;
+use vizia::views::Grid as GridView;
 
 use crate::{
     AppData,
@@ -117,20 +118,26 @@ fn material_editor(cx: &mut Context) {
                     let ruleset = ruleset.get(cx);
                     let materials: Vec<MaterialColor> =
                         ruleset.materials.iter().map(|m| m.color).collect();
-                    // VStack::new(cx, |cx| {
-                    //     for chunk in materials.chunks(style::EDITOR_ROW_LENGTH) {
-                    //         editor_material_row(cx, chunk, &ruleset);
-                    //     }
-                    // })
-                    // .row_between(Pixels(15.0))
-                    // .left(Stretch(0.1))
-                    // .right(Stretch(0.1))
-                    // .size(Auto);
-                    VStack::new(cx, |cx| {
-                        for _ in 0..style::EDITOR_ROW_LENGTH {
-                            HStack::new(cx, |cx| for _ in 0..style::EDITOR_ROW_LENGTH {});
-                        }
-                    });
+                    GridView::new(
+                        cx,
+                        vec![Pixels(style::EDITOR_MATERIAL_SIZE); style::EDITOR_ROW_LENGTH],
+                        vec![
+                            Pixels(style::EDITOR_MATERIAL_SIZE);
+                            materials.len().div_ceil(style::EDITOR_ROW_LENGTH)
+                        ],
+                        |cx| {
+                            for (i, color) in materials.iter().enumerate() {
+                                Element::new(cx)
+                                    .background_color(color.to_rgba())
+                                    .border_color("#00ffff")
+                                    .column_start(i % style::EDITOR_ROW_LENGTH)
+                                    .row_start(i / style::EDITOR_ROW_LENGTH)
+                                    .size(Stretch(1.0));
+                            }
+                        },
+                    )
+                    .size(Stretch(1.0))
+                    .alignment(Alignment::Center);
                 },
             );
         })
@@ -209,6 +216,7 @@ fn rule_editor(cx: &mut Context) {
             .text_align(TextAlign::Center)
             .alignment(Alignment::Center);
     })
+    .background_color("red")
     .class(style::EDITOR_PANEL);
 }
 
@@ -319,7 +327,7 @@ fn savestate_controls(cx: &mut Context) {
 }
 
 fn center_panel(cx: &mut Context) {
-    ZStack::new(cx, |cx| {
+    VStack::new(cx, |cx| {
         GridDisplay::new(
             cx,
             AppData::screen
@@ -328,10 +336,9 @@ fn center_panel(cx: &mut Context) {
             AppData::hovered_index,
             AppData::grid_lines_enabled,
         )
-        .size(Stretch(1.0))
-        .background_color(Color::rgba(255, 0, 0, 128));
-        // grid.display(cx);
+        .size(Stretch(1.0));
     })
+    .alignment(Alignment::Center)
     .size(Stretch(2.2))
     .min_size(Auto)
     .class(style::CENTER_PANEL);

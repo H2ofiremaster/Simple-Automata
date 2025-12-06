@@ -14,6 +14,14 @@ use crate::{
     ruleset::Ruleset,
 };
 
+struct MaterialEditorView;
+impl MaterialEditorView {
+    fn new(cx: &mut Context) -> Handle<Self> {
+        Self {}.build(cx, |cx| {})
+    }
+}
+impl View for MaterialEditorView {}
+
 pub fn material(this: &Material, cx: &mut Context, index: usize, ruleset: &Ruleset) {
     VStack::new(cx, |cx| {
         let cell = Cell::new(this.id());

@@ -220,10 +220,10 @@ impl Model for AppData {
                 }
             }
             MaterialEvent::Recolored(index, color) => {
-                if let Some(material) = self.screen.ruleset_mut().materials.get_mut_at(*index) {
-                    if let Ok(color) = color.parse() {
-                        material.color = color;
-                    }
+                if let Some(material) = self.screen.ruleset_mut().materials.get_mut_at(*index)
+                    && let Ok(color) = color.parse()
+                {
+                    material.color = color;
                 }
             }
             MaterialEvent::Deleted(material_id) => {

@@ -1,6 +1,7 @@
 use vizia::prelude::*;
 
 use crate::{
+    AppData,
     display::{
         condition::condition,
         lens::{self},
@@ -10,7 +11,6 @@ use crate::{
     events::{ConditionEvent, RuleEvent},
     material::MaterialMap,
     ruleset::{Rule, RuleIndex},
-    AppData,
 };
 
 pub fn rule(this: &Rule, cx: &mut Context, index: RuleIndex) {
