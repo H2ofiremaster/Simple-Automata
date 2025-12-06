@@ -1,15 +1,15 @@
 use vizia::prelude::*;
 
 use crate::{
-    display::grid::GridDisplay,
+    AppData,
+    display::{grid::GridDisplay, lens::ScreenToRuleset},
     events::{
         EditorEvent, GridEvent, GroupEvent, MaterialEvent, RuleEvent, RulesetEvent, UpdateEvent,
     },
     grid::{Cell, Grid},
     id::Identifiable,
-    material::Material,
+    material::{Material, MaterialColor},
     ruleset::Ruleset,
-    AppData,
 };
 
 pub mod condition;
@@ -28,7 +28,7 @@ pub fn ruleset_editor(cx: &mut Context) {
         })
         .class(style::EDITOR_PANEL)
         .height(Auto)
-        .row_between(Pixels(5.0));
+        .vertical_gap(Pixels(5.0));
 
         // Materials
         HStack::new(cx, |cx| {
@@ -93,7 +93,7 @@ fn tabs(cx: &mut Context) {
             )
             .width(Stretch(1.0))
             .text_align(TextAlign::Center)
-            .child_space(Stretch(1.0));
+            .alignment(Alignment::Center);
         Button::new(cx, |cx| Label::new(cx, "Rules"))
             .on_press(|cx| cx.emit(EditorEvent::TabSwitched(EditorTab::Rules)))
             .toggle_class(
@@ -102,30 +102,35 @@ fn tabs(cx: &mut Context) {
             )
             .width(Stretch(1.0))
             .text_align(TextAlign::Center)
-            .child_space(Stretch(1.0));
+            .alignment(Alignment::Center);
     })
     .height(Auto);
 }
 
 fn material_editor(cx: &mut Context) {
     VStack::new(cx, |cx| {
-        ScrollView::new(cx, 0.0, 0.0, true, true, move |cx| {
+        ScrollView::new(cx, move |cx| {
             Binding::new(
                 cx,
                 AppData::screen.then(lens::ScreenToRuleset),
                 |cx, ruleset| {
                     let ruleset = ruleset.get(cx);
-                    let materials: Vec<(usize, &Material)> =
-                        ruleset.materials.iter().enumerate().collect();
+                    let materials: Vec<MaterialColor> =
+                        ruleset.materials.iter().map(|m| m.color).collect();
+                    // VStack::new(cx, |cx| {
+                    //     for chunk in materials.chunks(style::EDITOR_ROW_LENGTH) {
+                    //         editor_material_row(cx, chunk, &ruleset);
+                    //     }
+                    // })
+                    // .row_between(Pixels(15.0))
+                    // .left(Stretch(0.1))
+                    // .right(Stretch(0.1))
+                    // .size(Auto);
                     VStack::new(cx, |cx| {
-                        for chunk in materials.chunks(style::EDITOR_ROW_LENGTH) {
-                            editor_material_row(cx, chunk, &ruleset);
+                        for _ in 0..style::EDITOR_ROW_LENGTH {
+                            HStack::new(cx, |cx| for _ in 0..style::EDITOR_ROW_LENGTH {});
                         }
-                    })
-                    .row_between(Pixels(15.0))
-                    .left(Stretch(0.1))
-                    .right(Stretch(0.1))
-                    .size(Auto);
+                    });
                 },
             );
         })
@@ -134,7 +139,7 @@ fn material_editor(cx: &mut Context) {
             .on_press(|cx| cx.emit(MaterialEvent::Created))
             .width(Stretch(1.0))
             .text_align(TextAlign::Center)
-            .child_space(Stretch(1.0));
+            .alignment(Alignment::Center);
     })
     .class(style::EDITOR_PANEL);
 }
@@ -149,13 +154,13 @@ fn editor_material_row(cx: &mut Context, row: &[(usize, &Material)], ruleset: &R
             }
         }
     })
-    .col_between(Pixels(15.0))
+    .horizontal_gap(Pixels(15.0))
     .size(Auto);
 }
 
 fn group_editor(cx: &mut Context) {
     VStack::new(cx, |cx| {
-        ScrollView::new(cx, 0.0, 0.0, true, true, move |cx| {
+        ScrollView::new(cx, |cx| {
             Binding::new(
                 cx,
                 AppData::screen.then(lens::ScreenToRuleset),
@@ -166,7 +171,7 @@ fn group_editor(cx: &mut Context) {
                             material::group(group, cx, index, &ruleset);
                         }
                     })
-                    .row_between(Pixels(5.0))
+                    .vertical_gap(Pixels(5.0))
                     .min_height(Auto);
                 },
             );
@@ -176,13 +181,13 @@ fn group_editor(cx: &mut Context) {
             .on_press(|cx| cx.emit(GroupEvent::Created))
             .width(Stretch(1.0))
             .text_align(TextAlign::Center)
-            .child_space(Stretch(1.0));
+            .alignment(Alignment::Center);
     })
     .class(style::EDITOR_PANEL);
 }
 fn rule_editor(cx: &mut Context) {
     VStack::new(cx, |cx| {
-        ScrollView::new(cx, 0.0, 0.0, true, true, |cx| {
+        ScrollView::new(cx, |cx| {
             Binding::new(
                 cx,
                 AppData::screen.then(lens::ScreenToRuleset),
@@ -192,7 +197,7 @@ fn rule_editor(cx: &mut Context) {
                             ruleset::rule(rule, cx, index.into());
                         }
                     })
-                    .row_between(Pixels(5.0))
+                    .vertical_gap(Pixels(5.0))
                     .bottom(Pixels(150.0))
                     .min_height(Auto);
                 },
@@ -202,7 +207,7 @@ fn rule_editor(cx: &mut Context) {
             .on_press(|cx| cx.emit(RuleEvent::Created))
             .width(Stretch(1.0))
             .text_align(TextAlign::Center)
-            .child_space(Stretch(1.0));
+            .alignment(Alignment::Center);
     })
     .class(style::EDITOR_PANEL);
 }
@@ -271,7 +276,7 @@ fn speed_controls(cx: &mut Context) {
             .bottom(Stretch(1.0))
             .space(Stretch(0.05))
             .range(0.01..1.0)
-            .on_changing(|cx, progress| cx.emit(GridEvent::SpeedSet(progress)));
+            .on_change(|cx, progress| cx.emit(GridEvent::SpeedSet(progress)));
         Textbox::new(cx, AppData::speed.map(|speed| format!("{speed:.2}")))
             .top(Stretch(1.0))
             .bottom(Stretch(1.0))
@@ -288,18 +293,16 @@ fn size_controls(cx: &mut Context) {
     HStack::new(cx, |cx| {
         Label::new(cx, "Grid Size: ")
             .height(Stretch(1.0))
-            .child_space(Stretch(1.0));
+            .alignment(Alignment::Center);
         Textbox::new(cx, AppData::grid_size.map(|&x| x.to_string())).on_submit(
             |cx, text, enter_pressed| {
-                if enter_pressed {
-                    if let Ok(size) = text.parse() {
-                        cx.emit(GridEvent::Resized(size));
-                    }
+                if enter_pressed && let Ok(size) = text.parse() {
+                    cx.emit(GridEvent::Resized(size));
                 }
             },
         );
     })
-    .col_between(Pixels(5.0))
+    .horizontal_gap(Pixels(5.0))
     .class(style::MENU_ELEMENT);
 }
 fn savestate_controls(cx: &mut Context) {
@@ -339,7 +342,7 @@ fn right_panel(cx: &mut Context) {
         Label::new(cx, AppData::tooltip.map(|(text, _)| text.clone()))
             .class(style::MATERIAL_TOOLTIP)
             .color(AppData::tooltip.map(|(_, color)| *color));
-        ScrollView::new(cx, 0., 0., true, true, |cx| {
+        ScrollView::new(cx, |cx| {
             VStack::new(cx, |cx| {
                 Binding::new(cx, AppData::screen.then(lens::ScreenToGrid), |cx, grid| {
                     let grid = grid.get(cx);

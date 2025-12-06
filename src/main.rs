@@ -422,10 +422,10 @@ impl Model for AppData {
                 }
             }
             GridEvent::StateLoaded => {
-                if let Screen::Grid(ref mut grid) = self.screen {
-                    if let Some(state) = &self.saved_state {
-                        grid.load_state(state.clone());
-                    }
+                if let Screen::Grid(ref mut grid) = self.screen
+                    && let Some(state) = &self.saved_state
+                {
+                    grid.load_state(state.clone());
                 }
             }
             GridEvent::GridLinesToggled => self.grid_lines_enabled = !self.grid_lines_enabled,

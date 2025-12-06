@@ -1,13 +1,13 @@
 use vizia::prelude::*;
 
 use crate::{
+    AppData,
     condition::{Condition, ConditionIndex, ConditionVariant, Direction, Operator},
     display::{
         lens, pattern,
         style::{self, svg},
     },
     events::ConditionEvent,
-    AppData,
 };
 
 pub fn condition(this: &Condition, cx: &mut Context, index: ConditionIndex) {
@@ -134,7 +134,7 @@ fn direction_button<'c>(
         style::PRESSED_BUTTON,
         AppData::screen.map(move |screen| {
             let variant = &index.condition(screen.ruleset()).variant;
-            matches!(variant, ConditionVariant::Directional(ref vec) if vec.contains(&direction))
+            matches!(variant, ConditionVariant::Directional(vec) if vec.contains(&direction))
         }),
     )
     .on_press(move |cx| {

@@ -28,7 +28,7 @@ impl Lens for ScreenToGrid {
     type Target = Grid;
 
     fn view<'a>(&self, source: &'a Self::Source) -> Option<LensValue<'a, Self::Target>> {
-        if let Screen::Grid(ref grid) = source {
+        if let Screen::Grid(grid) = source {
             Some(LensValue::Borrowed(grid))
         } else {
             None

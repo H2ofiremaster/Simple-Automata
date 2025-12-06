@@ -1,6 +1,7 @@
 use vizia::prelude::*;
 
 use crate::{
+    AppData,
     display::{
         grid,
         lens::{self, ScreenToRuleset},
@@ -9,9 +10,8 @@ use crate::{
     events::{GroupEvent, MaterialEvent},
     grid::Cell,
     id::Identifiable,
-    material::{Material, MaterialGroup, MaterialMap},
+    material::{Material, MaterialColor, MaterialGroup, MaterialMap},
     ruleset::Ruleset,
-    AppData,
 };
 
 pub fn material(this: &Material, cx: &mut Context, index: usize, ruleset: &Ruleset) {

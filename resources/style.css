@@ -62,7 +62,7 @@ label:disabled {
 }
 
 button {
-    background-color: var(--background);
+    background-color: var(--dark-background);
     /* background-image: radial-gradient(#606060, #707070); */
     border-color: var(--border);
     border-width: var(--border-width);
@@ -238,7 +238,7 @@ slider .thumb {
     background-color: var(--background);
     height: Auto;
     child-space: 10px;
-    row-between: 15px;
+    vertical-gap: 15px;
     border-width: var(--border-width);
     border-color: var(--dark-border);
     corner-radius: 15px;
