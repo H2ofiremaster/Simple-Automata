@@ -102,7 +102,7 @@ pub enum ConditionVariant {
     Count(Operator),
 }
 impl ConditionVariant {
-    pub fn directions(&mut self) -> Option<&mut Vec<Direction>> {
+    pub const fn directions(&mut self) -> Option<&mut Vec<Direction>> {
         match self {
             Self::Directional(vec) => Some(vec),
             Self::Count(_) => None,

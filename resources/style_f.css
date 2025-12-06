@@ -6,28 +6,110 @@ Border Color:
 */
 .vars {
     --full-background: #000;
-    --background: #3030a0;
-    --light-background: #6060d0;
-    --dark-background: #101080;
+    --background: #002020;
+    --light-background: #008080;
+    --dark-background: #004040;
 
     --trash-background: #700000;
     --light-trash-background: #A00000;
 
-    --border: #5050c0;
-    --dark-border: #2020a0;
+    --border: #00ffff;
+    --dark-border: #00aaaa;
     --text-color: #fff;
+    --disabled-text-color: #DDD;
 
     --border-width: 2px;
+    --selected-border-width: 4px;
 }
 
+/* Elements */
+
+combobox {
+    background-color: #002020;
+    color: #fff;
+}
+combobox .title {
+    background-color: #002020;
+    color: #fff;
+    border-color: #00ffff;
+    border-width: 2px;
+}
+combobox .title > label.placeholder {
+    color: #fff;
+}
+combobox .list {
+    background-color: #002020;
+    color: #fff;
+}
+
+textbox {
+    background-color: #002020;
+    color: #fff;
+    border-color: #00ffff;
+    border-width: 2px;
+}
+textbox:focus-visible {
+    background-color: #008080;
+    border-width: 4px;
+}
+
+label {
+    color: #fff;
+    font-size: large;
+}
+label:disabled {
+    color: #DDD;
+}
+
+button {
+    background-color: #002020;
+    /* background-image: radial-gradient(#606060, #707070); */
+    border-color: #00ffff;
+    border-width: 2px;
+    color: #fff;
+}
+button:hover {
+    background-color: #008080;
+    border-color: #00ffff;
+    border-width: 4px;
+    /* background-image: radial-gradient(#404040, #505050); */
+}
+button:focus-visible {
+    background-color: #008080;
+    border-color: #00ffff;
+    border-width: 4px;
+    /* background-image: radial-gradient(#404040, #505050); */
+}
+button:disabled {
+    /* background-image: none; */
+    border-color: #00ffff;
+    border-width: 2px;
+    cursor: default;
+    background-color: #008080;
+}
+
+slider {
+    background-color: #004040;
+}
+slider .active {
+    background-color: #008080;
+}
+slider .thumb {
+    background-color: #008080;
+    border: #00ffff;
+    border-width: 2px;
+    /* height: 100%; */
+}
+
+/* Classes */
 .background {
     child-space: 1%;
     background-color: #000;
 }
 
 .side-panel {
-    background-color: #3030a0;
-    border-color: #5050c0;
+    background-color: #002020;
+    border-color: #00aaaa;
     border-width: 2px;
     corner-radius: 5%;
     child-space: 10px;
@@ -35,8 +117,8 @@ Border Color:
     row-between: 10px;
 }
 .center-panel {
-    background-color: #3030a0;
-    border-color: #5050c0;
+    background-color: #002020;
+    border-color: #00aaaa;
     border-width: 2px;
     corner-radius: 1%;
     child-space: 0.01s;
@@ -81,68 +163,26 @@ Border Color:
     child-bottom: 5px;
     font-size: xx-large;
     color: #fff;
-    background-color: #3030a0;
-    border-color: #5050c0;
+    background-color: #002020;
+    border-color: #00aaaa;
     border-width: 2px;
     corner-radius: 15px;
 }
 
-combobox {
-    background-color: #3030a0;
-    color: #fff;
-}
-combobox .title {
-    background-color: #3030a0;
-    color: #fff;
-    border-color: #fff;
-    border-width: 1px;
-}
-combobox .title > label.placeholder {
-    color: #fff;
-}
-combobox .list {
-    background-color: #3030a0;
-    color: #fff;
-}
+
 
 .light-combobox {
-    background-color: #6060d0;
+    background-color: #008080;
 }
 .light-combobox .title {
-    background-color: #6060d0;
-}
-
-textbox {
-    background-color: #3030a0;
-    color: #fff;
-    border-color: #2020a0;
-    border-width: 2px;
-}
-
-label {
-    color: #fff;
-}
-button {
-    background-color: #3030a0;
-    /* background-image: radial-gradient(#606060, #707070); */
-    border-color: #5050c0;
-    border-width: 2px;
-    color: #fff;
-}
-button:hover {
-    background-color: #6060d0;
-    /* background-image: radial-gradient(#404040, #505050); */
-}
-button:disabled {
-    /* background-image: none; */
-    background-color: #101080;
+    background-color: #008080;
 }
 
 .pressed-button {
-    background-color: #101080;
+    background-color: #004040;
 }
 .pressed-button:hover {
-    background-color: #3030a0;
+    background-color: #002020;
 }
 
 .trash-button {
@@ -165,25 +205,27 @@ button:disabled {
 }
 
 .editor-panel {
-    background-color: #3030a0;
-    border-color: #5050c0;
+    background-color: #002020;
+    border-color: #00aaaa;
     border-width: 2px;
     child-space: 15px;
     space: 5px;
     corner-radius: 15px;
 }
 .base-editor {
+    background-color: #002020;
+    border: #00aaaa;
+    border-width: 2px;
     left: 1s;
     right: 1s;
     height: Auto;
-    background-color: #404040;
     child-space: 15px;
     row-between: 5px;
     corner-radius: 15px;
 }
 .condition-editor {
-    background-color: #3030a0;
-    border-color: #5050c0;
+    background-color: #002020;
+    border-color: #00aaaa;
     border-width: 2px;
     child_top: 1s;
     child_bottom: 1s;
@@ -193,12 +235,12 @@ button:disabled {
     corner-radius: 15px;
 }
 .condition-container {
-    background-color: #3030a0;
+    background-color: #002020;
     height: Auto;
     child-space: 10px;
     row-between: 15px;
     border-width: 2px;
-    border-color: #5050c0;
+    border-color: #00aaaa;
     corner-radius: 15px;
 }
 .condition-invert-button {
@@ -209,6 +251,3 @@ button:disabled {
     size: 50px;
 }
 
-label {
-    font-size: large;
-}

@@ -51,7 +51,7 @@ where
     L3: Lens<Target = bool>,
 {
     const PADDING_MARGIN: f32 = 0.1;
-    pub fn new(cx: &mut Context, grid: L1, hovered: L2, lines_enabled: L3) -> Handle<Self> {
+    pub fn new(cx: &mut Context, grid: L1, hovered: L2, lines_enabled: L3) -> Handle<'_, Self> {
         Self {
             grid,
             hovered,

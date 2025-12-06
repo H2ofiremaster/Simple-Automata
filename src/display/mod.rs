@@ -45,7 +45,6 @@ pub fn ruleset_editor(cx: &mut Context) {
 
 fn toolbar(cx: &mut Context) {
     HStack::new(cx, |cx| {
-        Button::new(cx, |cx| Label::new(cx, "Dummy")).display(false);
         Button::new(cx, |cx| Label::new(cx, "Back")).on_press(|cx| cx.emit(EditorEvent::Disabled));
 
         ComboBox::new(
@@ -75,7 +74,8 @@ fn toolbar(cx: &mut Context) {
 
         Button::new(cx, |cx| Label::new(cx, "Save"))
             .on_press(|cx| cx.emit(RulesetEvent::Saved))
-            .disabled(AppData::selected_ruleset.map(|&index| index == 0));
+            // .disabled(AppData::selected_ruleset.map(|&i| i == 0));
+            .disabled(true);
 
         Button::new(cx, |cx| Label::new(cx, "Reload"))
             .on_press(|cx| cx.emit(RulesetEvent::Reloaded));
@@ -421,7 +421,7 @@ impl Screen {
             Self::Editor(ruleset) => ruleset,
         }
     }
-    pub fn ruleset_mut(&mut self) -> &mut Ruleset {
+    pub const fn ruleset_mut(&mut self) -> &mut Ruleset {
         match self {
             Self::Grid(grid) => &mut grid.ruleset,
             Self::Editor(ruleset) => ruleset,

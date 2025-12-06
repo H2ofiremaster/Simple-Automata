@@ -6,20 +6,102 @@ Border Color:
 */
 .vars {
     --full-background: #000;
-    --background: #3030a0;
-    --light-background: #6060d0;
-    --dark-background: #101080;
+    --background: #002020;
+    --light-background: #008080;
+    --dark-background: #004040;
 
     --trash-background: #700000;
     --light-trash-background: #A00000;
 
-    --border: #5050c0;
-    --dark-border: #2020a0;
+    --border: #00ffff;
+    --dark-border: #00aaaa;
     --text-color: #fff;
+    --disabled-text-color: #DDD;
 
     --border-width: 2px;
+    --selected-border-width: 4px;
 }
 
+/* Elements */
+
+combobox {
+    background-color: var(--background);
+    color: var(--text-color);
+}
+combobox .title {
+    background-color: var(--background);
+    color: var(--text-color);
+    border-color: var(--border);
+    border-width: var(--border-width);
+}
+combobox .title > label.placeholder {
+    color: var(--text-color);
+}
+combobox .list {
+    background-color: var(--background);
+    color: var(--text-color);
+}
+
+textbox {
+    background-color: var(--background);
+    color: var(--text-color);
+    border-color: var(--border);
+    border-width: var(--border-width);
+}
+textbox:focus-visible {
+    background-color: var(--light-background);
+    border-width: var(--selected-border-width);
+}
+
+label {
+    color: var(--text-color);
+    font-size: large;
+}
+label:disabled {
+    color: var(--disabled-text-color);
+}
+
+button {
+    background-color: var(--background);
+    /* background-image: radial-gradient(#606060, #707070); */
+    border-color: var(--border);
+    border-width: var(--border-width);
+    color: var(--text-color);
+}
+button:hover {
+    background-color: var(--light-background);
+    border-color: var(--border);
+    border-width: var(--selected-border-width);
+    /* background-image: radial-gradient(#404040, #505050); */
+}
+button:focus-visible {
+    background-color: var(--light-background);
+    border-color: var(--border);
+    border-width: var(--selected-border-width);
+    /* background-image: radial-gradient(#404040, #505050); */
+}
+button:disabled {
+    /* background-image: none; */
+    border-color: var(--border);
+    border-width: var(--border-width);
+    cursor: default;
+    background-color: var(--light-background);
+}
+
+slider {
+    background-color: var(--dark-background);
+}
+slider .active {
+    background-color: var(--light-background);
+}
+slider .thumb {
+    background-color: var(--light-background);
+    border: var(--border);
+    border-width: var(--border-width);
+    /* height: 100%; */
+}
+
+/* Classes */
 .background {
     child-space: 1%;
     background-color: var(--full-background);
@@ -27,7 +109,7 @@ Border Color:
 
 .side-panel {
     background-color: var(--background);
-    border-color: var(--border);
+    border-color: var(--dark-border);
     border-width: var(--border-width);
     corner-radius: 5%;
     child-space: 10px;
@@ -36,7 +118,7 @@ Border Color:
 }
 .center-panel {
     background-color: var(--background);
-    border-color: var(--border);
+    border-color: var(--dark-border);
     border-width: var(--border-width);
     corner-radius: 1%;
     child-space: 0.01s;
@@ -82,60 +164,18 @@ Border Color:
     font-size: xx-large;
     color: var(--text-color);
     background-color: var(--background);
-    border-color: var(--border);
+    border-color: var(--dark-border);
     border-width: var(--border-width);
     corner-radius: 15px;
 }
 
-combobox {
-    background-color: var(--background);
-    color: var(--text-color);
-}
-combobox .title {
-    background-color: var(--background);
-    color: var(--text-color);
-    border-color: var(--text-color);
-    border-width: 1px;
-}
-combobox .title > label.placeholder {
-    color: var(--text-color);
-}
-combobox .list {
-    background-color: var(--background);
-    color: var(--text-color);
-}
+
 
 .light-combobox {
     background-color: var(--light-background);
 }
 .light-combobox .title {
     background-color: var(--light-background);
-}
-
-textbox {
-    background-color: var(--background);
-    color: var(--text-color);
-    border-color: var(--dark-border);
-    border-width: var(--border-width);
-}
-
-label {
-    color: var(--text-color);
-}
-button {
-    background-color: var(--background);
-    /* background-image: radial-gradient(#606060, #707070); */
-    border-color: var(--border);
-    border-width: var(--border-width);
-    color: var(--text-color);
-}
-button:hover {
-    background-color: var(--light-background);
-    /* background-image: radial-gradient(#404040, #505050); */
-}
-button:disabled {
-    /* background-image: none; */
-    background-color: var(--dark-background);
 }
 
 .pressed-button {
@@ -166,24 +206,26 @@ button:disabled {
 
 .editor-panel {
     background-color: var(--background);
-    border-color: var(--border);
+    border-color: var(--dark-border);
     border-width: var(--border-width);
     child-space: 15px;
     space: 5px;
     corner-radius: 15px;
 }
 .base-editor {
+    background-color: var(--background);
+    border: var(--dark-border);
+    border-width: var(--border-width);
     left: 1s;
     right: 1s;
     height: Auto;
-    background-color: #404040;
     child-space: 15px;
     row-between: 5px;
     corner-radius: 15px;
 }
 .condition-editor {
     background-color: var(--background);
-    border-color: var(--border);
+    border-color: var(--dark-border);
     border-width: var(--border-width);
     child_top: 1s;
     child_bottom: 1s;
@@ -198,7 +240,7 @@ button:disabled {
     child-space: 10px;
     row-between: 15px;
     border-width: var(--border-width);
-    border-color: var(--border);
+    border-color: var(--dark-border);
     corner-radius: 15px;
 }
 .condition-invert-button {
@@ -209,6 +251,3 @@ button:disabled {
     size: 50px;
 }
 
-label {
-    font-size: large;
-}

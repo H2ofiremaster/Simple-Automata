@@ -22,13 +22,9 @@ fn main() -> std::io::Result<()> {
 }
 
 fn format_file(path: &Path) -> std::io::Result<()> {
-    println!("Formatting {path:?}");
-    let regex = Regex::new(r"var\((--.*)\)").map_err(|err| {
-        std::io::Error::new(
-            std::io::ErrorKind::Other,
-            format!("Regex failed to build: {err}"),
-        )
-    })?;
+    println!("Formatting {}", path.display());
+    let regex = Regex::new(r"var\((--.*)\)")
+        .map_err(|err| std::io::Error::other(format!("Regex failed to build: {err}")))?;
     let contents = fs::read_to_string(path)?;
     let filtered = regex.replace_all(&contents, |captures: &regex::Captures| {
         println!("Found variable: {}", &captures[0]);

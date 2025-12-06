@@ -240,7 +240,7 @@ impl MaterialMap {
     pub fn remove(&mut self, id: MaterialId) {
         if let Some(index) = self.0.iter().position(|m| m.id == id) {
             self.0.remove(index);
-        };
+        }
     }
 
     pub fn names(&self) -> Vec<String> {
@@ -263,11 +263,11 @@ impl MaterialMap {
         self.0.push(material);
     }
 
-    pub fn iter(&self) -> std::slice::Iter<Material> {
+    pub fn iter(&self) -> std::slice::Iter<'_, Material> {
         self.0.iter()
     }
 
-    pub fn len(&self) -> usize {
+    pub const fn len(&self) -> usize {
         self.0.len()
     }
 }

@@ -217,7 +217,7 @@ impl Model for AppData {
             MaterialEvent::Renamed(index, name) => {
                 if let Some(material) = self.screen.ruleset_mut().materials.get_mut_at(*index) {
                     material.name.clone_from(name);
-                };
+                }
             }
             MaterialEvent::Recolored(index, color) => {
                 if let Some(material) = self.screen.ruleset_mut().materials.get_mut_at(*index) {
@@ -280,7 +280,7 @@ impl Model for AppData {
                     let material = ruleset.materials.default();
                     group.push(material.id());
                     self.group_material_index = 0;
-                };
+                }
             }
         });
         event.map(|event: &RuleEvent, _| match event {
@@ -419,7 +419,7 @@ impl Model for AppData {
             GridEvent::StateSaved => {
                 if let Screen::Grid(ref grid) = self.screen {
                     self.saved_state = Some(grid.functional_state());
-                };
+                }
             }
             GridEvent::StateLoaded => {
                 if let Screen::Grid(ref mut grid) = self.screen {
